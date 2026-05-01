@@ -89,6 +89,9 @@ model Appointment {
   schedulerName      String
   schedulerPhone     String
   claimantPhone      String            @default("")
+  contractNumber     String            @default("")
+  hasInterpreter     String            @default("no")
+  isOdarCase         String            @default("no")
   notes              String            @default("")
   status             AppointmentStatus @default(SCHEDULED)
   statusNote         String            @default("")

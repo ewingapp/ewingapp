@@ -10,10 +10,13 @@ const bodySchema = z.object({
   lastNamePrefix: z.string().min(1).max(5),
   stateBranch: z.string().min(1),
   analystName: z.string().min(1),
-  analystPhone: z.string().regex(/^\d{10,15}$/, "Phone must be 10–15 digits"),
+  analystPhone: z.string().regex(/^\d{1,15}$/, "Digits only"),
   schedulerName: z.string().min(1),
-  schedulerPhone: z.string().regex(/^\d{10,15}$/, "Phone must be 10–15 digits"),
-  claimantPhone: z.string().regex(/^\d{10,15}$/).optional().or(z.literal("")),
+  schedulerPhone: z.string().regex(/^\d{1,15}$/, "Digits only"),
+  claimantPhone: z.string().regex(/^\d{1,15}$/).optional().or(z.literal("")),
+  contractNumber: z.string().optional(),
+  hasInterpreter: z.enum(["yes", "no"]).default("no"),
+  isOdarCase: z.enum(["yes", "no"]).default("no"),
   notes: z.string().optional(),
 });
 
@@ -46,6 +49,9 @@ export async function POST(request: Request) {
           schedulerName: data.schedulerName,
           schedulerPhone: data.schedulerPhone,
           claimantPhone: data.claimantPhone ?? "",
+          contractNumber: data.contractNumber ?? "",
+          hasInterpreter: data.hasInterpreter,
+          isOdarCase: data.isOdarCase,
           notes: data.notes ?? "",
         },
       });
