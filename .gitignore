@@ -42,3 +42,12 @@ yarn-error.log*
 next-env.d.ts
 
 /lib/generated/prisma
+
+.vercel
+.env*.local
+
+# local design references (screenshots etc.)
+/design-refs/
+
+# Claude Code worktree / session metadata
+/.claude/

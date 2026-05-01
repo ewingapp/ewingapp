@@ -128,3 +128,111 @@
     @apply font-sans;
   }
 }
+
+/* react-day-picker custom styling — Ewing palette */
+.ewing-calendar .rdp-root {
+  --rdp-accent-color: #C9A55C;
+  --rdp-accent-background-color: #F1F5F9;
+  --rdp-day-height: 2.5rem;
+  --rdp-day-width: 2.5rem;
+  --rdp-day_button-height: 2.25rem;
+  --rdp-day_button-width: 2.25rem;
+  --rdp-day_button-border-radius: 0.5rem;
+  --rdp-selected-border: none;
+  --rdp-range_start-color: white;
+  --rdp-range_start-background: #C9A55C;
+  --rdp-range_end-color: white;
+  --rdp-range_end-background: #C9A55C;
+  --rdp-range_middle-background-color: #F1F5F9;
+  --rdp-range_middle-color: #475569;
+  --rdp-today-color: #C9A55C;
+  font-size: 0.875rem;
+}
+
+.ewing-calendar .rdp-months {
+  display: flex;
+  gap: 2.5rem;
+  justify-content: center;
+}
+
+.ewing-calendar .rdp-month_caption {
+  background: #F1F5F9;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  font-weight: 600;
+  color: #475569;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.ewing-calendar .rdp-nav {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.ewing-calendar .rdp-nav button {
+  background: transparent;
+  border: none;
+  color: #64748B;
+  cursor: pointer;
+}
+
+.ewing-calendar .rdp-button_previous {
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.ewing-calendar .rdp-button_next {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.ewing-calendar .rdp-weekdays {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.ewing-calendar .rdp-day {
+  color: #cbd5e1;
+}
+
+.ewing-calendar .rdp-day-available .rdp-day_button {
+  background: #FDF4DC;
+  color: #7A5E1F;
+  font-weight: 500;
+}
+
+.ewing-calendar .rdp-day-available:hover .rdp-day_button {
+  background: #F4E4B0;
+}
+
+.ewing-calendar .rdp-today .rdp-day_button {
+  font-weight: 700;
+  outline: 1.5px solid #C9A55C;
+  outline-offset: -1.5px;
+}
+
+.ewing-calendar .rdp-selected .rdp-day_button {
+  background: #C9A55C;
+  color: white;
+}
+
+.ewing-calendar .rdp-range_start .rdp-day_button,
+.ewing-calendar .rdp-range_end .rdp-day_button {
+  background: #C9A55C;
+  color: white;
+}
+
+.ewing-calendar .rdp-range_middle .rdp-day_button {
+  background: #F1F5F9;
+  color: #475569;
+}
