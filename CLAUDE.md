@@ -41,16 +41,49 @@ PROJECT_BRIEF.md          Original product brief
 CLAUDE.md                 This file
 ```
 
-## Resume on a different machine
+## Hosting and deploys
 
-1. **Clone:** `git clone https://github.com/ewingapp/ewingapp.git && cd ewingapp`
-2. **Install:** `npm install` (this also runs `prisma generate` via the postinstall hook)
-3. **Env:** create `.env` with a `DATABASE_URL`:
-   - On Vercel dashboard → project → Storage → your Postgres DB → `.env.local` tab → copy the `DATABASE_URL`
-   - Or use a separate dev branch DB to avoid touching prod data
-4. **Migrate:** `npm run db:push` (or `npx prisma migrate deploy` if migrations exist)
-5. **Seed:** `npm run db:seed` (only seeds if `Location` table is empty — safe to re-run)
-6. **Run:** `npm run dev` → http://localhost:3000
+| Resource | Value |
+|---|---|
+| Production URL | https://ewingapp.vercel.app |
+| Custom domain (TODO) | https://ewingapp.com |
+| GitHub | https://github.com/ewingapp/ewingapp |
+| Vercel team | `foroutlookemail-8350s-projects` |
+| Vercel project | `ewingapp` |
+| Database | Neon Postgres (free tier, via Vercel marketplace integration), region `us-east-1` |
+| Auto-deploy trigger | `git push origin main` → Vercel rebuilds and deploys |
+
+The DB is shared across `development` / `preview` / `production` Vercel environments — no separate dev DB. Be careful when destructive (don't truncate tables without warning the user).
+
+## Resume on a different machine (or new shell)
+
+```bash
+# Prereqs: git, node 20+, vercel CLI (npm install -g vercel) and you're logged in (vercel login)
+
+git clone https://github.com/ewingapp/ewingapp.git
+cd ewingapp
+npm install                      # also runs `prisma generate` via postinstall
+vercel link                      # → Set up "C:\path\to\ewingapp"? Y
+                                 #   Scope?  foroutlookemail-8350's projects
+                                 #   Link to existing project? Y → name: ewingapp
+vercel env pull .env             # writes DATABASE_URL etc. into .env (gitignored)
+npm run dev                      # http://localhost:3000
+```
+
+If the database has never been migrated/seeded (e.g., a fresh DB), also run:
+```bash
+npm run db:push      # creates tables from schema.prisma
+npm run db:seed      # seeds — idempotent, skips if Locations exist
+```
+
+## How a fresh Claude session should orient
+
+1. **Read this file.** It is the source of truth for project state.
+2. **Read `PROJECT_BRIEF.md`** for the full product spec.
+3. **Read `AGENTS.md`** — Next.js 16 has breaking changes from older training data; check `node_modules/next/dist/docs/` before writing Next.js code.
+4. **Check the build progress table below** to see what's done vs. TODO.
+5. **Don't re-scaffold.** This project is already initialized. Edit existing files; add new files as needed.
+6. **Don't run destructive DB ops** without confirming with the user.
 
 ## Key scripts
 
@@ -82,15 +115,16 @@ CLAUDE.md                 This file
 | Next.js scaffold (TS, Tailwind, App Router) | done |
 | shadcn/ui (button, input, label, select, dialog, card, textarea, checkbox) | done |
 | Prisma schema + adapter setup | done |
-| Seed script | done |
-| Home page (dashboard) | TODO |
+| Seed script (3 locations, 5 specialties, 6 doctors, 8 branches, ~16k slots over 30 weekdays) | done |
+| Home page (dashboard cards) | done |
+| Vercel Postgres (Neon) provisioned + connected to project | done |
+| First deploy live at ewingapp.vercel.app | done |
 | Admin section (locations, doctors, specialties, branches, slot mgmt) | TODO |
 | `/schedule` (the core screen) | TODO |
 | `/appointments` (list + filters + status/cancel) | TODO |
 | `/reschedule/[id]` | TODO |
 | `/reports` | TODO |
-| Vercel Postgres provisioned + connected | TODO |
-| First deploy to ewingapp.com | TODO |
+| Custom domain ewingapp.com attached | TODO |
 
 ## Notes on Prisma 7
 
