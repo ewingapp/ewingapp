@@ -1,0 +1,108 @@
+// California State Scheduling — Prisma schema
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Location {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  city      String
+  state     String
+  zip       String
+  phone     String
+  doctors   Doctor[] @relation("DoctorLocations")
+  slots     Slot[]
+  createdAt DateTime @default(now())
+}
+
+model Specialty {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  doctors   Doctor[] @relation("DoctorSpecialties")
+  slots     Slot[]
+  createdAt DateTime @default(now())
+}
+
+model Doctor {
+  id          String      @id @default(cuid())
+  name        String
+  notes       String      @default("")
+  specialties Specialty[] @relation("DoctorSpecialties")
+  locations   Location[]  @relation("DoctorLocations")
+  slots       Slot[]
+  createdAt   DateTime    @default(now())
+}
+
+enum SlotStatus {
+  AVAILABLE
+  BOOKED
+}
+
+model Slot {
+  id          String       @id @default(cuid())
+  doctor      Doctor       @relation(fields: [doctorId], references: [id])
+  doctorId    String
+  location    Location     @relation(fields: [locationId], references: [id])
+  locationId  String
+  specialty   Specialty    @relation(fields: [specialtyId], references: [id])
+  specialtyId String
+  startTime   DateTime
+  endTime     DateTime
+  status      SlotStatus   @default(AVAILABLE)
+  appointment Appointment?
+
+  @@index([locationId, specialtyId, startTime, status])
+  @@index([doctorId, startTime])
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  KEPT
+  NO_SHOW
+  CANCELLED
+  OTHER
+}
+
+enum CancelledBy {
+  BRANCH
+  VENDOR
+}
+
+model Appointment {
+  id                 String            @id @default(cuid())
+  slot               Slot              @relation(fields: [slotId], references: [id])
+  slotId             String            @unique
+  caseNumber         String
+  firstInitial       String
+  lastNamePrefix     String
+  stateBranch        String
+  analystName        String
+  analystPhone       String
+  schedulerName      String
+  schedulerPhone     String
+  claimantPhone      String            @default("")
+  notes              String            @default("")
+  status             AppointmentStatus @default(SCHEDULED)
+  statusNote         String            @default("")
+  cancelledBy        CancelledBy?
+  cancelledAt        DateTime?
+  isLateCancellation Boolean           @default(false)
+  createdAt          DateTime          @default(now())
+
+  @@index([caseNumber])
+  @@index([status])
+}
+
+model StateBranch {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+}
