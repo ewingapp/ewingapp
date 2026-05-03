@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowLeft, Download, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
@@ -18,16 +18,31 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-type Specialty = { id: string; name: string; code: string };
+type Category = "PSYCH" | "MEDICAL" | "SLP";
+type Specialty = { id: string; name: string; code: string; category: Category };
+
+const CATEGORIES: { value: Category; label: string }[] = [
+  { value: "PSYCH", label: "Psych" },
+  { value: "MEDICAL", label: "Medical" },
+  { value: "SLP", label: "SLP" },
+];
 
 const formSchema = z.object({
   name: z.string().min(1, "Required"),
   code: z.string(),
+  category: z.enum(["PSYCH", "MEDICAL", "SLP"]),
 });
 type FormValues = z.infer<typeof formSchema>;
 
-const EMPTY_FORM: FormValues = { name: "", code: "" };
+const EMPTY_FORM: FormValues = { name: "", code: "", category: "MEDICAL" };
 
 function csvEscape(value: string): string {
   return `"${String(value).replace(/"/g, '""')}"`;
@@ -75,7 +90,7 @@ export default function SpecialtiesPage() {
 
   function openEdit(s: Specialty) {
     setEditing(s);
-    form.reset({ name: s.name, code: s.code });
+    form.reset({ name: s.name, code: s.code, category: s.category });
     setDialogOpen(true);
   }
 
@@ -121,8 +136,17 @@ export default function SpecialtiesPage() {
     }
   }
 
+  const grouped = useMemo(() => {
+    const out: Record<Category, Specialty[]> = { PSYCH: [], MEDICAL: [], SLP: [] };
+    for (const s of specialties) out[s.category]?.push(s);
+    return out;
+  }, [specialties]);
+
   function exportCsv() {
-    const rows = [["Name", "Code"], ...specialties.map((s) => [s.name, s.code])];
+    const rows = [
+      ["Category", "Name", "Code"],
+      ...specialties.map((s) => [s.category, s.name, s.code]),
+    ];
     const csv = rows.map((r) => r.map(csvEscape).join(",")).join("\r\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -183,70 +207,90 @@ export default function SpecialtiesPage() {
           </div>
         )}
 
-        <div className="bg-white rounded-lg border shadow-sm overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase tracking-wide text-slate-500 bg-slate-50">
-              <tr className="border-b">
-                <th className="px-3 py-2 font-medium">Name</th>
-                <th className="px-3 py-2 font-medium">Code</th>
-                <th className="px-3 py-2 font-medium text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={3} className="px-3 py-8 text-center text-slate-500">
-                    <Loader2 className="size-5 animate-spin inline mr-2" />
-                    Loading specialties…
-                  </td>
-                </tr>
-              ) : specialties.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="px-3 py-8 text-center text-slate-500">
-                    No specialties yet. Click <strong>Add Specialty</strong> to start.
-                  </td>
-                </tr>
-              ) : (
-                specialties.map((s) => (
-                  <tr key={s.id} className="border-b last:border-0 even:bg-slate-50/50">
-                    <td className="px-3 py-2 font-medium text-slate-900">{s.name}</td>
-                    <td className="px-3 py-2 text-slate-700 tabular-nums">
-                      {s.code || "—"}
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => openEdit(s)}
-                          title="Edit"
+        {loading ? (
+          <div className="bg-white rounded-lg border shadow-sm px-3 py-8 text-center text-slate-500">
+            <Loader2 className="size-5 animate-spin inline mr-2" />
+            Loading specialties…
+          </div>
+        ) : specialties.length === 0 ? (
+          <div className="bg-white rounded-lg border shadow-sm px-3 py-8 text-center text-slate-500">
+            No specialties yet. Click <strong>Add Specialty</strong> to start.
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {CATEGORIES.map((cat) => {
+              const items = grouped[cat.value];
+              if (items.length === 0) return null;
+              return (
+                <section
+                  key={cat.value}
+                  className="bg-white rounded-lg border shadow-sm overflow-x-auto"
+                >
+                  <header className="flex items-center justify-between px-4 py-2.5 border-b bg-slate-50">
+                    <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-700">
+                      {cat.label}
+                    </h2>
+                    <span className="text-xs text-slate-500">
+                      {items.length} specialt{items.length === 1 ? "y" : "ies"}
+                    </span>
+                  </header>
+                  <table className="w-full text-sm">
+                    <thead className="text-left text-xs uppercase tracking-wide text-slate-500 bg-slate-50/50">
+                      <tr className="border-b">
+                        <th className="px-3 py-2 font-medium">Name</th>
+                        <th className="px-3 py-2 font-medium">Code</th>
+                        <th className="px-3 py-2 font-medium text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.map((s) => (
+                        <tr
+                          key={s.id}
+                          className="border-b last:border-0 even:bg-slate-50/50"
                         >
-                          <Pencil className="size-3.5" />
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => onDelete(s)}
-                          disabled={deletingId === s.id}
-                          title="Delete"
-                          className="text-rose-700 border-rose-200 hover:bg-rose-50"
-                        >
-                          {deletingId === s.id ? (
-                            <Loader2 className="size-3.5 animate-spin" />
-                          ) : (
-                            <Trash2 className="size-3.5" />
-                          )}
-                          Delete
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                          <td className="px-3 py-2 font-medium text-slate-900 uppercase">
+                            {s.name}
+                          </td>
+                          <td className="px-3 py-2 text-slate-700 tabular-nums">
+                            {s.code || "—"}
+                          </td>
+                          <td className="px-3 py-2">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openEdit(s)}
+                                title="Edit"
+                              >
+                                <Pencil className="size-3.5" />
+                                Edit
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => onDelete(s)}
+                                disabled={deletingId === s.id}
+                                title="Delete"
+                                className="text-rose-700 border-rose-200 hover:bg-rose-50"
+                              >
+                                {deletingId === s.id ? (
+                                  <Loader2 className="size-3.5 animate-spin" />
+                                ) : (
+                                  <Trash2 className="size-3.5" />
+                                )}
+                                Delete
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </section>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <Dialog
@@ -261,9 +305,31 @@ export default function SpecialtiesPage() {
           </DialogHeader>
 
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <Controller
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <Field label="Category" error={form.formState.errors.category?.message}>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIES.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>
+                          {c.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              )}
+            />
+
             <Field label="Name" error={form.formState.errors.name?.message}>
               <Input
                 placeholder="e.g. INTERNAL MEDICINE"
+                className="uppercase"
                 {...form.register("name")}
               />
             </Field>

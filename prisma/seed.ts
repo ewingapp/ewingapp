@@ -90,11 +90,11 @@ async function main() {
 
   console.log("Seeding specialties…");
   const specialties = await Promise.all([
-    prisma.specialty.create({ data: { name: "Psych Eval" } }),
-    prisma.specialty.create({ data: { name: "MSE Psych" } }),
-    prisma.specialty.create({ data: { name: "Ortho IME" } }),
-    prisma.specialty.create({ data: { name: "Internal Medicine IME" } }),
-    prisma.specialty.create({ data: { name: "Neuro IME" } }),
+    prisma.specialty.create({ data: { name: "PSYCH EVAL", category: "PSYCH" } }),
+    prisma.specialty.create({ data: { name: "MSE PSYCH", category: "PSYCH" } }),
+    prisma.specialty.create({ data: { name: "ORTHO IME", category: "MEDICAL" } }),
+    prisma.specialty.create({ data: { name: "INTERNAL MEDICINE IME", category: "MEDICAL" } }),
+    prisma.specialty.create({ data: { name: "NEURO IME", category: "MEDICAL" } }),
   ]);
   const [psychEval, msePsych, orthoIME, intMedIME, neuroIME] = specialties;
 
