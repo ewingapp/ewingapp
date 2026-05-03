@@ -360,28 +360,28 @@ function ResultsView() {
 function ResultsTable({ slots, onPick }: { slots: Slot[]; onPick: (s: Slot) => void }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="text-sm">
         <thead className="text-left text-xs uppercase tracking-wide text-slate-500 bg-slate-50">
           <tr className="border-b">
-            <th className="px-4 py-2.5 font-medium">Date</th>
-            <th className="px-4 py-2.5 font-medium">Time</th>
-            <th className="px-4 py-2.5 font-medium">Doctor</th>
-            <th className="px-4 py-2.5 font-medium text-right">Action</th>
+            <th className="px-3 py-2 font-medium whitespace-nowrap">Date</th>
+            <th className="px-3 py-2 font-medium whitespace-nowrap">Time</th>
+            <th className="px-3 py-2 font-medium whitespace-nowrap">Doctor</th>
+            <th className="px-3 py-2 font-medium text-right whitespace-nowrap">Action</th>
           </tr>
         </thead>
         <tbody>
-          {slots.map((s, i) => {
+          {slots.map((s) => {
             const start = new Date(s.startTime);
-            const prev = i > 0 ? new Date(slots[i - 1].startTime) : null;
-            const newDay = !prev || prev.toDateString() !== start.toDateString();
             return (
-              <tr key={s.id} className={`border-b last:border-0 ${newDay ? "bg-slate-50/40" : ""}`}>
-                <td className="px-4 py-2.5 font-medium text-slate-900">
-                  {newDay ? format(start, "EEE, MMM d") : ""}
+              <tr key={s.id} className="border-b last:border-0 even:bg-slate-50/50">
+                <td className="px-3 py-2 font-medium text-slate-900 whitespace-nowrap tabular-nums">
+                  {format(start, "EEE, MMM d")}
                 </td>
-                <td className="px-4 py-2.5 tabular-nums text-slate-700">{format(start, "h:mm a")}</td>
-                <td className="px-4 py-2.5 text-slate-700">{s.doctor.name}</td>
-                <td className="px-4 py-2.5 text-right">
+                <td className="px-3 py-2 tabular-nums text-slate-700 whitespace-nowrap">
+                  {format(start, "h:mm a")}
+                </td>
+                <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{s.doctor.name}</td>
+                <td className="px-3 py-2 text-right whitespace-nowrap">
                   <Button
                     size="sm"
                     variant="outline"
