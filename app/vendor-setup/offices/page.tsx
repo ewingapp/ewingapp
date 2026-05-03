@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Download, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -64,6 +64,11 @@ function formatPhoneDisplay(s: string): string {
   if (d.length === 10) return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
   if (d.length === 7) return `${d.slice(0, 3)}-${d.slice(3)}`;
   return s;
+}
+
+function csvEscape(value: string | boolean): string {
+  const s = typeof value === "boolean" ? (value ? "Yes" : "No") : value;
+  return `"${String(s).replace(/"/g, '""')}"`;
 }
 
 export default function OfficesPage() {
@@ -164,6 +169,43 @@ export default function OfficesPage() {
     }
   }
 
+  function exportCsv() {
+    const headers = [
+      "Name",
+      "Address Line 1",
+      "Address Line 2",
+      "City",
+      "State",
+      "Zip",
+      "Phone",
+      "Contact Name",
+      "Active",
+    ];
+    const rows = offices.map((o) => [
+      o.name,
+      o.address,
+      o.address2,
+      o.city,
+      o.state,
+      o.zip,
+      o.phone,
+      o.contactName,
+      o.active,
+    ]);
+    const csv = [headers, ...rows]
+      .map((r) => r.map(csvEscape).join(","))
+      .join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `offices-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <AppShell>
       <div className="max-w-7xl mx-auto px-6 py-8">
@@ -186,14 +228,25 @@ export default function OfficesPage() {
               ? "Loading…"
               : `${offices.length} office${offices.length === 1 ? "" : "s"}`}
           </p>
-          <Button
-            onClick={openAdd}
-            className="text-white hover:brightness-95"
-            style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
-          >
-            <Plus className="size-4" />
-            Add Office
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={exportCsv}
+              disabled={loading || offices.length === 0}
+              title="Download current list as CSV"
+            >
+              <Download className="size-4" />
+              Export CSV
+            </Button>
+            <Button
+              onClick={openAdd}
+              className="text-white hover:brightness-95"
+              style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+            >
+              <Plus className="size-4" />
+              Add Office
+            </Button>
+          </div>
         </div>
 
         {error && (
