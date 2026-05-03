@@ -376,6 +376,15 @@ function ResultsView() {
             <DialogFooter>
               <Button
                 type="button"
+                variant="ghost"
+                onClick={() => form.reset(EMPTY_FORM)}
+                disabled={submitting}
+                className="sm:mr-auto text-slate-600 hover:text-slate-900"
+              >
+                Clear
+              </Button>
+              <Button
+                type="button"
                 variant="outline"
                 onClick={() => setBookingSlot(null)}
                 disabled={submitting}
