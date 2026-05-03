@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { format, parseISO } from "date-fns";
+import { addWeeks, format, parseISO, startOfDay } from "date-fns";
 import { DayPicker, type DateRange } from "react-day-picker";
 import "react-day-picker/style.css";
 import {
@@ -54,8 +54,9 @@ function SearchView() {
   const [range, setRange] = useState<DateRange | undefined>(() => {
     const from = params.get("from");
     const to = params.get("to");
-    if (!from || !to) return undefined;
-    return { from: parseISO(from), to: parseISO(to) };
+    if (from && to) return { from: parseISO(from), to: parseISO(to) };
+    const today = startOfDay(new Date());
+    return { from: today, to: addWeeks(today, 6) };
   });
   const [availableDates, setAvailableDates] = useState<Date[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
