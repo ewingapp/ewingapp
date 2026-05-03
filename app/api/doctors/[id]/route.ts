@@ -31,8 +31,8 @@ export async function GET(
     where: { id },
     include: {
       locations: { select: { id: true, name: true } },
-      specialties: { select: { id: true, name: true, code: true } },
-      exams: { select: { id: true, code: true, name: true } },
+      specialties: { select: { id: true, name: true, code: true, category: true } },
+      exams: { select: { id: true, code: true, name: true, category: true } },
     },
   });
   if (!doctor) {

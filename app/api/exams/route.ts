@@ -2,16 +2,19 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 
+const CATEGORY = z.enum(["PSYCH", "MEDICAL", "SLP"]);
+
 const createSchema = z.object({
   code: z.string().min(1, "Required"),
   name: z.string().min(1, "Required"),
+  category: CATEGORY.optional().default("MEDICAL"),
   active: z.boolean().optional().default(true),
 });
 
 export async function GET() {
   const exams = await prisma.exam.findMany({
     orderBy: { code: "asc" },
-    select: { id: true, code: true, name: true, active: true },
+    select: { id: true, code: true, name: true, category: true, active: true },
   });
   return NextResponse.json(exams);
 }
@@ -26,7 +29,8 @@ export async function POST(request: Request) {
     );
   }
   try {
-    const created = await prisma.exam.create({ data: parsed.data });
+    const data = { ...parsed.data, name: parsed.data.name.toUpperCase() };
+    const created = await prisma.exam.create({ data });
     return NextResponse.json(created, { status: 201 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "";

@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 
+const CATEGORY = z.enum(["PSYCH", "MEDICAL", "SLP"]);
+
 const updateSchema = z.object({
   name: z.string().min(1).optional(),
   code: z.string().optional(),
+  category: CATEGORY.optional(),
 });
 
 export async function PATCH(
@@ -21,9 +24,12 @@ export async function PATCH(
     );
   }
   try {
+    const data = parsed.data.name
+      ? { ...parsed.data, name: parsed.data.name.toUpperCase() }
+      : parsed.data;
     const updated = await prisma.specialty.update({
       where: { id },
-      data: parsed.data,
+      data,
     });
     return NextResponse.json(updated);
   } catch (err) {

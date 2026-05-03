@@ -15,6 +15,8 @@ import { AppShell, PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 
+type Category = "PSYCH" | "MEDICAL" | "SLP";
+
 type Doctor = {
   id: string;
   name: string;
@@ -23,13 +25,19 @@ type Doctor = {
   suffix: string;
   active: boolean;
   locations: { id: string; name: string }[];
-  specialties: { id: string; name: string; code: string }[];
-  exams: { id: string; code: string; name: string }[];
+  specialties: { id: string; name: string; code: string; category: Category }[];
+  exams: { id: string; code: string; name: string; category: Category }[];
 };
 
 type Office = { id: string; name: string; city: string };
-type Specialty = { id: string; name: string; code: string };
-type Exam = { id: string; code: string; name: string };
+type Specialty = { id: string; name: string; code: string; category: Category };
+type Exam = { id: string; code: string; name: string; category: Category };
+
+const CATEGORIES: { value: Category; label: string }[] = [
+  { value: "PSYCH", label: "Psych" },
+  { value: "MEDICAL", label: "Medical" },
+  { value: "SLP", label: "SLP" },
+];
 
 export default function DoctorSetupPage({
   params,
@@ -216,41 +224,41 @@ export default function DoctorSetupPage({
               ))}
             </Section>
 
-            <Section
+            <GroupedSection
               title="Specialties"
               icon={Stethoscope}
               empty="No specialties in the catalog."
               count={specialtyIds.size}
               total={specialties.length}
-            >
-              {specialties.map((s) => (
-                <CheckRow
-                  key={s.id}
-                  checked={specialtyIds.has(s.id)}
-                  onToggle={() => toggle(setSpecialtyIds, s.id)}
-                  label={s.name}
-                  hint={s.code ? `Code ${s.code}` : ""}
-                />
-              ))}
-            </Section>
+              groups={CATEGORIES.map((cat) => ({
+                label: cat.label,
+                items: specialties
+                  .filter((s) => s.category === cat.value)
+                  .map((s) => ({
+                    id: s.id,
+                    label: s.name,
+                    hint: s.code ? `Code ${s.code}` : "",
+                  })),
+              }))}
+              isChecked={(id) => specialtyIds.has(id)}
+              onToggle={(id) => toggle(setSpecialtyIds, id)}
+            />
 
-            <Section
+            <GroupedSection
               title="Exams"
               icon={ClipboardList}
               empty="No exams in the catalog."
               count={examIds.size}
               total={exams.length}
-            >
-              {exams.map((e) => (
-                <CheckRow
-                  key={e.id}
-                  checked={examIds.has(e.id)}
-                  onToggle={() => toggle(setExamIds, e.id)}
-                  label={e.name}
-                  hint={e.code}
-                />
-              ))}
-            </Section>
+              groups={CATEGORIES.map((cat) => ({
+                label: cat.label,
+                items: exams
+                  .filter((e) => e.category === cat.value)
+                  .map((e) => ({ id: e.id, label: e.name, hint: e.code })),
+              }))}
+              isChecked={(id) => examIds.has(id)}
+              onToggle={(id) => toggle(setExamIds, id)}
+            />
           </>
         ) : (
           <p className="text-sm text-slate-500">Doctor not found.</p>
@@ -296,6 +304,72 @@ function Section({
           <p className="text-sm text-slate-500 px-2 py-4">{empty}</p>
         ) : (
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1">{children}</ul>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function GroupedSection({
+  title,
+  icon: Icon,
+  count,
+  total,
+  empty,
+  groups,
+  isChecked,
+  onToggle,
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  count: number;
+  total: number;
+  empty: string;
+  groups: { label: string; items: { id: string; label: string; hint?: string }[] }[];
+  isChecked: (id: string) => boolean;
+  onToggle: (id: string) => void;
+}) {
+  const visibleGroups = groups.filter((g) => g.items.length > 0);
+  return (
+    <section className="bg-white border rounded-lg shadow-sm mb-6">
+      <header className="flex items-center justify-between px-4 py-3 border-b">
+        <div className="flex items-center gap-2">
+          <span
+            className="grid place-items-center size-7 rounded text-white"
+            style={{ background: "#0085CA" }}
+          >
+            <Icon className="size-4" />
+          </span>
+          <h2 className="font-semibold text-slate-900">{title}</h2>
+        </div>
+        <span className="text-xs text-slate-500">
+          {count} of {total} assigned
+        </span>
+      </header>
+      <div className="p-2">
+        {total === 0 ? (
+          <p className="text-sm text-slate-500 px-2 py-4">{empty}</p>
+        ) : (
+          <div className="space-y-3">
+            {visibleGroups.map((g) => (
+              <div key={g.label}>
+                <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 px-2 pt-1 pb-1.5">
+                  {g.label}
+                </h3>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                  {g.items.map((item) => (
+                    <CheckRow
+                      key={item.id}
+                      checked={isChecked(item.id)}
+                      onToggle={() => onToggle(item.id)}
+                      label={item.label}
+                      hint={item.hint}
+                    />
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </section>
