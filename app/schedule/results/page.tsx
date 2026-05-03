@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -381,7 +382,12 @@ function ResultsView() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={submitting}>
+              <Button
+                type="submit"
+                disabled={submitting}
+                className="text-white hover:brightness-95"
+                style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+              >
                 {submitting && <Loader2 className="size-4 animate-spin" />}
                 Submit appointment
               </Button>
@@ -403,18 +409,13 @@ function ResultsView() {
               <div className="ewing-print-area">
                 {/* Vendor header */}
                 <div className="text-center pb-4 border-b border-slate-200 mb-5">
-                  <div
-                    className="font-bold text-xl tracking-wide"
-                    style={{ color: "#0067A0" }}
-                  >
-                    EWING DIAGNOSTICS
-                  </div>
-                  <div
-                    className="text-[11px] tracking-[0.2em] mt-1"
-                    style={{ color: "#0085CA" }}
-                  >
-                    &amp; PSYCHOLOGICAL SERVICES, INC.
-                  </div>
+                  <Image
+                    src="/ewing-logo.png"
+                    alt="Ewing Diagnostics & Psychological Services"
+                    width={1181}
+                    height={335}
+                    className="h-20 w-auto mx-auto"
+                  />
                   <div className="mt-3">
                     <h2 className="text-lg font-semibold text-slate-900">
                       Appointment Confirmation
