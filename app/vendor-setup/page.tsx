@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { Stethoscope, Building2, ListChecks, Users, BadgeCheck } from "lucide-react";
+import {
+  Stethoscope,
+  Building2,
+  ClipboardList,
+  ListChecks,
+  Users,
+  BadgeCheck,
+} from "lucide-react";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,10 +34,17 @@ const SECTIONS: {
   },
   {
     href: "/vendor-setup/specialties",
-    title: "Specialties & Exams",
-    description: "Manage the specialties and exam types each doctor can perform.",
+    title: "Specialties",
+    description: "The catalog of specialties (with codes) that doctors can be assigned to.",
     icon: ListChecks,
-    ready: false,
+    ready: true,
+  },
+  {
+    href: "/vendor-setup/exams",
+    title: "Exams",
+    description: "The catalog of exam codes that doctors can perform.",
+    icon: ClipboardList,
+    ready: true,
   },
   {
     href: "/vendor-setup/profile",
