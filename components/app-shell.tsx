@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Plus, ChevronDown, User } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,30 +19,14 @@ const NAV: NavItem[] = [
 
 export function BrandMark() {
   return (
-    <div className="flex items-center gap-3">
-      <div className="relative size-12">
-        <div
-          className="absolute inset-0"
-          style={{
-            background: "linear-gradient(135deg, #4FB3E5 0%, #0085CA 100%)",
-            clipPath:
-              "polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%)",
-          }}
-        />
-        <div className="absolute inset-0 grid place-items-center font-serif italic text-2xl font-bold text-white">
-          E
-        </div>
-      </div>
-      <div className="leading-tight">
-        <div className="font-bold tracking-wide text-lg" style={{ color: "#0067A0" }}>
-          EWING DIAGNOSTICS
-        </div>
-        <div className="text-[11px] tracking-[0.2em]" style={{ color: "#0085CA" }}>
-          &amp; PSYCHOLOGICAL SERVICES
-        </div>
-        <div className="text-[10px] text-slate-500 tracking-widest mt-0.5">INC.</div>
-      </div>
-    </div>
+    <Image
+      src="/ewing-logo.png"
+      alt="Ewing Medical & Psychological Services"
+      width={1181}
+      height={335}
+      priority
+      className="h-12 w-auto"
+    />
   );
 }
 
@@ -60,7 +45,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link
               href="/schedule"
               className="hidden md:inline-flex items-center gap-2 h-9 px-3.5 rounded-md text-sm font-medium text-white shadow-sm transition"
-              style={{ background: "#0085CA" }}
+              style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
             >
               <Plus className="size-4" />
               New Appointment

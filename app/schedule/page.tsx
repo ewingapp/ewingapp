@@ -222,7 +222,7 @@ function SearchView() {
               onClick={onSearch}
               disabled={submitting}
               className="w-full h-10 text-white font-medium shadow-sm hover:brightness-95"
-              style={{ background: "#0085CA" }}
+              style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
             >
               {submitting ? (
                 <Loader2 className="size-4 animate-spin" />

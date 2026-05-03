@@ -132,7 +132,7 @@
 /* react-day-picker custom styling — Ewing palette */
 .ewing-calendar .rdp-root {
   --rdp-accent-color: #C9A55C;
-  --rdp-accent-background-color: #F1F5F9;
+  --rdp-accent-background-color: #FAF1D6;
   --rdp-day-height: 2.5rem;
   --rdp-day-width: 2.5rem;
   --rdp-day_button-height: 2.25rem;
@@ -140,11 +140,11 @@
   --rdp-day_button-border-radius: 0.5rem;
   --rdp-selected-border: none;
   --rdp-range_start-color: white;
-  --rdp-range_start-background: #C9A55C;
+  --rdp-range_start-background: #FAF1D6;
   --rdp-range_end-color: white;
-  --rdp-range_end-background: #C9A55C;
-  --rdp-range_middle-background-color: #F1F5F9;
-  --rdp-range_middle-color: #475569;
+  --rdp-range_end-background: #FAF1D6;
+  --rdp-range_middle-background-color: #FAF1D6;
+  --rdp-range_middle-color: #5C4A1E;
   --rdp-today-color: #C9A55C;
   font-size: 0.875rem;
 }
@@ -222,17 +222,23 @@
 }
 
 .ewing-calendar .rdp-selected .rdp-day_button {
-  background: #C9A55C;
-  color: white;
+  background: white !important;
+  color: #7A5E1F !important;
+  outline: 2px solid #C9A55C !important;
+  outline-offset: -2px !important;
+  font-weight: 700 !important;
 }
 
 .ewing-calendar .rdp-range_start .rdp-day_button,
 .ewing-calendar .rdp-range_end .rdp-day_button {
-  background: #C9A55C;
-  color: white;
+  background: white !important;
+  color: #7A5E1F !important;
+  outline: 2px solid #C9A55C !important;
+  outline-offset: -2px !important;
+  font-weight: 700 !important;
 }
 
 .ewing-calendar .rdp-range_middle .rdp-day_button {
-  background: #F1F5F9;
-  color: #475569;
+  background: #FAF1D6 !important;
+  color: #5C4A1E !important;
 }
