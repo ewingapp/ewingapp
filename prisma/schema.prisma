@@ -32,13 +32,22 @@ model Specialty {
 }
 
 model Doctor {
-  id          String      @id @default(cuid())
-  name        String
-  notes       String      @default("")
-  specialties Specialty[] @relation("DoctorSpecialties")
-  locations   Location[]  @relation("DoctorLocations")
-  slots       Slot[]
-  createdAt   DateTime    @default(now())
+  id           String      @id @default(cuid())
+  name         String
+  firstName    String      @default("")
+  lastName     String      @default("")
+  suffix       String      @default("")
+  certStatus   String      @default("BC")
+  languages    String      @default("")
+  claimantAges String      @default("")
+  remarks      String      @default("")
+  allowVCE     Boolean     @default(false)
+  active       Boolean     @default(true)
+  notes        String      @default("")
+  specialties  Specialty[] @relation("DoctorSpecialties")
+  locations    Location[]  @relation("DoctorLocations")
+  slots        Slot[]
+  createdAt    DateTime    @default(now())
 }
 
 enum SlotStatus {
