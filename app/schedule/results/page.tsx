@@ -376,10 +376,10 @@ function ResultsView() {
             <DialogFooter>
               <Button
                 type="button"
-                variant="ghost"
                 onClick={() => form.reset(EMPTY_FORM)}
                 disabled={submitting}
-                className="sm:mr-auto text-slate-600 hover:text-slate-900"
+                className="sm:mr-auto text-white hover:brightness-95"
+                style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
               >
                 Clear
               </Button>
