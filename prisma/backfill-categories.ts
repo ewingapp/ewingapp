@@ -45,20 +45,24 @@ async function main() {
     }
   }
 
-  const mse = await prisma.exam.findUnique({ where: { code: "MSE" } });
-  if (!mse) {
-    await prisma.exam.create({
-      data: {
-        code: "MSE",
-        name: "MENTAL STATUS EXAM",
-        category: "PSYCH",
-        active: true,
-      },
-    });
-    console.log("  added exam: MSE — MENTAL STATUS EXAM [PSYCH]");
-  } else {
-    console.log("  MSE exam already exists, skipping");
-  }
+  const ensureExam = async (
+    code: string,
+    name: string,
+    category: Cat,
+  ) => {
+    const existing = await prisma.exam.findUnique({ where: { code } });
+    if (!existing) {
+      await prisma.exam.create({
+        data: { code, name, category, active: true },
+      });
+      console.log(`  added exam: ${code} — ${name} [${category}]`);
+    } else {
+      console.log(`  exam ${code} already exists, skipping`);
+    }
+  };
+
+  await ensureExam("MSE", "MENTAL STATUS EXAM", "PSYCH");
+  await ensureExam("XRAY", "XRAY ONLY", "MEDICAL");
 
   console.log("Done.");
 }
