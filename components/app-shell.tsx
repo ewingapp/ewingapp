@@ -25,7 +25,7 @@ export function BrandMark() {
       width={1181}
       height={335}
       priority
-      className="h-12 w-auto"
+      className="h-16 w-auto"
     />
   );
 }
@@ -37,7 +37,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen flex flex-col bg-white">
       {/* Top brand bar */}
       <header className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 py-2 flex items-center justify-between">
           <Link href="/" className="block">
             <BrandMark />
           </Link>
