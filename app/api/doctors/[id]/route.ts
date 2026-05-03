@@ -13,10 +13,32 @@ const updateSchema = z.object({
   allowVCE: z.boolean().optional(),
   active: z.boolean().optional(),
   notes: z.string().optional(),
+  locationIds: z.array(z.string()).optional(),
+  specialtyIds: z.array(z.string()).optional(),
+  examIds: z.array(z.string()).optional(),
 });
 
 function buildDisplayName(firstName: string, lastName: string, suffix: string): string {
   return [firstName, lastName, suffix].map((s) => s.trim()).filter(Boolean).join(" ");
+}
+
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const doctor = await prisma.doctor.findUnique({
+    where: { id },
+    include: {
+      locations: { select: { id: true, name: true } },
+      specialties: { select: { id: true, name: true, code: true } },
+      exams: { select: { id: true, code: true, name: true } },
+    },
+  });
+  if (!doctor) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  return NextResponse.json(doctor);
 }
 
 export async function PATCH(
@@ -33,7 +55,14 @@ export async function PATCH(
     );
   }
 
-  const data: Record<string, unknown> = { ...parsed.data };
+  const {
+    locationIds,
+    specialtyIds,
+    examIds,
+    ...scalar
+  } = parsed.data;
+
+  const data: Record<string, unknown> = { ...scalar };
 
   if (
     parsed.data.firstName !== undefined ||
@@ -54,8 +83,26 @@ export async function PATCH(
     if (newName) data.name = newName;
   }
 
+  if (locationIds !== undefined) {
+    data.locations = { set: locationIds.map((id) => ({ id })) };
+  }
+  if (specialtyIds !== undefined) {
+    data.specialties = { set: specialtyIds.map((id) => ({ id })) };
+  }
+  if (examIds !== undefined) {
+    data.exams = { set: examIds.map((id) => ({ id })) };
+  }
+
   try {
-    const updated = await prisma.doctor.update({ where: { id }, data });
+    const updated = await prisma.doctor.update({
+      where: { id },
+      data,
+      include: {
+        locations: { select: { id: true, name: true } },
+        specialties: { select: { id: true, name: true, code: true } },
+        exams: { select: { id: true, code: true, name: true } },
+      },
+    });
     return NextResponse.json(updated);
   } catch {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

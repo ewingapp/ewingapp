@@ -14,6 +14,7 @@ import {
   Loader2,
   Pencil,
   Plus,
+  Settings,
   Trash2,
 } from "lucide-react";
 
@@ -395,6 +396,16 @@ export default function DoctorsPage() {
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex items-center justify-end gap-1.5">
+                        <Link href={`/vendor-setup/doctors/${d.id}`}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            title="Assign offices, specialties, and exams"
+                          >
+                            <Settings className="size-3.5" />
+                            Setup
+                          </Button>
+                        </Link>
                         <Button
                           size="sm"
                           variant="outline"

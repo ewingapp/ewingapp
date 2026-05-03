@@ -3,16 +3,17 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 
 const createSchema = z.object({
+  code: z.string().min(1, "Required"),
   name: z.string().min(1, "Required"),
-  code: z.string().optional().default(""),
+  active: z.boolean().optional().default(true),
 });
 
 export async function GET() {
-  const specialties = await prisma.specialty.findMany({
-    orderBy: { name: "asc" },
-    select: { id: true, name: true, code: true },
+  const exams = await prisma.exam.findMany({
+    orderBy: { code: "asc" },
+    select: { id: true, code: true, name: true, active: true },
   });
-  return NextResponse.json(specialties);
+  return NextResponse.json(exams);
 }
 
 export async function POST(request: Request) {
@@ -25,19 +26,16 @@ export async function POST(request: Request) {
     );
   }
   try {
-    const created = await prisma.specialty.create({ data: parsed.data });
+    const created = await prisma.exam.create({ data: parsed.data });
     return NextResponse.json(created, { status: 201 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "";
     if (msg.includes("Unique constraint")) {
       return NextResponse.json(
-        { error: `A specialty named "${parsed.data.name}" already exists.` },
+        { error: `An exam with code "${parsed.data.code}" already exists.` },
         { status: 409 },
       );
     }
-    return NextResponse.json(
-      { error: "Failed to create specialty" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to create exam" }, { status: 500 });
   }
 }

@@ -29,8 +29,18 @@ model Location {
 model Specialty {
   id        String   @id @default(cuid())
   name      String   @unique
+  code      String   @default("")
   doctors   Doctor[] @relation("DoctorSpecialties")
   slots     Slot[]
+  createdAt DateTime @default(now())
+}
+
+model Exam {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  active    Boolean  @default(true)
+  doctors   Doctor[] @relation("DoctorExams")
   createdAt DateTime @default(now())
 }
 
@@ -49,6 +59,7 @@ model Doctor {
   notes        String      @default("")
   specialties  Specialty[] @relation("DoctorSpecialties")
   locations    Location[]  @relation("DoctorLocations")
+  exams        Exam[]      @relation("DoctorExams")
   slots        Slot[]
   createdAt    DateTime    @default(now())
 }
