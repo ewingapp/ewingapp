@@ -288,7 +288,7 @@ function ResultsView() {
           }
         }}
       >
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Book appointment</DialogTitle>
             {bookingSlot && (
@@ -512,7 +512,7 @@ function ResultsView() {
                     variant="outline"
                     onClick={handleScheduleSameClaimant}
                   >
-                    Schedule another for same claimant
+                    Schedule another appointment for same claimant
                   </Button>
                   <Button
                     type="button"
