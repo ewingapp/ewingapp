@@ -403,7 +403,7 @@ function ResultsView() {
           if (!open) setConfirmation(null);
         }}
       >
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
           {confirmation && (
             <>
               <div className="ewing-print-area">
