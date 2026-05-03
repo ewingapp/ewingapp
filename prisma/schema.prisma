@@ -11,16 +11,19 @@ datasource db {
 }
 
 model Location {
-  id        String   @id @default(cuid())
-  name      String
-  address   String
-  city      String
-  state     String
-  zip       String
-  phone     String
-  doctors   Doctor[] @relation("DoctorLocations")
-  slots     Slot[]
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  name        String
+  address     String
+  address2    String   @default("")
+  city        String
+  state       String   @default("CA")
+  zip         String
+  phone       String
+  contactName String   @default("")
+  active      Boolean  @default(true)
+  doctors     Doctor[] @relation("DoctorLocations")
+  slots       Slot[]
+  createdAt   DateTime @default(now())
 }
 
 model Specialty {

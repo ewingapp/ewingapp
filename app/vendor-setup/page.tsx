@@ -23,7 +23,7 @@ const SECTIONS: {
     title: "Offices",
     description: "Add, edit, or remove the office locations where appointments are held.",
     icon: Building2,
-    ready: false,
+    ready: true,
   },
   {
     href: "/vendor-setup/specialties",
