@@ -242,3 +242,32 @@
   background: #FAF1D6 !important;
   color: #5C4A1E !important;
 }
+
+/* Appointment confirmation print: hide everything except .ewing-print-area */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  .ewing-print-area,
+  .ewing-print-area * {
+    visibility: visible !important;
+  }
+  .ewing-print-area {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    background: white !important;
+    padding: 1.5rem !important;
+  }
+  .ewing-print-hide {
+    display: none !important;
+  }
+  /* Override Radix dialog chrome for clean print */
+  [data-slot="dialog-overlay"] {
+    display: none !important;
+  }
+  [data-slot="dialog-content"] {
+    box-shadow: none !important;
+  }
+}

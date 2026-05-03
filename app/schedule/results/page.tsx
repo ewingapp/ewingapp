@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
-import { ArrowLeft, Calendar as CalendarIcon, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, Loader2, Printer } from "lucide-react";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -54,6 +54,43 @@ const formSchema = z.object({
 });
 type FormValues = z.infer<typeof formSchema>;
 
+const CLAIMANT_STORAGE_KEY = "ewing-claimant-info";
+
+const EMPTY_FORM: FormValues = {
+  caseNumber: "",
+  contractNumber: "",
+  firstInitial: "",
+  lastNamePrefix: "",
+  stateBranch: "",
+  analystName: "",
+  analystPhone: "",
+  schedulerName: "",
+  schedulerPhone: "",
+  claimantPhone: "",
+  hasInterpreter: "no",
+  isOdarCase: "no",
+  notes: "",
+};
+
+function loadSavedFormValues(): FormValues {
+  if (typeof window === "undefined") return EMPTY_FORM;
+  const saved = window.sessionStorage.getItem(CLAIMANT_STORAGE_KEY);
+  if (!saved) return EMPTY_FORM;
+  try {
+    return { ...EMPTY_FORM, ...JSON.parse(saved) };
+  } catch {
+    return EMPTY_FORM;
+  }
+}
+
+function formatPhoneDisplay(s: string | undefined): string {
+  if (!s) return "—";
+  const d = s.replace(/\D/g, "");
+  if (d.length === 10) return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+  if (d.length === 7) return `${d.slice(0, 3)}-${d.slice(3)}`;
+  return s;
+}
+
 export default function ResultsPage() {
   return (
     <Suspense fallback={null}>
@@ -81,7 +118,9 @@ function ResultsView() {
   const [bookingSlot, setBookingSlot] = useState<Slot | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [confirmation, setConfirmation] = useState<{ slot: Slot } | null>(null);
+  const [confirmation, setConfirmation] = useState<
+    { slot: Slot; values: FormValues } | null
+  >(null);
 
   // Redirect home if URL is missing required params
   useEffect(() => {
@@ -122,23 +161,10 @@ function ResultsView() {
     return () => ctrl.abort();
   }, [locationId, specialtyId, from, to]);
 
+  const initialFormValues = useMemo(() => loadSavedFormValues(), []);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      caseNumber: "",
-      contractNumber: "",
-      firstInitial: "",
-      lastNamePrefix: "",
-      stateBranch: "",
-      analystName: "",
-      analystPhone: "",
-      schedulerName: "",
-      schedulerPhone: "",
-      claimantPhone: "",
-      hasInterpreter: "no",
-      isOdarCase: "no",
-      notes: "",
-    },
+    defaultValues: initialFormValues,
   });
 
   async function onBook(values: FormValues) {
@@ -155,10 +181,9 @@ function ResultsView() {
         const body = await res.json().catch(() => ({}));
         throw new Error(body?.error ?? `Booking failed (${res.status})`);
       }
-      setConfirmation({ slot: bookingSlot });
+      setConfirmation({ slot: bookingSlot, values });
       setSlots((curr) => (curr ? curr.filter((s) => s.id !== bookingSlot.id) : curr));
       setBookingSlot(null);
-      form.reset();
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Booking failed");
     } finally {
@@ -168,6 +193,24 @@ function ResultsView() {
 
   const fromLabel = useMemo(() => (from ? format(parseISO(from), "MMM d, yyyy") : ""), [from]);
   const toLabel = useMemo(() => (to ? format(parseISO(to), "MMM d, yyyy") : ""), [to]);
+
+  function handleScheduleSameClaimant() {
+    if (confirmation) {
+      window.sessionStorage.setItem(
+        CLAIMANT_STORAGE_KEY,
+        JSON.stringify(confirmation.values),
+      );
+    }
+    setConfirmation(null);
+    router.push("/schedule");
+  }
+
+  function handleScheduleNewAppointment() {
+    window.sessionStorage.removeItem(CLAIMANT_STORAGE_KEY);
+    form.reset(EMPTY_FORM);
+    setConfirmation(null);
+    router.push("/schedule");
+  }
 
   return (
     <AppShell>
@@ -192,13 +235,6 @@ function ResultsView() {
           <SummaryItem label="From" value={fromLabel} />
           <SummaryItem label="To" value={toLabel} />
         </div>
-
-        {confirmation && (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900 mb-4">
-            Appointment booked with {confirmation.slot.doctor.name} on{" "}
-            {format(new Date(confirmation.slot.startTime), "EEE, MMM d 'at' h:mm a")}.
-          </div>
-        )}
 
         {loadError && (
           <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900 mb-4">
@@ -353,7 +389,172 @@ function ResultsView() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Appointment confirmation (printable) */}
+      <Dialog
+        open={confirmation !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmation(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          {confirmation && (
+            <>
+              <div className="ewing-print-area">
+                {/* Vendor header */}
+                <div className="text-center pb-4 border-b border-slate-200 mb-5">
+                  <div
+                    className="font-bold text-xl tracking-wide"
+                    style={{ color: "#0067A0" }}
+                  >
+                    EWING DIAGNOSTICS
+                  </div>
+                  <div
+                    className="text-[11px] tracking-[0.2em] mt-1"
+                    style={{ color: "#0085CA" }}
+                  >
+                    &amp; PSYCHOLOGICAL SERVICES, INC.
+                  </div>
+                  <div className="mt-3">
+                    <h2 className="text-lg font-semibold text-slate-900">
+                      Appointment Confirmation
+                    </h2>
+                    <div className="text-xs text-slate-500 mt-0.5">
+                      Issued {format(new Date(), "MMM d, yyyy 'at' h:mm a")}
+                    </div>
+                  </div>
+                </div>
+
+                <Section title="Appointment">
+                  <DetailRow
+                    label="Date"
+                    value={format(
+                      new Date(confirmation.slot.startTime),
+                      "EEEE, MMMM d, yyyy",
+                    )}
+                  />
+                  <DetailRow
+                    label="Time"
+                    value={format(new Date(confirmation.slot.startTime), "h:mm a")}
+                  />
+                  <DetailRow label="Doctor" value={confirmation.slot.doctor.name} />
+                  <DetailRow label="Office" value={location?.name ?? "—"} />
+                  <DetailRow label="Specialty" value={specialty?.name ?? "—"} />
+                </Section>
+
+                <Section title="Claimant">
+                  <DetailRow label="Case number" value={confirmation.values.caseNumber} />
+                  <DetailRow
+                    label="Identifier"
+                    value={`${confirmation.values.firstInitial.toUpperCase()}. ${confirmation.values.lastNamePrefix.toUpperCase()}`}
+                  />
+                  <DetailRow
+                    label="Claimant phone"
+                    value={formatPhoneDisplay(confirmation.values.claimantPhone)}
+                  />
+                  <DetailRow
+                    label="Contract number"
+                    value={confirmation.values.contractNumber || "—"}
+                  />
+                  <DetailRow
+                    label="Interpreter"
+                    value={confirmation.values.hasInterpreter === "yes" ? "Yes" : "No"}
+                  />
+                  <DetailRow
+                    label="ODAR case"
+                    value={confirmation.values.isOdarCase === "yes" ? "Yes" : "No"}
+                  />
+                </Section>
+
+                <Section title="State">
+                  <DetailRow label="Branch" value={confirmation.values.stateBranch} />
+                  <DetailRow label="Analyst" value={confirmation.values.analystName} />
+                  <DetailRow
+                    label="Analyst phone"
+                    value={formatPhoneDisplay(confirmation.values.analystPhone)}
+                  />
+                </Section>
+
+                <Section title="Scheduler">
+                  <DetailRow label="Name" value={confirmation.values.schedulerName} />
+                  <DetailRow
+                    label="Phone"
+                    value={formatPhoneDisplay(confirmation.values.schedulerPhone)}
+                  />
+                </Section>
+
+                {confirmation.values.notes && (
+                  <div className="mb-4">
+                    <h3 className="font-semibold text-xs text-slate-700 uppercase tracking-wide border-b border-slate-200 pb-1 mb-2">
+                      Notes
+                    </h3>
+                    <p className="text-sm whitespace-pre-wrap text-slate-800">
+                      {confirmation.values.notes}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <DialogFooter className="ewing-print-hide flex flex-col-reverse sm:flex-row gap-2 sm:justify-between sm:items-center pt-2 border-t border-slate-200">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => window.print()}
+                  className="sm:mr-auto"
+                >
+                  <Printer className="size-4" />
+                  Print
+                </Button>
+                <div className="flex flex-col-reverse sm:flex-row gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleScheduleSameClaimant}
+                  >
+                    Schedule another for same claimant
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleScheduleNewAppointment}
+                    style={{ background: "#0085CA" }}
+                  >
+                    Schedule a new appointment
+                  </Button>
+                </div>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </AppShell>
+  );
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mb-4">
+      <h3 className="font-semibold text-xs text-slate-700 uppercase tracking-wide border-b border-slate-200 pb-1 mb-2">
+        {title}
+      </h3>
+      <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">{children}</div>
+    </div>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col">
+      <span className="text-[11px] uppercase tracking-wide text-slate-500">
+        {label}
+      </span>
+      <span className="text-slate-900">{value || "—"}</span>
+    </div>
   );
 }
 
