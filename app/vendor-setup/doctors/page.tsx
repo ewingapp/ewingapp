@@ -1,11 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Pencil, Plus, Trash2, ArrowLeft } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUpDown,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  Loader2,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -65,6 +75,47 @@ const EMPTY_FORM: FormValues = {
 
 const CERT_OPTIONS = ["BC", "BE", "Licensed", "PhD", "MD", "Other"];
 
+type SortColumn =
+  | "lastName"
+  | "firstName"
+  | "suffix"
+  | "languages"
+  | "certStatus"
+  | "claimantAges"
+  | "remarks"
+  | "allowVCE"
+  | "active";
+
+type SortState = { column: SortColumn; direction: "asc" | "desc" };
+
+const COLUMNS: { key: SortColumn; label: string; align?: "center" }[] = [
+  { key: "lastName", label: "Last Name" },
+  { key: "firstName", label: "First Name" },
+  { key: "suffix", label: "Suffix" },
+  { key: "languages", label: "Languages" },
+  { key: "certStatus", label: "Cert" },
+  { key: "claimantAges", label: "Claimant Ages" },
+  { key: "remarks", label: "Remarks" },
+  { key: "allowVCE", label: "VCE", align: "center" },
+  { key: "active", label: "Active", align: "center" },
+];
+
+function compareDoctors(a: Doctor, b: Doctor, column: SortColumn): number {
+  const av = a[column];
+  const bv = b[column];
+  if (typeof av === "boolean" && typeof bv === "boolean") {
+    return (av ? 1 : 0) - (bv ? 1 : 0);
+  }
+  return String(av ?? "")
+    .toLowerCase()
+    .localeCompare(String(bv ?? "").toLowerCase());
+}
+
+function csvEscape(value: string | boolean): string {
+  const s = typeof value === "boolean" ? (value ? "Yes" : "No") : value;
+  return `"${String(s).replace(/"/g, '""')}"`;
+}
+
 export default function DoctorsPage() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,6 +125,55 @@ export default function DoctorsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const [sort, setSort] = useState<SortState>({
+    column: "lastName",
+    direction: "asc",
+  });
+
+  const sortedDoctors = useMemo(() => {
+    const copy = [...doctors];
+    copy.sort((a, b) => {
+      const cmp = compareDoctors(a, b, sort.column);
+      return sort.direction === "asc" ? cmp : -cmp;
+    });
+    return copy;
+  }, [doctors, sort]);
+
+  function toggleSort(column: SortColumn) {
+    setSort((s) =>
+      s.column === column
+        ? { column, direction: s.direction === "asc" ? "desc" : "asc" }
+        : { column, direction: "asc" },
+    );
+  }
+
+  function exportCsv() {
+    const headers = COLUMNS.map((c) => c.label);
+    const rows = sortedDoctors.map((d) => [
+      d.lastName || (d.name && !d.firstName ? d.name : ""),
+      d.firstName,
+      d.suffix,
+      d.languages,
+      d.certStatus,
+      d.claimantAges,
+      d.remarks,
+      d.allowVCE,
+      d.active,
+    ]);
+    const csv = [headers, ...rows]
+      .map((r) => r.map(csvEscape).join(","))
+      .join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `doctors-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -187,14 +287,25 @@ export default function DoctorsPage() {
               ? "Loading…"
               : `${doctors.length} doctor${doctors.length === 1 ? "" : "s"}`}
           </p>
-          <Button
-            onClick={openAdd}
-            className="text-white hover:brightness-95"
-            style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
-          >
-            <Plus className="size-4" />
-            Add Doctor
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={exportCsv}
+              disabled={loading || doctors.length === 0}
+              title="Download current list as CSV"
+            >
+              <Download className="size-4" />
+              Export CSV
+            </Button>
+            <Button
+              onClick={openAdd}
+              className="text-white hover:brightness-95"
+              style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+            >
+              <Plus className="size-4" />
+              Add Doctor
+            </Button>
+          </div>
         </div>
 
         {error && (
@@ -207,15 +318,38 @@ export default function DoctorsPage() {
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase tracking-wide text-slate-500 bg-slate-50">
               <tr className="border-b">
-                <th className="px-3 py-2 font-medium">Last Name</th>
-                <th className="px-3 py-2 font-medium">First Name</th>
-                <th className="px-3 py-2 font-medium">Suffix</th>
-                <th className="px-3 py-2 font-medium">Languages</th>
-                <th className="px-3 py-2 font-medium">Cert</th>
-                <th className="px-3 py-2 font-medium">Claimant Ages</th>
-                <th className="px-3 py-2 font-medium">Remarks</th>
-                <th className="px-3 py-2 font-medium text-center">VCE</th>
-                <th className="px-3 py-2 font-medium text-center">Active</th>
+                {COLUMNS.map((c) => {
+                  const isActive = sort.column === c.key;
+                  const Icon = isActive
+                    ? sort.direction === "asc"
+                      ? ChevronUp
+                      : ChevronDown
+                    : ArrowUpDown;
+                  return (
+                    <th
+                      key={c.key}
+                      className={`px-3 py-2 font-medium ${
+                        c.align === "center" ? "text-center" : ""
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => toggleSort(c.key)}
+                        className={`inline-flex items-center gap-1 transition hover:text-slate-900 ${
+                          isActive ? "text-slate-900" : ""
+                        }`}
+                        title={`Sort by ${c.label}`}
+                      >
+                        {c.label}
+                        <Icon
+                          className={`size-3 ${
+                            isActive ? "opacity-100" : "opacity-40"
+                          }`}
+                        />
+                      </button>
+                    </th>
+                  );
+                })}
                 <th className="px-3 py-2 font-medium text-right">Actions</th>
               </tr>
             </thead>
@@ -234,7 +368,7 @@ export default function DoctorsPage() {
                   </td>
                 </tr>
               ) : (
-                doctors.map((d) => (
+                sortedDoctors.map((d) => (
                   <tr key={d.id} className="border-b last:border-0 even:bg-slate-50/50">
                     <td className="px-3 py-2 font-medium text-slate-900">
                       {d.lastName || (d.name && !d.firstName ? d.name : "—")}
