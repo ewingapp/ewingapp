@@ -59,21 +59,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const overlap = await prisma.doctorSchedule.findFirst({
-    where: {
-      doctorId,
-      startTime: { lt: end },
-      endTime: { gt: start },
-    },
-    select: { id: true },
-  });
-  if (overlap) {
-    return NextResponse.json(
-      { error: "This window overlaps an existing schedule for this doctor" },
-      { status: 409 },
-    );
-  }
-
   const created = await prisma.doctorSchedule.create({
     data: { doctorId, locationId, startTime: start, endTime: end },
     include: {

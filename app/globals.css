@@ -275,13 +275,24 @@
 .rdp-custom {
   --rdp-accent-color: #0085ca;
   --rdp-accent-background-color: #0085ca;
-  --rdp-day-width: 2.25rem;
-  --rdp-day-height: 2.25rem;
+  --rdp-day-width: 1.65rem;
+  --rdp-day-height: 1.65rem;
+  --rdp-month-caption-font: 600 0.875rem/1.25rem ui-sans-serif, system-ui, sans-serif;
+  --rdp-weekday-text-transform: none;
+  --rdp-weekday-padding: 0.125rem;
+  --rdp-day_button-border-radius: 999px;
   margin: 0;
+  font-size: 0.75rem;
 }
 .rdp-custom .rdp-day_button {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
 }
 .rdp-custom .rdp-day_outside .rdp-day_button {
   color: #94a3b8;
+}
+.rdp-custom .rdp-month_caption {
+  margin-bottom: 0.25rem;
+}
+.rdp-custom .rdp-nav {
+  height: 1.5rem;
 }
