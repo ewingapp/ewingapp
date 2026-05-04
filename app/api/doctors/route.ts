@@ -35,6 +35,7 @@ export async function GET() {
       allowVCE: true,
       active: true,
       notes: true,
+      locations: { select: { id: true, name: true } },
     },
   });
   return NextResponse.json(doctors);
