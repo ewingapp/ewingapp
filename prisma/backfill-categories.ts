@@ -64,6 +64,25 @@ async function main() {
   await ensureExam("MSE", "MENTAL STATUS EXAM", "PSYCH");
   await ensureExam("XRAY", "XRAY ONLY", "MEDICAL");
 
+  const ensureSpecialty = async (
+    name: string,
+    code: string,
+    category: Cat,
+  ) => {
+    const existing = await prisma.specialty.findUnique({ where: { name } });
+    if (!existing) {
+      await prisma.specialty.create({ data: { name, code, category } });
+      console.log(`  added specialty: ${code} — ${name} [${category}]`);
+    } else {
+      console.log(`  specialty ${name} already exists, skipping`);
+    }
+  };
+
+  await ensureSpecialty("NEUROLOGY", "23", "MEDICAL");
+  await ensureSpecialty("NEUROLOGY (CHILD)", "22", "MEDICAL");
+  await ensureSpecialty("PEDIATRICS", "37", "MEDICAL");
+  await ensureSpecialty("ORTHOPEDICS", "33", "MEDICAL");
+
   console.log("Done.");
 }
 
