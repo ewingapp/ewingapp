@@ -11,19 +11,20 @@ datasource db {
 }
 
 model Location {
-  id          String   @id @default(cuid())
-  name        String
-  address     String
-  address2    String   @default("")
-  city        String
-  state       String   @default("CA")
-  zip         String
-  phone       String
-  contactName String   @default("")
-  active      Boolean  @default(true)
-  doctors     Doctor[] @relation("DoctorLocations")
-  slots       Slot[]
-  createdAt   DateTime @default(now())
+  id           String           @id @default(cuid())
+  name         String
+  address      String
+  address2     String           @default("")
+  city         String
+  state        String           @default("CA")
+  zip          String
+  phone        String
+  contactName  String           @default("")
+  active       Boolean          @default(true)
+  doctors      Doctor[]         @relation("DoctorLocations")
+  schedules    DoctorSchedule[]
+  appointments Appointment[]
+  createdAt    DateTime         @default(now())
 }
 
 model Specialty {
@@ -33,7 +34,7 @@ model Specialty {
   category        String   @default("MEDICAL")
   durationMinutes Int      @default(30)
   doctors         Doctor[] @relation("DoctorSpecialties")
-  slots           Slot[]
+  appointments    Appointment[]
   createdAt       DateTime @default(now())
 }
 
@@ -49,44 +50,37 @@ model Exam {
 }
 
 model Doctor {
-  id           String      @id @default(cuid())
+  id           String           @id @default(cuid())
   name         String
-  firstName    String      @default("")
-  lastName     String      @default("")
-  suffix       String      @default("")
-  certStatus   String      @default("BC")
-  languages    String      @default("")
-  claimantAges String      @default("")
-  remarks      String      @default("")
-  allowVCE     Boolean     @default(false)
-  active       Boolean     @default(true)
-  notes        String      @default("")
-  specialties  Specialty[] @relation("DoctorSpecialties")
-  locations    Location[]  @relation("DoctorLocations")
-  exams        Exam[]      @relation("DoctorExams")
-  slots        Slot[]
-  createdAt    DateTime    @default(now())
+  firstName    String           @default("")
+  lastName     String           @default("")
+  suffix       String           @default("")
+  certStatus   String           @default("BC")
+  languages    String           @default("")
+  claimantAges String           @default("")
+  remarks      String           @default("")
+  allowVCE     Boolean          @default(false)
+  active       Boolean          @default(true)
+  notes        String           @default("")
+  specialties  Specialty[]      @relation("DoctorSpecialties")
+  locations    Location[]       @relation("DoctorLocations")
+  exams        Exam[]           @relation("DoctorExams")
+  schedules    DoctorSchedule[]
+  appointments Appointment[]
+  createdAt    DateTime         @default(now())
 }
 
-enum SlotStatus {
-  AVAILABLE
-  BOOKED
-}
+model DoctorSchedule {
+  id         String   @id @default(cuid())
+  doctor     Doctor   @relation(fields: [doctorId], references: [id])
+  doctorId   String
+  location   Location @relation(fields: [locationId], references: [id])
+  locationId String
+  startTime  DateTime
+  endTime    DateTime
+  createdAt  DateTime @default(now())
 
-model Slot {
-  id          String       @id @default(cuid())
-  doctor      Doctor       @relation(fields: [doctorId], references: [id])
-  doctorId    String
-  location    Location     @relation(fields: [locationId], references: [id])
-  locationId  String
-  specialty   Specialty    @relation(fields: [specialtyId], references: [id])
-  specialtyId String
-  startTime   DateTime
-  endTime     DateTime
-  status      SlotStatus   @default(AVAILABLE)
-  appointment Appointment?
-
-  @@index([locationId, specialtyId, startTime, status])
+  @@index([locationId, startTime])
   @@index([doctorId, startTime])
 }
 
@@ -105,8 +99,15 @@ enum CancelledBy {
 
 model Appointment {
   id                 String            @id @default(cuid())
-  slot               Slot              @relation(fields: [slotId], references: [id])
-  slotId             String            @unique
+  doctor             Doctor            @relation(fields: [doctorId], references: [id])
+  doctorId           String
+  location           Location          @relation(fields: [locationId], references: [id])
+  locationId         String
+  specialty          Specialty         @relation(fields: [specialtyId], references: [id])
+  specialtyId        String
+  startTime          DateTime
+  endTime            DateTime
+  durationMinutes    Int
   caseNumber         String
   firstInitial       String
   lastNamePrefix     String
@@ -129,6 +130,8 @@ model Appointment {
 
   @@index([caseNumber])
   @@index([status])
+  @@index([doctorId, startTime])
+  @@index([locationId, startTime])
 }
 
 model StateBranch {

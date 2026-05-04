@@ -114,16 +114,17 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const slotCount = await prisma.slot.count({ where: { doctorId: id } });
-  if (slotCount > 0) {
+  const apptCount = await prisma.appointment.count({ where: { doctorId: id } });
+  if (apptCount > 0) {
     return NextResponse.json(
       {
         error:
-          "Cannot delete: doctor has slots in the schedule. Set the doctor inactive instead.",
+          "Cannot delete: doctor has appointments. Set the doctor inactive instead.",
       },
       { status: 409 },
     );
   }
+  await prisma.doctorSchedule.deleteMany({ where: { doctorId: id } });
   try {
     await prisma.doctor.delete({ where: { id } });
     return NextResponse.json({ ok: true });

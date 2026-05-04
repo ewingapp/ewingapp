@@ -176,7 +176,7 @@ function ResultsView() {
       const res = await fetch("/api/appointments", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...values, slotId: bookingSlot.id }),
+        body: JSON.stringify({ ...values, slotId: bookingSlot.id, specialtyId }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));

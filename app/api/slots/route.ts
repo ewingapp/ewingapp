@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { computeAvailableSlots } from "@/lib/availability";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -7,6 +7,7 @@ export async function GET(request: Request) {
   const specialtyId = searchParams.get("specialtyId");
   const from = searchParams.get("from");
   const to = searchParams.get("to");
+  const doctorId = searchParams.get("doctorId") ?? undefined;
 
   if (!locationId || !specialtyId || !from || !to) {
     return NextResponse.json(
@@ -19,21 +20,20 @@ export async function GET(request: Request) {
   const toDate = new Date(to);
   toDate.setHours(23, 59, 59, 999);
 
-  const slots = await prisma.slot.findMany({
-    where: {
-      locationId,
-      specialtyId,
-      status: "AVAILABLE",
-      startTime: { gte: fromDate, lte: toDate },
-    },
-    orderBy: { startTime: "asc" },
-    select: {
-      id: true,
-      startTime: true,
-      endTime: true,
-      doctor: { select: { id: true, name: true } },
-    },
+  const slots = await computeAvailableSlots({
+    locationId,
+    specialtyId,
+    from: fromDate,
+    to: toDate,
+    doctorId,
   });
 
-  return NextResponse.json(slots);
+  return NextResponse.json(
+    slots.map((s) => ({
+      id: s.id,
+      startTime: s.startTime,
+      endTime: s.endTime,
+      doctor: { id: s.doctorId, name: s.doctorName },
+    })),
+  );
 }
