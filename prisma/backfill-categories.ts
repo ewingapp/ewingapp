@@ -63,6 +63,7 @@ async function main() {
 
   await ensureExam("MSE", "MENTAL STATUS EXAM", "PSYCH");
   await ensureExam("XRAY", "XRAY ONLY", "MEDICAL");
+  await ensureExam("SPIRO", "SPIROMETRY", "MEDICAL");
 
   const ensureSpecialty = async (
     name: string,
