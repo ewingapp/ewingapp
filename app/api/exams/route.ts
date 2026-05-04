@@ -16,7 +16,12 @@ export async function GET() {
     orderBy: { code: "asc" },
     select: { id: true, code: true, name: true, category: true, active: true },
   });
-  return NextResponse.json(exams);
+  const sorted = [...exams].sort((a, b) => {
+    if (a.code === "MSE") return -1;
+    if (b.code === "MSE") return 1;
+    return a.code.localeCompare(b.code);
+  });
+  return NextResponse.json(sorted);
 }
 
 export async function POST(request: Request) {
