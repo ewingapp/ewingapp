@@ -8,12 +8,19 @@ const createSchema = z.object({
   name: z.string().min(1, "Required"),
   code: z.string().optional().default(""),
   category: CATEGORY.optional().default("MEDICAL"),
+  durationMinutes: z.number().int().min(5).max(240).optional().default(30),
 });
 
 export async function GET() {
   const specialties = await prisma.specialty.findMany({
     orderBy: { name: "asc" },
-    select: { id: true, name: true, code: true, category: true },
+    select: {
+      id: true,
+      name: true,
+      code: true,
+      category: true,
+      durationMinutes: true,
+    },
   });
   return NextResponse.json(specialties);
 }

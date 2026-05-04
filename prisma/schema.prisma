@@ -27,23 +27,25 @@ model Location {
 }
 
 model Specialty {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  code      String   @default("")
-  category  String   @default("MEDICAL")
-  doctors   Doctor[] @relation("DoctorSpecialties")
-  slots     Slot[]
-  createdAt DateTime @default(now())
+  id              String   @id @default(cuid())
+  name            String   @unique
+  code            String   @default("")
+  category        String   @default("MEDICAL")
+  durationMinutes Int      @default(30)
+  doctors         Doctor[] @relation("DoctorSpecialties")
+  slots           Slot[]
+  createdAt       DateTime @default(now())
 }
 
 model Exam {
-  id        String   @id @default(cuid())
-  code      String   @unique
-  name      String
-  category  String   @default("MEDICAL")
-  active    Boolean  @default(true)
-  doctors   Doctor[] @relation("DoctorExams")
-  createdAt DateTime @default(now())
+  id              String   @id @default(cuid())
+  code            String   @unique
+  name            String
+  category        String   @default("MEDICAL")
+  durationMinutes Int      @default(30)
+  active          Boolean  @default(true)
+  doctors         Doctor[] @relation("DoctorExams")
+  createdAt       DateTime @default(now())
 }
 
 model Doctor {

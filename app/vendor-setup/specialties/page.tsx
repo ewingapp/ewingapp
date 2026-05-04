@@ -27,7 +27,13 @@ import {
 } from "@/components/ui/select";
 
 type Category = "PSYCH" | "MEDICAL" | "SLP";
-type Specialty = { id: string; name: string; code: string; category: Category };
+type Specialty = {
+  id: string;
+  name: string;
+  code: string;
+  category: Category;
+  durationMinutes: number;
+};
 
 const CATEGORIES: { value: Category; label: string }[] = [
   { value: "PSYCH", label: "Psych" },
@@ -39,10 +45,16 @@ const formSchema = z.object({
   name: z.string().min(1, "Required"),
   code: z.string(),
   category: z.enum(["PSYCH", "MEDICAL", "SLP"]),
+  durationMinutes: z.number().int().min(5).max(240),
 });
 type FormValues = z.infer<typeof formSchema>;
 
-const EMPTY_FORM: FormValues = { name: "", code: "", category: "MEDICAL" };
+const EMPTY_FORM: FormValues = {
+  name: "",
+  code: "",
+  category: "MEDICAL",
+  durationMinutes: 30,
+};
 
 function csvEscape(value: string): string {
   return `"${String(value).replace(/"/g, '""')}"`;
@@ -90,7 +102,12 @@ export default function SpecialtiesPage() {
 
   function openEdit(s: Specialty) {
     setEditing(s);
-    form.reset({ name: s.name, code: s.code, category: s.category });
+    form.reset({
+      name: s.name,
+      code: s.code,
+      category: s.category,
+      durationMinutes: s.durationMinutes,
+    });
     setDialogOpen(true);
   }
 
@@ -144,8 +161,13 @@ export default function SpecialtiesPage() {
 
   function exportCsv() {
     const rows = [
-      ["Category", "Name", "Code"],
-      ...specialties.map((s) => [s.category, s.name, s.code]),
+      ["Category", "Name", "Code", "Duration (min)"],
+      ...specialties.map((s) => [
+        s.category,
+        s.name,
+        s.code,
+        String(s.durationMinutes),
+      ]),
     ];
     const csv = rows.map((r) => r.map(csvEscape).join(",")).join("\r\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -239,6 +261,7 @@ export default function SpecialtiesPage() {
                       <tr className="border-b">
                         <th className="px-3 py-2 font-medium">Name</th>
                         <th className="px-3 py-2 font-medium">Code</th>
+                        <th className="px-3 py-2 font-medium text-right">Duration</th>
                         <th className="px-3 py-2 font-medium text-right">Actions</th>
                       </tr>
                     </thead>
@@ -253,6 +276,9 @@ export default function SpecialtiesPage() {
                           </td>
                           <td className="px-3 py-2 text-slate-700 tabular-nums">
                             {s.code || "—"}
+                          </td>
+                          <td className="px-3 py-2 text-slate-700 tabular-nums text-right">
+                            {s.durationMinutes} min
                           </td>
                           <td className="px-3 py-2">
                             <div className="flex items-center justify-end gap-1.5">
@@ -339,6 +365,20 @@ export default function SpecialtiesPage() {
                 placeholder="e.g. 19, 38, TS"
                 maxLength={10}
                 {...form.register("code")}
+              />
+            </Field>
+
+            <Field
+              label="Default duration (minutes)"
+              error={form.formState.errors.durationMinutes?.message}
+            >
+              <Input
+                type="number"
+                min={5}
+                max={240}
+                step={5}
+                placeholder="30"
+                {...form.register("durationMinutes", { valueAsNumber: true })}
               />
             </Field>
 
