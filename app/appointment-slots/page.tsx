@@ -579,9 +579,7 @@ export default function AppointmentSlotsPage() {
                         Appointment Status
                       </th>
                       <th className="px-3 py-2 font-semibold">Office</th>
-                      <th className="px-3 py-2 font-semibold w-56" colSpan={2}>
-                        Actions
-                      </th>
+                      <th className="px-3 py-2 font-semibold">Actions</th>
                       <th className="px-3 py-2 font-semibold">Appt Made</th>
                     </tr>
                   </thead>
@@ -644,17 +642,6 @@ export default function AppointmentSlotsPage() {
                               className="h-7 text-xs"
                             >
                               Make Appointment
-                            </Button>
-                          </td>
-                          <td className="px-3 py-1.5">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled
-                              title="Coming soon"
-                              className="h-7 text-xs"
-                            >
-                              Change Time
                             </Button>
                           </td>
                           <td className="px-3 py-1.5 tabular-nums">
