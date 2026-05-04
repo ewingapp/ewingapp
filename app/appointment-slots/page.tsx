@@ -9,12 +9,19 @@ import { Loader2, Plus } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
+import {
+  TemplateAdminDialog,
+  type Template,
+} from "./template-admin-dialog";
+
+type SlotType = "ANY" | "LOOKALIKE" | "PSYCH_TESTING";
 
 type Office = { id: string; name: string };
 type Doctor = {
@@ -29,6 +36,7 @@ type Schedule = {
   locationId: string;
   startTime: string;
   endTime: string;
+  slotType: SlotType;
   doctor: { id: string; name: string };
   location: { id: string; name: string };
 };
@@ -52,6 +60,7 @@ type SlotRow = {
   windowId: string;
   locationId: string;
   locationName: string;
+  slotType: SlotType;
   status: "OPEN" | "BOOKED";
   appointment?: Appointment;
 };
@@ -124,6 +133,7 @@ function computeSlotRows(
           windowId: w.id,
           locationId: w.locationId,
           locationName: w.location.name,
+          slotType: w.slotType,
           status: "BOOKED",
           appointment: overlap,
         });
@@ -136,6 +146,7 @@ function computeSlotRows(
           windowId: w.id,
           locationId: w.locationId,
           locationName: w.location.name,
+          slotType: w.slotType,
           status: "OPEN",
         });
         cursor += gridMin * 60_000;
@@ -166,6 +177,18 @@ export default function AppointmentSlotsPage() {
   const [timeValue, setTimeValue] = useState<string>("09:00");
   const [rangeFrom, setRangeFrom] = useState<string>("09:00");
   const [rangeTo, setRangeTo] = useState<string>("17:00");
+  const [slotType, setSlotType] = useState<SlotType>("ANY");
+
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templateId, setTemplateId] = useState<string>("");
+  const [templateAdminOpen, setTemplateAdminOpen] = useState(false);
+
+  function setSlotTypeAndDuration(next: SlotType) {
+    setSlotType(next);
+    if (next === "LOOKALIKE") setDuration(40);
+    else if (next === "PSYCH_TESTING") setDuration(60);
+    else setDuration(30);
+  }
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -179,11 +202,13 @@ export default function AppointmentSlotsPage() {
     Promise.all([
       fetch("/api/locations").then((r) => r.json()),
       fetch("/api/doctors").then((r) => r.json()),
+      fetch("/api/templates").then((r) => r.json()),
     ])
-      .then(([offs, docs]: [Office[], Doctor[]]) => {
+      .then(([offs, docs, tpls]: [Office[], Doctor[], Template[]]) => {
         if (cancelled) return;
         setOffices(offs);
         setDoctors(docs);
+        setTemplates(tpls);
         if (offs.length && !locationId) setLocationId(offs[0].id);
       })
       .catch((e) =>
@@ -197,6 +222,11 @@ export default function AppointmentSlotsPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function refreshTemplates() {
+    const res = await fetch("/api/templates");
+    if (res.ok) setTemplates(await res.json());
+  }
 
   const eligibleDoctors = useMemo(() => {
     if (!locationId) return [];
@@ -249,6 +279,7 @@ export default function AppointmentSlotsPage() {
         locationId,
         startTime: startIso,
         endTime: endIso,
+        slotType,
       }),
     });
     if (!res.ok) {
@@ -278,8 +309,27 @@ export default function AppointmentSlotsPage() {
         const count = Math.floor(totalMin / duration);
         await postWindow(start.toISOString(), end.toISOString());
         setInfo(`${count} appointment slot${count === 1 ? "" : "s"} were added.`);
-      } else {
-        throw new Error("Templates aren't built yet — coming soon.");
+      } else if (mode === "TEMPLATE") {
+        if (!templateId) throw new Error("Choose a template first.");
+        const res = await fetch("/api/schedules/apply-template", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            templateId,
+            doctorId,
+            locationId,
+            date: dateIso(date),
+            defaultDuration: duration,
+          }),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body?.error ?? `Failed (${res.status})`);
+        }
+        const { count } = await res.json();
+        setInfo(
+          `Applied template — ${count} appointment slot${count === 1 ? "" : "s"} were added.`,
+        );
       }
       await refreshSlots();
     } catch (e) {
@@ -468,6 +518,44 @@ export default function AppointmentSlotsPage() {
                 </div>
               </Row>
 
+              <Row label="Slot Type:">
+                <div className="flex items-center gap-4 flex-wrap">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={slotType === "LOOKALIKE"}
+                      onCheckedChange={(v) =>
+                        setSlotTypeAndDuration(v ? "LOOKALIKE" : "ANY")
+                      }
+                    />
+                    <span className="text-sm text-slate-800">
+                      LookAlike only{" "}
+                      <span className="text-xs text-slate-500">(40 min)</span>
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={slotType === "PSYCH_TESTING"}
+                      onCheckedChange={(v) =>
+                        setSlotTypeAndDuration(v ? "PSYCH_TESTING" : "ANY")
+                      }
+                    />
+                    <span className="text-sm text-slate-800">
+                      Psych Testing only{" "}
+                      <span className="text-xs text-slate-500">(60 min)</span>
+                    </span>
+                  </label>
+                  {slotType !== "ANY" && (
+                    <button
+                      type="button"
+                      onClick={() => setSlotTypeAndDuration("ANY")}
+                      className="text-xs text-slate-500 hover:text-slate-900 underline"
+                    >
+                      clear
+                    </button>
+                  )}
+                </div>
+              </Row>
+
               <Row
                 label={
                   <ModeRadio
@@ -564,9 +652,36 @@ export default function AppointmentSlotsPage() {
                   />
                 }
               >
-                <span className="text-slate-500 italic text-xs">
-                  Templates not yet available.
-                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Select
+                    value={templateId}
+                    onValueChange={(v) => setTemplateId(v ?? "")}
+                    disabled={templates.length === 0}
+                  >
+                    <SelectTrigger className="w-56">
+                      <span data-slot="select-value">
+                        {templates.find((t) => t.id === templateId)?.name ??
+                          (templates.length === 0
+                            ? "No templates yet"
+                            : "Choose template")}
+                      </span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {templates.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.name} ({t.times.length} times)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    onClick={() => setTemplateAdminOpen(true)}
+                    className="h-8 text-xs"
+                  >
+                    Template Admin
+                  </Button>
+                </div>
               </Row>
             </div>
 
@@ -574,7 +689,10 @@ export default function AppointmentSlotsPage() {
               <Button
                 onClick={onAdd}
                 disabled={
-                  saving || !doctorId || !locationId || mode === "TEMPLATE"
+                  saving ||
+                  !doctorId ||
+                  !locationId ||
+                  (mode === "TEMPLATE" && !templateId)
                 }
                 className="text-white hover:brightness-95 h-9"
                 style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
@@ -664,6 +782,13 @@ export default function AppointmentSlotsPage() {
                                 Booked ({row.appointment?.specialty.name})
                               </span>
                             )}
+                            {row.slotType !== "ANY" && (
+                              <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-violet-100 text-violet-800">
+                                {row.slotType === "LOOKALIKE"
+                                  ? "LookAlike only"
+                                  : "Psych Testing only"}
+                              </span>
+                            )}
                           </td>
                           <td className="px-3 py-1.5">
                             {row.locationName}
@@ -716,6 +841,12 @@ export default function AppointmentSlotsPage() {
           </>
         )}
       </div>
+
+      <TemplateAdminDialog
+        open={templateAdminOpen}
+        onOpenChange={setTemplateAdminOpen}
+        onTemplatesChanged={() => void refreshTemplates()}
+      />
     </AppShell>
   );
 }

@@ -66,7 +66,7 @@ export async function computeAvailableSlots(opts: {
 
   const specialty = await prisma.specialty.findUnique({
     where: { id: specialtyId },
-    select: { id: true, durationMinutes: true },
+    select: { id: true, name: true, durationMinutes: true },
   });
   if (!specialty) return [];
   const overrides = await prisma.doctorSpecialtyOverride.findMany({
@@ -77,6 +77,8 @@ export async function computeAvailableSlots(opts: {
     overrides.map((o) => [o.doctorId, o.durationMinutes]),
   );
   const defaultDuration = specialty.durationMinutes;
+  const isMSE = /\bMSE\b/i.test(specialty.name);
+  const isPsychTesting = /TESTING/i.test(specialty.name);
 
   const where: { locationId: string; specialtyId?: never; startTime: { gte: Date; lte: Date }; doctorId?: string; doctor?: { specialties: { some: { id: string } }; active?: boolean } } = {
     locationId,
@@ -112,6 +114,8 @@ export async function computeAvailableSlots(opts: {
 
   const out: AvailableSlot[] = [];
   for (const sched of schedules) {
+    if (sched.slotType === "LOOKALIKE" && !isMSE) continue;
+    if (sched.slotType === "PSYCH_TESTING" && !isPsychTesting) continue;
     const blocks = apptByDoctor.get(sched.doctorId) ?? [];
     const duration = overrideByDoctor.get(sched.doctorId) ?? defaultDuration;
     const durationMs = duration * 60_000;

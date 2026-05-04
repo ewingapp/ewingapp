@@ -93,10 +93,31 @@ model DoctorSchedule {
   locationId String
   startTime  DateTime
   endTime    DateTime
+  slotType   String   @default("ANY")
   createdAt  DateTime @default(now())
 
   @@index([locationId, startTime])
   @@index([doctorId, startTime])
+}
+
+model Template {
+  id             String         @id @default(cuid())
+  name           String         @unique
+  disableAutoAdj Boolean        @default(false)
+  times          TemplateTime[]
+  createdAt      DateTime       @default(now())
+}
+
+model TemplateTime {
+  id         String   @id @default(cuid())
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  templateId String
+  hour       Int
+  minute     Int
+  slotType   String   @default("ANY")
+  createdAt  DateTime @default(now())
+
+  @@index([templateId])
 }
 
 enum AppointmentStatus {
