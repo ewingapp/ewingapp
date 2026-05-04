@@ -103,7 +103,10 @@ export default function AppointmentSlotsPage() {
     if (!locationId) return [];
     return doctors
       .filter(
-        (d) => d.active && d.locations.some((l) => l.id === locationId),
+        (d) =>
+          d.active &&
+          Array.isArray(d.locations) &&
+          d.locations.some((l) => l?.id === locationId),
       )
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [doctors, locationId]);
