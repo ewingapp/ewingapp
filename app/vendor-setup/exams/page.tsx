@@ -28,7 +28,14 @@ import {
 } from "@/components/ui/select";
 
 type Category = "PSYCH" | "MEDICAL" | "SLP";
-type Exam = { id: string; code: string; name: string; category: Category; active: boolean };
+type Exam = {
+  id: string;
+  code: string;
+  name: string;
+  category: Category;
+  durationMinutes: number;
+  active: boolean;
+};
 
 const CATEGORIES: { value: Category; label: string }[] = [
   { value: "PSYCH", label: "Psych" },
@@ -40,6 +47,7 @@ const formSchema = z.object({
   code: z.string().min(1, "Required"),
   name: z.string().min(1, "Required"),
   category: z.enum(["PSYCH", "MEDICAL", "SLP"]),
+  durationMinutes: z.number().int().min(5).max(240),
   active: z.boolean(),
 });
 type FormValues = z.infer<typeof formSchema>;
@@ -48,6 +56,7 @@ const EMPTY_FORM: FormValues = {
   code: "",
   name: "",
   category: "MEDICAL",
+  durationMinutes: 30,
   active: true,
 };
 
@@ -102,6 +111,7 @@ export default function ExamsPage() {
       code: e.code,
       name: e.name,
       category: e.category,
+      durationMinutes: e.durationMinutes,
       active: e.active,
     });
     setDialogOpen(true);
@@ -157,8 +167,11 @@ export default function ExamsPage() {
 
   function exportCsv() {
     const rows = [
-      ["Category", "Code", "Name", "Active"],
-      ...exams.map((e) => [e.category, e.code, e.name, e.active] as const),
+      ["Category", "Code", "Name", "Duration (min)", "Active"],
+      ...exams.map(
+        (e) =>
+          [e.category, e.code, e.name, String(e.durationMinutes), e.active] as const,
+      ),
     ];
     const csv = rows.map((r) => r.map(csvEscape).join(",")).join("\r\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -252,6 +265,7 @@ export default function ExamsPage() {
                       <tr className="border-b">
                         <th className="px-3 py-2 font-medium">Code</th>
                         <th className="px-3 py-2 font-medium">Name</th>
+                        <th className="px-3 py-2 font-medium text-right">Duration</th>
                         <th className="px-3 py-2 font-medium text-center">Active</th>
                         <th className="px-3 py-2 font-medium text-right">Actions</th>
                       </tr>
@@ -267,6 +281,9 @@ export default function ExamsPage() {
                           </td>
                           <td className="px-3 py-2 text-slate-700 uppercase">
                             {e.name}
+                          </td>
+                          <td className="px-3 py-2 text-slate-700 tabular-nums text-right">
+                            {e.durationMinutes} min
                           </td>
                           <td className="px-3 py-2 text-center">
                             <span
@@ -363,6 +380,20 @@ export default function ExamsPage() {
                 placeholder="e.g. INTERNIST"
                 className="uppercase"
                 {...form.register("name")}
+              />
+            </Field>
+
+            <Field
+              label="Default duration (minutes)"
+              error={form.formState.errors.durationMinutes?.message}
+            >
+              <Input
+                type="number"
+                min={5}
+                max={240}
+                step={5}
+                placeholder="30"
+                {...form.register("durationMinutes", { valueAsNumber: true })}
               />
             </Field>
 

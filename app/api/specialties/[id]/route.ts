@@ -8,6 +8,7 @@ const updateSchema = z.object({
   name: z.string().min(1).optional(),
   code: z.string().optional(),
   category: CATEGORY.optional(),
+  durationMinutes: z.number().int().min(5).max(240).optional(),
 });
 
 export async function PATCH(

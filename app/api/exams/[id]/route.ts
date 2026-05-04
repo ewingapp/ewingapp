@@ -8,6 +8,7 @@ const updateSchema = z.object({
   code: z.string().min(1).optional(),
   name: z.string().min(1).optional(),
   category: CATEGORY.optional(),
+  durationMinutes: z.number().int().min(5).max(240).optional(),
   active: z.boolean().optional(),
 });
 
