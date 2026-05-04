@@ -170,6 +170,7 @@ export default function AppointmentSlotsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deletingKey, setDeletingKey] = useState<string | null>(null);
+  const [deletingAll, setDeletingAll] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
@@ -316,6 +317,46 @@ export default function AppointmentSlotsPage() {
     }
   }
 
+  async function onDeleteAllOpen() {
+    const openRows = slotRows.filter((r) => r.status === "OPEN");
+    if (openRows.length === 0) return;
+    if (
+      !confirm(
+        `Delete all ${openRows.length} open slot${openRows.length === 1 ? "" : "s"} for this doctor on this day?`,
+      )
+    )
+      return;
+    setDeletingAll(true);
+    setError(null);
+    setInfo(null);
+    try {
+      for (const row of openRows) {
+        const res = await fetch("/api/schedules/delete-slot", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            windowId: row.windowId,
+            slotStart: row.startTime.toISOString(),
+            slotEnd: row.endTime.toISOString(),
+          }),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body?.error ?? `Failed (${res.status})`);
+        }
+      }
+      setInfo(
+        `Deleted ${openRows.length} open slot${openRows.length === 1 ? "" : "s"}.`,
+      );
+      await refreshSlots();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Delete failed");
+      await refreshSlots();
+    } finally {
+      setDeletingAll(false);
+    }
+  }
+
   function onMakeAppointment(row: SlotRow) {
     const params = new URLSearchParams({
       locationId: row.locationId,
@@ -362,7 +403,7 @@ export default function AppointmentSlotsPage() {
           </div>
         ) : (
           <>
-            <div className="border-2 border-slate-700 bg-white mb-3 text-sm">
+            <div className="border-2 border-slate-700 bg-white mb-3 text-sm w-fit max-w-full">
               <Row label="Office:">
                 <Select
                   value={locationId}
@@ -580,7 +621,6 @@ export default function AppointmentSlotsPage() {
                       </th>
                       <th className="px-3 py-2 font-semibold">Office</th>
                       <th className="px-3 py-2 font-semibold">Actions</th>
-                      <th className="px-3 py-2 font-semibold">Appt Made</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -643,17 +683,34 @@ export default function AppointmentSlotsPage() {
                             >
                               Make Appointment
                             </Button>
-                          </td>
-                          <td className="px-3 py-1.5 tabular-nums">
-                            {row.appointment
-                              ? `#${row.appointment.caseNumber}`
-                              : ""}
+                            {row.status === "BOOKED" && row.appointment && (
+                              <span className="ml-2 text-xs text-slate-600 tabular-nums">
+                                #{row.appointment.caseNumber}
+                              </span>
+                            )}
                           </td>
                         </tr>
                       );
                     })}
                   </tbody>
                 </table>
+                <div className="border-t border-slate-300 px-3 py-2 bg-slate-50 flex justify-end">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={onDeleteAllOpen}
+                    disabled={
+                      deletingAll ||
+                      slotRows.every((r) => r.status === "BOOKED")
+                    }
+                    className="h-7 text-xs text-rose-700 border-rose-200 hover:bg-rose-50"
+                  >
+                    {deletingAll ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : null}
+                    Delete all open slots
+                  </Button>
+                </div>
               </div>
             )}
           </>
