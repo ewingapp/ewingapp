@@ -2,11 +2,14 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 
+const SLOT_TYPE = z.enum(["ANY", "LOOKALIKE", "PSYCH_TESTING"]);
+
 const createSchema = z.object({
   doctorId: z.string().min(1),
   locationId: z.string().min(1),
   startTime: z.string().min(1),
   endTime: z.string().min(1),
+  slotType: SLOT_TYPE.optional().default("ANY"),
 });
 
 export async function GET(request: Request) {
@@ -46,7 +49,7 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  const { doctorId, locationId, startTime, endTime } = parsed.data;
+  const { doctorId, locationId, startTime, endTime, slotType } = parsed.data;
   const start = new Date(startTime);
   const end = new Date(endTime);
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
@@ -60,7 +63,7 @@ export async function POST(request: Request) {
   }
 
   const created = await prisma.doctorSchedule.create({
-    data: { doctorId, locationId, startTime: start, endTime: end },
+    data: { doctorId, locationId, startTime: start, endTime: end, slotType },
     include: {
       doctor: { select: { id: true, name: true } },
       location: { select: { id: true, name: true } },
