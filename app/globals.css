@@ -271,3 +271,17 @@
     box-shadow: none !important;
   }
 }
+
+.rdp-custom {
+  --rdp-accent-color: #0085ca;
+  --rdp-accent-background-color: #0085ca;
+  --rdp-day-width: 2.25rem;
+  --rdp-day-height: 2.25rem;
+  margin: 0;
+}
+.rdp-custom .rdp-day_button {
+  font-size: 0.875rem;
+}
+.rdp-custom .rdp-day_outside .rdp-day_button {
+  color: #94a3b8;
+}
