@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   Building2,
   ClipboardList,
+  Clock,
   Loader2,
   Save,
   Stethoscope,
@@ -14,8 +15,15 @@ import {
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 
 type Category = "PSYCH" | "MEDICAL" | "SLP";
+
+type DurationOverride = {
+  id: string;
+  specialtyId: string;
+  durationMinutes: number;
+};
 
 type Doctor = {
   id: string;
@@ -27,10 +35,17 @@ type Doctor = {
   locations: { id: string; name: string }[];
   specialties: { id: string; name: string; code: string; category: Category }[];
   exams: { id: string; code: string; name: string; category: Category }[];
+  overrides: DurationOverride[];
 };
 
 type Office = { id: string; name: string; city: string };
-type Specialty = { id: string; name: string; code: string; category: Category };
+type Specialty = {
+  id: string;
+  name: string;
+  code: string;
+  category: Category;
+  durationMinutes: number;
+};
 type Exam = { id: string; code: string; name: string; category: Category };
 
 const CATEGORIES: { value: Category; label: string }[] = [
@@ -54,6 +69,7 @@ export default function DoctorSetupPage({
   const [locationIds, setLocationIds] = useState<Set<string>>(new Set());
   const [specialtyIds, setSpecialtyIds] = useState<Set<string>>(new Set());
   const [examIds, setExamIds] = useState<Set<string>>(new Set());
+  const [overrides, setOverrides] = useState<Map<string, number>>(new Map());
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -81,6 +97,11 @@ export default function DoctorSetupPage({
         setLocationIds(new Set(d.locations.map((l) => l.id)));
         setSpecialtyIds(new Set(d.specialties.map((s) => s.id)));
         setExamIds(new Set(d.exams.map((e) => e.id)));
+        setOverrides(
+          new Map(
+            (d.overrides ?? []).map((o) => [o.specialtyId, o.durationMinutes]),
+          ),
+        );
         setError(null);
       })
       .catch((e) => {
@@ -98,12 +119,19 @@ export default function DoctorSetupPage({
   const dirty = useMemo(() => {
     if (!doctor) return false;
     const set = (ids: { id: string }[]) => new Set(ids.map((x) => x.id));
+    const savedOverrides = new Map(
+      (doctor.overrides ?? []).map((o) => [o.specialtyId, o.durationMinutes]),
+    );
+    if (savedOverrides.size !== overrides.size) return true;
+    for (const [k, v] of overrides) {
+      if (savedOverrides.get(k) !== v) return true;
+    }
     return (
       !sameSet(set(doctor.locations), locationIds) ||
       !sameSet(set(doctor.specialties), specialtyIds) ||
       !sameSet(set(doctor.exams), examIds)
     );
-  }, [doctor, locationIds, specialtyIds, examIds]);
+  }, [doctor, locationIds, specialtyIds, examIds, overrides]);
 
   function toggle(setter: typeof setLocationIds, id: string) {
     setter((curr) => {
@@ -127,6 +155,12 @@ export default function DoctorSetupPage({
           locationIds: [...locationIds],
           specialtyIds: [...specialtyIds],
           examIds: [...examIds],
+          durationOverrides: [...overrides.entries()].map(
+            ([specialtyId, durationMinutes]) => ({
+              specialtyId,
+              durationMinutes,
+            }),
+          ),
         }),
       });
       if (!res.ok) {
@@ -258,6 +292,20 @@ export default function DoctorSetupPage({
               }))}
               isChecked={(id) => examIds.has(id)}
               onToggle={(id) => toggle(setExamIds, id)}
+            />
+
+            <DurationOverridesSection
+              specialties={specialties.filter((s) => specialtyIds.has(s.id))}
+              overrides={overrides}
+              onChange={(specialtyId, value) => {
+                setOverrides((curr) => {
+                  const next = new Map(curr);
+                  if (value == null) next.delete(specialtyId);
+                  else next.set(specialtyId, value);
+                  return next;
+                });
+                setSavedAt(null);
+              }}
             />
           </>
         ) : (
@@ -407,4 +455,84 @@ function sameSet(a: Set<string>, b: Set<string>): boolean {
   if (a.size !== b.size) return false;
   for (const x of a) if (!b.has(x)) return false;
   return true;
+}
+
+function DurationOverridesSection({
+  specialties,
+  overrides,
+  onChange,
+}: {
+  specialties: Specialty[];
+  overrides: Map<string, number>;
+  onChange: (specialtyId: string, value: number | null) => void;
+}) {
+  const sorted = [...specialties].sort((a, b) => {
+    const order: Record<Category, number> = { PSYCH: 0, MEDICAL: 1, SLP: 2 };
+    if (a.category !== b.category)
+      return (order[a.category] ?? 9) - (order[b.category] ?? 9);
+    return a.name.localeCompare(b.name);
+  });
+
+  return (
+    <section className="bg-white border rounded-lg shadow-sm mb-6">
+      <header className="flex items-center justify-between px-4 py-3 border-b">
+        <div className="flex items-center gap-2">
+          <span
+            className="grid place-items-center size-7 rounded text-white"
+            style={{ background: "#0085CA" }}
+          >
+            <Clock className="size-4" />
+          </span>
+          <h2 className="font-semibold text-slate-900">Custom durations</h2>
+        </div>
+        <span className="text-xs text-slate-500">
+          {overrides.size} override{overrides.size === 1 ? "" : "s"}
+        </span>
+      </header>
+      <div className="p-2">
+        {sorted.length === 0 ? (
+          <p className="text-sm text-slate-500 px-2 py-4">
+            Assign specialties above to set per-doctor duration overrides.
+          </p>
+        ) : (
+          <ul className="divide-y">
+            {sorted.map((s) => {
+              const current = overrides.get(s.id);
+              return (
+                <li
+                  key={s.id}
+                  className="flex items-center gap-3 px-3 py-2 text-sm"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-slate-800 truncate">{s.name}</div>
+                    <div className="text-xs text-slate-500">
+                      Default {s.durationMinutes} min
+                    </div>
+                  </div>
+                  <Input
+                    type="number"
+                    min={5}
+                    max={240}
+                    step={5}
+                    value={current ?? ""}
+                    placeholder={`${s.durationMinutes}`}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === "") onChange(s.id, null);
+                      else {
+                        const n = Number(v);
+                        if (Number.isFinite(n)) onChange(s.id, n);
+                      }
+                    }}
+                    className="w-24 text-right tabular-nums"
+                  />
+                  <span className="text-xs text-slate-500 w-7">min</span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </section>
+  );
 }

@@ -78,8 +78,19 @@ export async function POST(request: Request) {
       });
       if (!specialty) throw new Error("SPECIALTY_NOT_FOUND");
 
+      const override = await tx.doctorSpecialtyOverride.findUnique({
+        where: {
+          doctorId_specialtyId: {
+            doctorId: slotKey.doctorId,
+            specialtyId: data.specialtyId,
+          },
+        },
+        select: { durationMinutes: true },
+      });
+      const duration = override?.durationMinutes ?? specialty.durationMinutes;
+
       const startTime = slotKey.startTime;
-      const endTime = new Date(startTime.getTime() + specialty.durationMinutes * 60_000);
+      const endTime = new Date(startTime.getTime() + duration * 60_000);
 
       const window = await tx.doctorSchedule.findFirst({
         where: {
@@ -109,7 +120,7 @@ export async function POST(request: Request) {
           specialtyId: data.specialtyId,
           startTime,
           endTime,
-          durationMinutes: specialty.durationMinutes,
+          durationMinutes: duration,
           caseNumber: data.caseNumber,
           firstInitial: data.firstInitial.toUpperCase(),
           lastNamePrefix: data.lastNamePrefix.toUpperCase(),

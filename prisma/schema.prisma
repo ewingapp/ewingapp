@@ -35,6 +35,7 @@ model Specialty {
   durationMinutes Int      @default(30)
   doctors         Doctor[] @relation("DoctorSpecialties")
   appointments    Appointment[]
+  overrides       DoctorSpecialtyOverride[]
   createdAt       DateTime @default(now())
 }
 
@@ -67,7 +68,21 @@ model Doctor {
   exams        Exam[]           @relation("DoctorExams")
   schedules    DoctorSchedule[]
   appointments Appointment[]
+  overrides    DoctorSpecialtyOverride[]
   createdAt    DateTime         @default(now())
+}
+
+model DoctorSpecialtyOverride {
+  id              String    @id @default(cuid())
+  doctor          Doctor    @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  doctorId        String
+  specialty       Specialty @relation(fields: [specialtyId], references: [id])
+  specialtyId     String
+  durationMinutes Int
+  createdAt       DateTime  @default(now())
+
+  @@unique([doctorId, specialtyId])
+  @@index([doctorId])
 }
 
 model DoctorSchedule {

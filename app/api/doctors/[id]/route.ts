@@ -16,7 +16,22 @@ const updateSchema = z.object({
   locationIds: z.array(z.string()).optional(),
   specialtyIds: z.array(z.string()).optional(),
   examIds: z.array(z.string()).optional(),
+  durationOverrides: z
+    .array(
+      z.object({
+        specialtyId: z.string().min(1),
+        durationMinutes: z.number().int().min(5).max(240),
+      }),
+    )
+    .optional(),
 });
+
+const overrideInclude = {
+  locations: { select: { id: true, name: true } },
+  specialties: { select: { id: true, name: true, code: true, category: true } },
+  exams: { select: { id: true, code: true, name: true, category: true } },
+  overrides: { select: { id: true, specialtyId: true, durationMinutes: true } },
+} as const;
 
 function buildDisplayName(firstName: string, lastName: string, suffix: string): string {
   return [firstName, lastName, suffix].map((s) => s.trim()).filter(Boolean).join(" ");
@@ -29,11 +44,7 @@ export async function GET(
   const { id } = await params;
   const doctor = await prisma.doctor.findUnique({
     where: { id },
-    include: {
-      locations: { select: { id: true, name: true } },
-      specialties: { select: { id: true, name: true, code: true, category: true } },
-      exams: { select: { id: true, code: true, name: true, category: true } },
-    },
+    include: overrideInclude,
   });
   if (!doctor) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -59,6 +70,7 @@ export async function PATCH(
     locationIds,
     specialtyIds,
     examIds,
+    durationOverrides,
     ...scalar
   } = parsed.data;
 
@@ -94,14 +106,29 @@ export async function PATCH(
   }
 
   try {
+    if (durationOverrides !== undefined) {
+      const keepIds = new Set(durationOverrides.map((o) => o.specialtyId));
+      await prisma.doctorSpecialtyOverride.deleteMany({
+        where: { doctorId: id, specialtyId: { notIn: [...keepIds] } },
+      });
+      for (const o of durationOverrides) {
+        await prisma.doctorSpecialtyOverride.upsert({
+          where: {
+            doctorId_specialtyId: { doctorId: id, specialtyId: o.specialtyId },
+          },
+          create: {
+            doctorId: id,
+            specialtyId: o.specialtyId,
+            durationMinutes: o.durationMinutes,
+          },
+          update: { durationMinutes: o.durationMinutes },
+        });
+      }
+    }
     const updated = await prisma.doctor.update({
       where: { id },
       data,
-      include: {
-        locations: { select: { id: true, name: true } },
-        specialties: { select: { id: true, name: true, code: true } },
-        exams: { select: { id: true, code: true, name: true } },
-      },
+      include: overrideInclude,
     });
     return NextResponse.json(updated);
   } catch {
