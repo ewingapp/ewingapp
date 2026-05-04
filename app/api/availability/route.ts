@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { computeAvailableSlots } from "@/lib/availability";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -18,19 +18,16 @@ export async function GET(request: Request) {
   const end = new Date(start);
   end.setDate(end.getDate() + 120);
 
-  const slots = await prisma.slot.findMany({
-    where: {
-      locationId,
-      specialtyId,
-      status: "AVAILABLE",
-      startTime: { gte: start, lte: end },
-    },
-    select: { startTime: true },
+  const slots = await computeAvailableSlots({
+    locationId,
+    specialtyId,
+    from: start,
+    to: end,
   });
 
   const dates = new Set<string>();
   for (const s of slots) {
-    const d = new Date(s.startTime);
+    const d = s.startTime;
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");

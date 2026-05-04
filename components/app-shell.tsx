@@ -12,6 +12,7 @@ const NAV: NavItem[] = [
   { href: "/", label: "Home" },
   { href: "/vendor-setup", label: "Vendor Setup" },
   { href: "/appointment-slots", label: "Appointment Slots" },
+  { href: "/calendar", label: "Calendar" },
   { href: "/appointments", label: "Scheduled Appointments" },
   { href: "/schedule", label: "New Appointment" },
   { href: "/faq", label: "FAQ" },

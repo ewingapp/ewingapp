@@ -50,12 +50,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const slotCount = await prisma.slot.count({ where: { specialtyId: id } });
-  if (slotCount > 0) {
+  const apptCount = await prisma.appointment.count({
+    where: { specialtyId: id },
+  });
+  if (apptCount > 0) {
     return NextResponse.json(
       {
         error:
-          "Cannot delete: this specialty is referenced by scheduled slots. Remove those slots first.",
+          "Cannot delete: this specialty is referenced by appointments. Remove those first.",
       },
       { status: 409 },
     );
