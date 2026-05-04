@@ -69,8 +69,14 @@ export async function computeAvailableSlots(opts: {
     select: { id: true, durationMinutes: true },
   });
   if (!specialty) return [];
-  const duration = specialty.durationMinutes;
-  const durationMs = duration * 60_000;
+  const overrides = await prisma.doctorSpecialtyOverride.findMany({
+    where: { specialtyId },
+    select: { doctorId: true, durationMinutes: true },
+  });
+  const overrideByDoctor = new Map(
+    overrides.map((o) => [o.doctorId, o.durationMinutes]),
+  );
+  const defaultDuration = specialty.durationMinutes;
 
   const where: { locationId: string; specialtyId?: never; startTime: { gte: Date; lte: Date }; doctorId?: string; doctor?: { specialties: { some: { id: string } }; active?: boolean } } = {
     locationId,
@@ -107,6 +113,8 @@ export async function computeAvailableSlots(opts: {
   const out: AvailableSlot[] = [];
   for (const sched of schedules) {
     const blocks = apptByDoctor.get(sched.doctorId) ?? [];
+    const duration = overrideByDoctor.get(sched.doctorId) ?? defaultDuration;
+    const durationMs = duration * 60_000;
     const free = subtract(
       [{ start: sched.startTime, end: sched.endTime }],
       blocks,
