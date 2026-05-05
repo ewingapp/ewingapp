@@ -20,6 +20,7 @@ import {
   TemplateAdminDialog,
   type Template,
 } from "./template-admin-dialog";
+import { ptDateTime, ptFmtTime, ptDateIso } from "@/lib/pt";
 
 type SlotType = "ANY" | "LOOKALIKE" | "PSYCH_TESTING";
 
@@ -87,12 +88,7 @@ function fmtTime12(hhmm: string): string {
 }
 
 function fmtTimeISO(iso: string | Date): string {
-  const d = iso instanceof Date ? iso : new Date(iso);
-  let h = d.getHours();
-  const m = String(d.getMinutes()).padStart(2, "0");
-  const ampm = h >= 12 ? "PM" : "AM";
-  h = h % 12 || 12;
-  return `${h}:${m} ${ampm}`;
+  return ptFmtTime(iso);
 }
 
 function dateIso(d: Date): string {
@@ -101,9 +97,7 @@ function dateIso(d: Date): string {
 
 function combineDateTime(date: Date, hhmm: string): string {
   const [h, m] = hhmm.split(":").map(Number);
-  const out = new Date(date);
-  out.setHours(h, m, 0, 0);
-  return out.toISOString();
+  return ptDateTime(dateIso(date), h, m).toISOString();
 }
 
 function computeSlotRows(
@@ -427,8 +421,8 @@ export default function AppointmentSlotsPage() {
   function onMakeAppointment(row: SlotRow) {
     const params = new URLSearchParams({
       locationId: row.locationId,
-      from: dateIso(row.startTime),
-      to: dateIso(row.startTime),
+      from: ptDateIso(row.startTime),
+      to: ptDateIso(row.startTime),
     });
     router.push(`/schedule?${params.toString()}`);
   }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { computeAvailableSlots } from "@/lib/availability";
+import { ptStartOfDay, ptDateIso, ptTodayIso } from "@/lib/pt";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -13,10 +14,8 @@ export async function GET(request: Request) {
     );
   }
 
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 120);
+  const start = ptStartOfDay(ptTodayIso());
+  const end = new Date(start.getTime() + 120 * 24 * 60 * 60_000);
 
   const slots = await computeAvailableSlots({
     locationId,
@@ -27,11 +26,7 @@ export async function GET(request: Request) {
 
   const dates = new Set<string>();
   for (const s of slots) {
-    const d = s.startTime;
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    dates.add(`${yyyy}-${mm}-${dd}`);
+    dates.add(ptDateIso(s.startTime));
   }
 
   return NextResponse.json({ dates: Array.from(dates).sort() });

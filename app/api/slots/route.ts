@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { computeAvailableSlots } from "@/lib/availability";
+import { ptStartOfDay, ptEndOfDay } from "@/lib/pt";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -16,15 +17,11 @@ export async function GET(request: Request) {
     );
   }
 
-  const fromDate = new Date(from);
-  const toDate = new Date(to);
-  toDate.setHours(23, 59, 59, 999);
-
   const slots = await computeAvailableSlots({
     locationId,
     specialtyId,
-    from: fromDate,
-    to: toDate,
+    from: ptStartOfDay(from),
+    to: ptEndOfDay(to),
     doctorId,
   });
 

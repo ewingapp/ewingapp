@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ptDateTime, ptFmtTime, ptTodayIso } from "@/lib/pt";
 import {
   Select,
   SelectContent,
@@ -40,17 +41,11 @@ const PX_PER_MIN = 1.4;
 const COLUMN_MIN_WIDTH = 180;
 
 function todayIso(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return ptTodayIso();
 }
 
 function fmtTime(iso: string): string {
-  const d = new Date(iso);
-  let h = d.getHours();
-  const m = String(d.getMinutes()).padStart(2, "0");
-  const ampm = h >= 12 ? "PM" : "AM";
-  h = h % 12 || 12;
-  return `${h}:${m} ${ampm}`;
+  return ptFmtTime(iso);
 }
 
 function topPx(iso: string, dayStart: Date): number {
@@ -110,9 +105,7 @@ export default function CalendarPage() {
   }, [locationId, date]);
 
   const dayStart = useMemo(() => {
-    const d = new Date(`${date}T00:00:00`);
-    d.setHours(DAY_START_HOUR, 0, 0, 0);
-    return d;
+    return ptDateTime(date, DAY_START_HOUR, 0);
   }, [date]);
 
   const dayHeightPx = (DAY_END_HOUR - DAY_START_HOUR) * 60 * PX_PER_MIN;
