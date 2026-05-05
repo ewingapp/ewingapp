@@ -11,8 +11,23 @@ const createSchema = z.object({
   durationMinutes: z.number().int().min(5).max(240).optional().default(30),
 });
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const locationId = searchParams.get("locationId");
+
+  const where = locationId
+    ? {
+        doctors: {
+          some: {
+            active: true,
+            locations: { some: { id: locationId } },
+          },
+        },
+      }
+    : undefined;
+
   const specialties = await prisma.specialty.findMany({
+    where,
     orderBy: { name: "asc" },
     select: {
       id: true,
