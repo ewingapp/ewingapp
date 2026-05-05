@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import { parseSyntheticSlotId } from "@/lib/availability";
+import { ptStartOfDay, ptEndOfDay } from "@/lib/pt";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -19,10 +20,7 @@ export async function GET(request: Request) {
   if (locationId) where.locationId = locationId;
   if (doctorId) where.doctorId = doctorId;
   if (from && to) {
-    const start = new Date(`${from}T00:00:00`);
-    const end = new Date(`${to}T00:00:00`);
-    end.setHours(23, 59, 59, 999);
-    where.startTime = { gte: start, lte: end };
+    where.startTime = { gte: ptStartOfDay(from), lte: ptEndOfDay(to) };
   }
 
   const appts = await prisma.appointment.findMany({

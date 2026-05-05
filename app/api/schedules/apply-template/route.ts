@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { ptDateTime } from "@/lib/pt";
 
 const SLOT_TYPE_DURATION: Record<string, number> = {
   ANY: 30,
@@ -12,7 +13,7 @@ const bodySchema = z.object({
   templateId: z.string().min(1),
   doctorId: z.string().min(1),
   locationId: z.string().min(1),
-  date: z.string().min(1),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD"),
   defaultDuration: z.number().int().min(5).max(240).optional().default(30),
 });
 
@@ -32,15 +33,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Template not found" }, { status: 404 });
   }
 
-  const day = new Date(`${date}T00:00:00`);
-  if (Number.isNaN(day.getTime())) {
-    return NextResponse.json({ error: "Invalid date" }, { status: 400 });
-  }
-
   const created = await prisma.$transaction(
     tmpl.times.map((t) => {
-      const start = new Date(day);
-      start.setHours(t.hour, t.minute, 0, 0);
+      const start = ptDateTime(date, t.hour, t.minute);
       const dur = SLOT_TYPE_DURATION[t.slotType] ?? defaultDuration;
       const end = new Date(start.getTime() + dur * 60_000);
       return prisma.doctorSchedule.create({

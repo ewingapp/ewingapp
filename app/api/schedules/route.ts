@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { ptStartOfDay, ptEndOfDay } from "@/lib/pt";
 
 const SLOT_TYPE = z.enum(["ANY", "LOOKALIKE", "PSYCH_TESTING"]);
 
@@ -22,10 +23,7 @@ export async function GET(request: Request) {
   if (locationId) where.locationId = locationId;
   if (doctorId) where.doctorId = doctorId;
   if (date) {
-    const d = new Date(`${date}T00:00:00`);
-    const end = new Date(d);
-    end.setHours(23, 59, 59, 999);
-    where.startTime = { gte: d, lte: end };
+    where.startTime = { gte: ptStartOfDay(date), lte: ptEndOfDay(date) };
   }
 
   const schedules = await prisma.doctorSchedule.findMany({
