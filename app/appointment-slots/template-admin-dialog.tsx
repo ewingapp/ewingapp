@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, Loader2, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Copy, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +38,8 @@ export type Template = {
 const TIME_OPTIONS: { value: string; label: string }[] = (() => {
   const out: { value: string; label: string }[] = [];
   for (let h = 7; h <= 19; h++) {
-    for (const m of [0, 15, 30, 45]) {
+    const minutes = h < 9 ? [0, 15, 30, 45] : [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+    for (const m of minutes) {
       const hh = String(h).padStart(2, "0");
       const mm = String(m).padStart(2, "0");
       const ampm = h >= 12 ? "PM" : "AM";
@@ -85,6 +86,10 @@ export function TemplateAdminDialog({
   const [addTime, setAddTime] = useState<string>("08:00");
   const [addType, setAddType] = useState<SlotType>("ANY");
   const [adding, setAdding] = useState(false);
+
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   async function refresh() {
     setLoading(true);
@@ -138,6 +143,52 @@ export function TemplateAdminDialog({
       setError(e instanceof Error ? e.message : "Create failed");
     } finally {
       setCreating(false);
+    }
+  }
+
+  async function onCopyTemplate(t: Template) {
+    setBusyId(t.id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/templates/${t.id}/copy`, { method: "POST" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error ?? `Failed (${res.status})`);
+      }
+      await refresh();
+      onTemplatesChanged?.();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Copy failed");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function onSaveRename(t: Template) {
+    const next = renameValue.trim();
+    if (!next || next === t.name) {
+      setRenamingId(null);
+      return;
+    }
+    setBusyId(t.id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/templates/${t.id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name: next }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error ?? `Failed (${res.status})`);
+      }
+      setRenamingId(null);
+      await refresh();
+      onTemplatesChanged?.();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Rename failed");
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -404,7 +455,54 @@ export function TemplateAdminDialog({
                   <tbody>
                     {templates.map((t) => (
                       <tr key={t.id} className="border-t border-slate-200">
-                        <td className="px-3 py-1.5 font-medium">{t.name}</td>
+                        <td className="px-3 py-1.5 font-medium">
+                          {renamingId === t.id ? (
+                            <div className="flex items-center gap-1.5">
+                              <Input
+                                value={renameValue}
+                                autoFocus
+                                onChange={(e) => setRenameValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") void onSaveRename(t);
+                                  if (e.key === "Escape") setRenamingId(null);
+                                }}
+                                className="h-7 text-sm"
+                              />
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => void onSaveRename(t)}
+                                disabled={busyId === t.id}
+                                className="h-7 text-xs"
+                              >
+                                Save
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setRenamingId(null)}
+                                className="h-7 text-xs"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          ) : (
+                            <span className="inline-flex items-center gap-2">
+                              {t.name}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setRenameValue(t.name);
+                                  setRenamingId(t.id);
+                                }}
+                                className="text-slate-400 hover:text-slate-700"
+                                title="Rename"
+                              >
+                                <Pencil className="size-3.5" />
+                              </button>
+                            </span>
+                          )}
+                        </td>
                         <td className="px-3 py-1.5 tabular-nums">
                           {t.times.length}
                         </td>
@@ -417,6 +515,20 @@ export function TemplateAdminDialog({
                               className="h-7 text-xs"
                             >
                               Edit times
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => onCopyTemplate(t)}
+                              disabled={busyId === t.id}
+                              className="h-7 text-xs"
+                            >
+                              {busyId === t.id ? (
+                                <Loader2 className="size-3.5 animate-spin" />
+                              ) : (
+                                <Copy className="size-3.5" />
+                              )}
+                              Copy
                             </Button>
                             <Button
                               size="sm"
