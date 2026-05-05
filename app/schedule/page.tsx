@@ -63,14 +63,28 @@ function SearchView() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/locations").then((r) => r.json()),
-      fetch("/api/specialties").then((r) => r.json()),
-    ]).then(([l, s]) => {
-      setLocations(l);
-      setSpecialties(s);
-    });
+    fetch("/api/locations")
+      .then((r) => r.json())
+      .then((l: Location[]) => setLocations(l));
   }, []);
+
+  useEffect(() => {
+    if (!locationId) {
+      setSpecialties([]);
+      return;
+    }
+    const ctrl = new AbortController();
+    fetch(`/api/specialties?locationId=${locationId}`, { signal: ctrl.signal })
+      .then((r) => r.json())
+      .then((s: Specialty[]) => {
+        setSpecialties(s);
+        setSpecialtyId((curr) =>
+          curr && s.some((x) => x.id === curr) ? curr : "",
+        );
+      })
+      .catch(() => {});
+    return () => ctrl.abort();
+  }, [locationId]);
 
   useEffect(() => {
     if (!locationId || !specialtyId) {
