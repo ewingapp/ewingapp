@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
 import { Loader2, Plus } from "lucide-react";
@@ -20,11 +19,14 @@ import {
   TemplateAdminDialog,
   type Template,
 } from "./template-admin-dialog";
-import { ptDateTime, ptFmtTime, ptDateIso } from "@/lib/pt";
+import { BookSlotDialog, type SlotInfo } from "./book-slot-dialog";
+import { ptDateTime, ptFmtTime } from "@/lib/pt";
 
 type SlotType = "ANY" | "LOOKALIKE" | "PSYCH_TESTING";
 
 type Office = { id: string; name: string };
+type Specialty = { id: string; name: string };
+type Branch = { id: string; name: string };
 type Doctor = {
   id: string;
   name: string;
@@ -153,11 +155,13 @@ function computeSlotRows(
 }
 
 export default function AppointmentSlotsPage() {
-  const router = useRouter();
   const [offices, setOffices] = useState<Office[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [specialties, setSpecialties] = useState<Specialty[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [bookingSlot, setBookingSlot] = useState<SlotInfo | null>(null);
 
   const [locationId, setLocationId] = useState<string>("");
   const [date, setDate] = useState<Date>(() => {
@@ -198,14 +202,26 @@ export default function AppointmentSlotsPage() {
       fetch("/api/locations").then((r) => r.json()),
       fetch("/api/doctors").then((r) => r.json()),
       fetch("/api/templates").then((r) => r.json()),
+      fetch("/api/specialties").then((r) => r.json()),
+      fetch("/api/branches").then((r) => r.json()),
     ])
-      .then(([offs, docs, tpls]: [Office[], Doctor[], Template[]]) => {
-        if (cancelled) return;
-        setOffices(offs);
-        setDoctors(docs);
-        setTemplates(tpls);
-        if (offs.length && !locationId) setLocationId(offs[0].id);
-      })
+      .then(
+        ([offs, docs, tpls, specs, brs]: [
+          Office[],
+          Doctor[],
+          Template[],
+          Specialty[],
+          Branch[],
+        ]) => {
+          if (cancelled) return;
+          setOffices(offs);
+          setDoctors(docs);
+          setTemplates(tpls);
+          setSpecialties(specs);
+          setBranches(brs);
+          if (offs.length && !locationId) setLocationId(offs[0].id);
+        },
+      )
       .catch((e) =>
         setError(e instanceof Error ? e.message : "Failed to load"),
       )
@@ -419,13 +435,25 @@ export default function AppointmentSlotsPage() {
   }
 
   function onMakeAppointment(row: SlotRow) {
-    const params = new URLSearchParams({
+    const doctor = doctors.find((d) => d.id === doctorId);
+    if (!doctor) return;
+    setBookingSlot({
+      doctorId: doctor.id,
+      doctorName: doctor.name,
       locationId: row.locationId,
-      from: ptDateIso(row.startTime),
-      to: ptDateIso(row.startTime),
+      locationName: row.locationName,
+      startTime: row.startTime,
+      slotType: row.slotType,
     });
-    router.push(`/schedule?${params.toString()}`);
   }
+
+  const bookingDoctorSpecialties = useMemo(() => {
+    if (!bookingSlot) return [];
+    const doctor = doctors.find((d) => d.id === bookingSlot.doctorId);
+    if (!doctor) return [];
+    const ids = new Set(doctor.specialties.map((s) => s.id));
+    return specialties.filter((s) => ids.has(s.id));
+  }, [doctors, specialties, bookingSlot]);
 
   const slotRows = useMemo(
     () => computeSlotRows(schedules, appointments, duration),
@@ -818,6 +846,7 @@ export default function AppointmentSlotsPage() {
                               onClick={() => onMakeAppointment(row)}
                               disabled={row.status === "BOOKED"}
                               className="h-7 text-xs"
+                              style={{ borderColor: "#C9A55C", borderWidth: "1.5px" }}
                             >
                               Make Appointment
                             </Button>
@@ -859,6 +888,20 @@ export default function AppointmentSlotsPage() {
         open={templateAdminOpen}
         onOpenChange={setTemplateAdminOpen}
         onTemplatesChanged={() => void refreshTemplates()}
+      />
+
+      <BookSlotDialog
+        open={bookingSlot !== null}
+        onOpenChange={(o) => {
+          if (!o) setBookingSlot(null);
+        }}
+        slot={bookingSlot}
+        doctorSpecialties={bookingDoctorSpecialties}
+        branches={branches}
+        onBooked={({ caseNumber }) => {
+          setInfo(`Appointment booked for case #${caseNumber}.`);
+          void refreshSlots();
+        }}
       />
     </AppShell>
   );
