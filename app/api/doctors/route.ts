@@ -36,6 +36,7 @@ export async function GET() {
       active: true,
       notes: true,
       locations: { select: { id: true, name: true } },
+      specialties: { select: { id: true, name: true, category: true } },
     },
   });
   return NextResponse.json(doctors);

@@ -29,6 +29,7 @@ type Doctor = {
   name: string;
   active: boolean;
   locations: { id: string; name: string }[];
+  specialties: { id: string; name: string; category: "PSYCH" | "MEDICAL" | "SLP" }[];
 };
 type Schedule = {
   id: string;
@@ -245,6 +246,22 @@ export default function AppointmentSlotsPage() {
       setDoctorId(eligibleDoctors[0]?.id ?? "");
     }
   }, [eligibleDoctors, doctorId]);
+
+  const doctorIsPsych = useMemo(() => {
+    const d = doctors.find((x) => x.id === doctorId);
+    return Boolean(
+      d?.specialties &&
+        d.specialties.some((s) => s.category === "PSYCH"),
+    );
+  }, [doctors, doctorId]);
+
+  useEffect(() => {
+    if (!doctorIsPsych && slotType !== "ANY") {
+      setSlotType("ANY");
+      setDuration(30);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doctorIsPsych]);
 
   async function refreshSlots() {
     if (!doctorId || !date) {
@@ -518,43 +535,45 @@ export default function AppointmentSlotsPage() {
                 </div>
               </Row>
 
-              <Row label="Slot Type:">
-                <div className="flex items-center gap-4 flex-wrap">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <Checkbox
-                      checked={slotType === "LOOKALIKE"}
-                      onCheckedChange={(v) =>
-                        setSlotTypeAndDuration(v ? "LOOKALIKE" : "ANY")
-                      }
-                    />
-                    <span className="text-sm text-slate-800">
-                      LookAlike only{" "}
-                      <span className="text-xs text-slate-500">(40 min)</span>
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <Checkbox
-                      checked={slotType === "PSYCH_TESTING"}
-                      onCheckedChange={(v) =>
-                        setSlotTypeAndDuration(v ? "PSYCH_TESTING" : "ANY")
-                      }
-                    />
-                    <span className="text-sm text-slate-800">
-                      Psych Testing only{" "}
-                      <span className="text-xs text-slate-500">(60 min)</span>
-                    </span>
-                  </label>
-                  {slotType !== "ANY" && (
-                    <button
-                      type="button"
-                      onClick={() => setSlotTypeAndDuration("ANY")}
-                      className="text-xs text-slate-500 hover:text-slate-900 underline"
-                    >
-                      clear
-                    </button>
-                  )}
-                </div>
-              </Row>
+              {doctorIsPsych && (
+                <Row label="Slot Type:">
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={slotType === "LOOKALIKE"}
+                        onCheckedChange={(v) =>
+                          setSlotTypeAndDuration(v ? "LOOKALIKE" : "ANY")
+                        }
+                      />
+                      <span className="text-sm text-slate-800">
+                        LookAlike only{" "}
+                        <span className="text-xs text-slate-500">(40 min)</span>
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={slotType === "PSYCH_TESTING"}
+                        onCheckedChange={(v) =>
+                          setSlotTypeAndDuration(v ? "PSYCH_TESTING" : "ANY")
+                        }
+                      />
+                      <span className="text-sm text-slate-800">
+                        Psych Testing only{" "}
+                        <span className="text-xs text-slate-500">(60 min)</span>
+                      </span>
+                    </label>
+                    {slotType !== "ANY" && (
+                      <button
+                        type="button"
+                        onClick={() => setSlotTypeAndDuration("ANY")}
+                        className="text-xs text-slate-500 hover:text-slate-900 underline"
+                      >
+                        clear
+                      </button>
+                    )}
+                  </div>
+                </Row>
+              )}
 
               <Row
                 label={
