@@ -9,11 +9,11 @@ import {
   Search,
   Loader2,
   Info,
-  Mail,
   Calendar as CalendarIcon,
 } from "lucide-react";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
+import { getCaHolidaysRange } from "@/lib/ca-holidays";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -131,22 +131,12 @@ function SearchView() {
     () => (range?.to ? format(range.to, "MM/dd/yyyy") : ""),
     [range?.to],
   );
+  const caHolidays = useMemo(() => getCaHolidaysRange(2), []);
 
   return (
     <AppShell>
       <div className="max-w-7xl mx-auto px-6 py-8">
-        <PageHeader
-          title="Create a New Appointment"
-          trailing={
-            <span
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border"
-              style={{ background: "#FDF7E7", borderColor: "#E6CC8A", color: "#7A5E1F" }}
-            >
-              <Mail className="size-3.5" />
-              <span className="font-semibold">0</span> emails sent today
-            </span>
-          }
-        />
+        <PageHeader title="Create a New Appointment" />
 
         <div className="rounded-lg p-5 flex gap-4 mb-6 bg-slate-50 border border-slate-200">
           <div
@@ -259,8 +249,11 @@ function SearchView() {
             numberOfMonths={2}
             selected={range}
             onSelect={setRange}
-            modifiers={{ available: availableDates }}
-            modifiersClassNames={{ available: "rdp-day-available" }}
+            modifiers={{ available: availableDates, holiday: caHolidays }}
+            modifiersClassNames={{
+              available: "rdp-day-available",
+              holiday: "rdp-day-holiday",
+            }}
           />
         </div>
       </div>
