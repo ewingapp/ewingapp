@@ -492,7 +492,10 @@ export default function AppointmentSlotsPage() {
           </div>
         ) : (
           <>
-            <div className="border-2 border-slate-700 bg-white mb-3 text-sm w-fit max-w-full">
+            <div
+              className="border-2 bg-white mb-3 text-sm w-fit max-w-full overflow-hidden"
+              style={{ borderColor: "#0085CA", boxShadow: "inset 0 -3px 0 #C9A55C" }}
+            >
               <Row label="Office:">
                 <Select
                   value={locationId}
@@ -750,7 +753,10 @@ export default function AppointmentSlotsPage() {
               </Button>
             </div>
 
-            <h2 className="font-semibold text-slate-900 mb-2">
+            <h2
+              className="font-semibold mb-2 px-3 py-1.5 inline-block rounded-sm text-white"
+              style={{ background: "#0085CA", borderBottom: "3px solid #C9A55C" }}
+            >
               Appointment slots for{" "}
               {selectedDoctor?.name ?? "—"} on{" "}
               {date.toLocaleDateString(undefined, {
@@ -758,19 +764,24 @@ export default function AppointmentSlotsPage() {
                 day: "numeric",
                 year: "numeric",
               })}
-              :
             </h2>
 
             {slotRows.length === 0 ? (
-              <div className="bg-white rounded border border-slate-300 px-4 py-4 text-sm text-slate-500">
+              <div
+                className="bg-white border-2 px-4 py-4 text-sm text-slate-600"
+                style={{ borderColor: "#0085CA", boxShadow: "inset 0 -3px 0 #C9A55C" }}
+              >
                 There are no Appointment Slots for this doctor on this day.
               </div>
             ) : (
-              <div className="bg-white border border-slate-300 overflow-hidden text-sm">
+              <div
+                className="bg-white border-2 overflow-hidden text-sm"
+                style={{ borderColor: "#0085CA", boxShadow: "inset 0 -3px 0 #C9A55C" }}
+              >
                 <table className="w-full">
                   <thead
                     className="text-left text-white"
-                    style={{ background: "#5B7295" }}
+                    style={{ background: "#0085CA" }}
                   >
                     <tr>
                       <th className="px-3 py-2 font-semibold w-20"></th>
@@ -915,8 +926,14 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex border-b border-slate-700 last:border-b-0">
-      <div className="w-28 shrink-0 border-r border-slate-700 px-2 py-1.5 font-bold text-slate-900 flex items-center">
+    <div
+      className="flex border-b last:border-b-0"
+      style={{ borderColor: "#0085CA" }}
+    >
+      <div
+        className="w-28 shrink-0 border-r px-2 py-1.5 font-bold text-slate-900 flex items-center"
+        style={{ borderColor: "#0085CA", background: "#E2E2E2" }}
+      >
         {label}
       </div>
       <div className="flex-1 px-2 py-1.5 flex items-center">{children}</div>
