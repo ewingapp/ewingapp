@@ -21,6 +21,7 @@ import {
 } from "./template-admin-dialog";
 import { BookSlotDialog, type SlotInfo } from "./book-slot-dialog";
 import { ptDateTime, ptFmtTime } from "@/lib/pt";
+import { getCaHolidaysRange } from "@/lib/ca-holidays";
 
 type SlotType = "ANY" | "LOOKALIKE" | "PSYCH_TESTING";
 
@@ -192,6 +193,8 @@ export default function AppointmentSlotsPage() {
     else if (next === "PSYCH_TESTING") setDuration(60);
     else setDuration(30);
   }
+
+  const caHolidays = useMemo(() => getCaHolidaysRange(2), []);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -552,6 +555,8 @@ export default function AppointmentSlotsPage() {
                   onSelect={(d) => d && setDate(d)}
                   weekStartsOn={0}
                   className="rdp-custom"
+                  modifiers={{ holiday: caHolidays }}
+                  modifiersClassNames={{ holiday: "rdp-day-holiday" }}
                 />
               </Row>
 
