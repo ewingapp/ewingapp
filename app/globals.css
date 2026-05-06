@@ -294,29 +294,41 @@
   position: relative;
 }
 .rdp-custom .rdp-month_caption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: #0085CA;
   color: #fff;
   border: 2px solid #C9A55C;
   border-radius: 0.25rem;
-  text-align: center;
   font-weight: 600;
   padding: 0.25rem 0;
-  margin: 0 1.5rem 0.25rem;
+  margin: 0 1.75rem 0.25rem;
+  text-align: center;
+}
+.rdp-custom .rdp-caption_label {
+  flex: 0 1 auto;
+  text-align: center;
+  width: 100%;
 }
 .rdp-custom .rdp-nav {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  inset: 0 0 auto 0;
   height: 1.75rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   pointer-events: none;
   z-index: 1;
 }
 .rdp-custom .rdp-nav button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   pointer-events: auto;
+}
+.rdp-custom .rdp-button_previous {
+  left: 0;
+}
+.rdp-custom .rdp-button_next {
+  right: 0;
 }
 .rdp-custom .rdp-weekdays {
   background: #F1F5F9;
