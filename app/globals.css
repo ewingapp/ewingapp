@@ -350,6 +350,11 @@
   font-weight: 600;
   color: #334155;
 }
-.rdp-custom .rdp-week .rdp-day:first-child {
+.rdp-custom .rdp-week .rdp-day:first-child,
+.rdp-custom .rdp-week .rdp-day:last-child {
   background: #F1F5F9;
+}
+.rdp-custom .rdp-day-holiday .rdp-day_button {
+  color: #dc2626;
+  font-weight: 700;
 }
