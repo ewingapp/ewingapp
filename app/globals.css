@@ -279,7 +279,7 @@
   --rdp-day-height: 1.65rem;
   --rdp-month-caption-font: 600 0.875rem/1.25rem ui-sans-serif, system-ui, sans-serif;
   --rdp-weekday-text-transform: none;
-  --rdp-weekday-padding: 0.125rem;
+  --rdp-weekday-padding: 0.25rem 0.125rem;
   --rdp-day_button-border-radius: 999px;
   margin: 0;
   font-size: 0.75rem;
@@ -290,9 +290,42 @@
 .rdp-custom .rdp-day_outside .rdp-day_button {
   color: #94a3b8;
 }
+.rdp-custom .rdp-month {
+  position: relative;
+}
 .rdp-custom .rdp-month_caption {
-  margin-bottom: 0.25rem;
+  background: #0085CA;
+  color: #fff;
+  border: 2px solid #C9A55C;
+  border-radius: 0.25rem;
+  text-align: center;
+  font-weight: 600;
+  padding: 0.25rem 0;
+  margin: 0 1.5rem 0.25rem;
 }
 .rdp-custom .rdp-nav {
-  height: 1.5rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+  z-index: 1;
+}
+.rdp-custom .rdp-nav button {
+  pointer-events: auto;
+}
+.rdp-custom .rdp-weekdays {
+  background: #F1F5F9;
+}
+.rdp-custom .rdp-weekday {
+  background: #F1F5F9;
+  font-weight: 600;
+  color: #334155;
+}
+.rdp-custom .rdp-week .rdp-day:first-child {
+  background: #F1F5F9;
 }
