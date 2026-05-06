@@ -85,20 +85,28 @@ export async function POST(request: Request) {
         },
         select: { durationMinutes: true },
       });
-      const duration = override?.durationMinutes ?? specialty.durationMinutes;
 
       const startTime = slotKey.startTime;
-      const endTime = new Date(startTime.getTime() + duration * 60_000);
 
       const window = await tx.doctorSchedule.findFirst({
         where: {
           doctorId: slotKey.doctorId,
           locationId: slotKey.locationId,
           startTime: { lte: startTime },
-          endTime: { gte: endTime },
+          endTime: { gt: startTime },
         },
       });
       if (!window) throw new Error("NO_OPEN_WINDOW");
+
+      const duration =
+        window.bookingDurationMinutes ??
+        override?.durationMinutes ??
+        specialty.durationMinutes;
+      const endTime = new Date(startTime.getTime() + duration * 60_000);
+
+      if (endTime.getTime() > window.endTime.getTime()) {
+        throw new Error("NO_OPEN_WINDOW");
+      }
 
       const conflict = await tx.appointment.findFirst({
         where: {
