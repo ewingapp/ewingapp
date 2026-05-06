@@ -179,8 +179,7 @@ export default function AppointmentSlotsPage() {
   const [timeValue, setTimeValue] = useState<string>("09:00");
   const [rangeFrom, setRangeFrom] = useState<string>("09:00");
   const [rangeTo, setRangeTo] = useState<string>("17:00");
-  const [rangeMseDuration, setRangeMseDuration] = useState<number>(40);
-  const [rangeTestingDuration, setRangeTestingDuration] = useState<number>(60);
+  const [rangeDuration, setRangeDuration] = useState<number>(30);
   const [slotType, setSlotType] = useState<SlotType>("ANY");
 
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -277,6 +276,7 @@ export default function AppointmentSlotsPage() {
       setSlotType("ANY");
       setDuration(30);
     }
+    setRangeDuration(doctorIsPsych ? 60 : 30);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doctorIsPsych]);
 
@@ -347,29 +347,12 @@ export default function AppointmentSlotsPage() {
           throw new Error("Range end must be after start.");
         }
         const totalMin = (end.getTime() - start.getTime()) / 60_000;
-        if (doctorIsPsych) {
-          await Promise.all([
-            postWindow(start.toISOString(), end.toISOString(), {
-              slotType: "LOOKALIKE",
-              bookingDurationMinutes: rangeMseDuration,
-            }),
-            postWindow(start.toISOString(), end.toISOString(), {
-              slotType: "PSYCH_TESTING",
-              bookingDurationMinutes: rangeTestingDuration,
-            }),
-          ]);
-          const mseCount = Math.floor(totalMin / rangeMseDuration);
-          const testingCount = Math.floor(totalMin / rangeTestingDuration);
-          setInfo(
-            `Range added — ${mseCount} MSE slot${mseCount === 1 ? "" : "s"} (${rangeMseDuration} min) and ${testingCount} Testing slot${testingCount === 1 ? "" : "s"} (${rangeTestingDuration} min).`,
-          );
-        } else {
-          const count = Math.floor(totalMin / duration);
-          await postWindow(start.toISOString(), end.toISOString(), {
-            bookingDurationMinutes: duration,
-          });
-          setInfo(`${count} appointment slot${count === 1 ? "" : "s"} were added.`);
-        }
+        const count = Math.floor(totalMin / rangeDuration);
+        await postWindow(start.toISOString(), end.toISOString(), {
+          slotType: "ANY",
+          bookingDurationMinutes: rangeDuration,
+        });
+        setInfo(`${count} appointment slot${count === 1 ? "" : "s"} were added.`);
       } else if (mode === "TEMPLATE") {
         if (!templateId) throw new Error("Choose a template first.");
         const res = await fetch("/api/schedules/apply-template", {
@@ -720,56 +703,23 @@ export default function AppointmentSlotsPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  {doctorIsPsych ? (
-                    <>
-                      <span className="ml-3 text-slate-700 inline-flex items-center gap-1">
-                        MSE:
-                        <Input
-                          type="number"
-                          min={5}
-                          max={240}
-                          step={5}
-                          value={rangeMseDuration}
-                          onChange={(e) =>
-                            setRangeMseDuration(Number(e.target.value) || 40)
-                          }
-                          className="inline-block w-16 h-8"
-                        />
-                        min
-                      </span>
-                      <span className="ml-2 text-slate-700 inline-flex items-center gap-1">
-                        Testing:
-                        <Input
-                          type="number"
-                          min={5}
-                          max={240}
-                          step={5}
-                          value={rangeTestingDuration}
-                          onChange={(e) =>
-                            setRangeTestingDuration(Number(e.target.value) || 60)
-                          }
-                          className="inline-block w-16 h-8"
-                        />
-                        min
-                      </span>
-                    </>
-                  ) : (
-                    <span className="ml-3 text-slate-700 inline-flex items-center gap-1">
-                      Each:
-                      <Input
-                        type="number"
-                        min={5}
-                        max={240}
-                        step={5}
-                        value={duration}
-                        onChange={(e) =>
-                          setDuration(Number(e.target.value) || 30)
-                        }
-                        className="inline-block w-16 h-8"
-                      />
-                      min
-                    </span>
-                  )}
+                  <span className="ml-3 text-slate-700 inline-flex items-center gap-1">
+                    Each:
+                    <Input
+                      type="number"
+                      min={5}
+                      max={240}
+                      step={5}
+                      value={rangeDuration}
+                      onChange={(e) =>
+                        setRangeDuration(
+                          Number(e.target.value) || (doctorIsPsych ? 60 : 30),
+                        )
+                      }
+                      className="inline-block w-16 h-8"
+                    />
+                    min
+                  </span>
                 </div>
               </Row>
 
