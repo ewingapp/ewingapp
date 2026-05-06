@@ -294,27 +294,31 @@
   position: relative;
 }
 .rdp-custom .rdp-month_caption {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 2.25rem;
   background: #0085CA;
   color: #fff;
   border: 2px solid #C9A55C;
   border-radius: 0.25rem;
   font-weight: 600;
-  padding: 0.25rem 1.75rem;
+  padding: 0;
   margin: 0 0 0.25rem;
   text-align: center;
 }
 .rdp-custom .rdp-caption_label {
-  flex: 0 1 auto;
+  display: inline-block;
   text-align: center;
-  width: 100%;
+  line-height: 1;
 }
 .rdp-custom .rdp-nav {
   position: absolute;
-  inset: 0 0 auto 0;
-  height: 1.75rem;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.25rem;
   pointer-events: none;
   z-index: 1;
 }
@@ -322,15 +326,21 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
+  height: 1.5rem;
+  width: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   pointer-events: auto;
+  color: #fff;
+  background: transparent;
+  border: none;
 }
 .rdp-custom .rdp-button_previous {
   left: 0.25rem;
-  color: #fff;
 }
 .rdp-custom .rdp-button_next {
   right: 0.25rem;
-  color: #fff;
 }
 .rdp-custom .rdp-weekdays {
   background: #F1F5F9;
