@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { ptFmtTime, ptFmtDateShort, ptFmtDateLong } from "@/lib/pt";
 
 type Location = { id: string; name: string };
 type Specialty = { id: string; name: string };
@@ -293,7 +294,7 @@ function ResultsView() {
             <DialogTitle>Book appointment</DialogTitle>
             {bookingSlot && (
               <DialogDescription>
-                {format(new Date(bookingSlot.startTime), "EEEE, MMMM d, yyyy 'at' h:mm a")} ·{" "}
+                {ptFmtDateLong(bookingSlot.startTime)} at {ptFmtTime(bookingSlot.startTime)} ·{" "}
                 {bookingSlot.doctor.name}
                 {location && <> · {location.name}</>}
               </DialogDescription>
@@ -438,14 +439,11 @@ function ResultsView() {
                 <Section title="Appointment">
                   <DetailRow
                     label="Date"
-                    value={format(
-                      new Date(confirmation.slot.startTime),
-                      "EEEE, MMMM d, yyyy",
-                    )}
+                    value={ptFmtDateLong(confirmation.slot.startTime)}
                   />
                   <DetailRow
                     label="Time"
-                    value={format(new Date(confirmation.slot.startTime), "h:mm a")}
+                    value={ptFmtTime(confirmation.slot.startTime)}
                   />
                   <DetailRow label="Doctor" value={confirmation.slot.doctor.name} />
                   <DetailRow label="Office" value={location?.name ?? "—"} />
@@ -586,10 +584,10 @@ function ResultsTable({ slots, onPick }: { slots: Slot[]; onPick: (s: Slot) => v
             return (
               <tr key={s.id} className="border-b last:border-0 even:bg-slate-50/50">
                 <td className="px-3 py-2 font-medium text-slate-900 whitespace-nowrap tabular-nums">
-                  {format(start, "EEE, MMM d")}
+                  {ptFmtDateShort(start)}
                 </td>
                 <td className="px-3 py-2 tabular-nums text-slate-700 whitespace-nowrap">
-                  {format(start, "h:mm a")}
+                  {ptFmtTime(start)}
                 </td>
                 <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{s.doctor.name}</td>
                 <td className="px-3 py-2 text-right whitespace-nowrap">
