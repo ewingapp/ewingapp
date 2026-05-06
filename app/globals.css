@@ -302,8 +302,8 @@
   border: 2px solid #C9A55C;
   border-radius: 0.25rem;
   font-weight: 600;
-  padding: 0.25rem 0;
-  margin: 0 1.75rem 0.25rem;
+  padding: 0.25rem 1.75rem;
+  margin: 0 0 0.25rem;
   text-align: center;
 }
 .rdp-custom .rdp-caption_label {
@@ -325,10 +325,12 @@
   pointer-events: auto;
 }
 .rdp-custom .rdp-button_previous {
-  left: 0;
+  left: 0.25rem;
+  color: #fff;
 }
 .rdp-custom .rdp-button_next {
-  right: 0;
+  right: 0.25rem;
+  color: #fff;
 }
 .rdp-custom .rdp-weekdays {
   background: #F1F5F9;
