@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import { parseSyntheticSlotId } from "@/lib/availability";
 import { ptStartOfDay, ptEndOfDay } from "@/lib/pt";
+import { gapToNextBookingMinutes, dynamicSlotType } from "@/lib/slot-rules";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -72,9 +73,11 @@ export async function POST(request: Request) {
     const appointment = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const specialty = await tx.specialty.findUnique({
         where: { id: data.specialtyId },
-        select: { id: true, durationMinutes: true },
+        select: { id: true, name: true, durationMinutes: true },
       });
       if (!specialty) throw new Error("SPECIALTY_NOT_FOUND");
+      const isMSE = /\bMSE\b/i.test(specialty.name);
+      const isPsychTesting = /TESTING/i.test(specialty.name);
 
       const override = await tx.doctorSpecialtyOverride.findUnique({
         where: {
@@ -120,6 +123,32 @@ export async function POST(request: Request) {
       });
       if (conflict) throw new Error("SLOT_TAKEN");
 
+      if (window.slotType === "ANY" && (isMSE || isPsychTesting)) {
+        const otherAppts = await tx.appointment.findMany({
+          where: {
+            doctorId: slotKey.doctorId,
+            status: { in: ["SCHEDULED", "KEPT", "NO_SHOW"] },
+            startTime: { gte: window.startTime, lte: window.endTime },
+          },
+          select: { startTime: true },
+        });
+        const startsMs = otherAppts
+          .map((a) => a.startTime.getTime())
+          .sort((a, b) => a - b);
+        const gap = gapToNextBookingMinutes(
+          startTime.getTime(),
+          window.endTime.getTime(),
+          startsMs,
+        );
+        const dyn = dynamicSlotType(gap);
+        if (
+          (isMSE && dyn === "PSYCH_TESTING") ||
+          (isPsychTesting && dyn === "LOOKALIKE")
+        ) {
+          throw new Error("WRONG_SLOT_TYPE");
+        }
+      }
+
       const created = await tx.appointment.create({
         data: {
           doctorId: slotKey.doctorId,
@@ -161,6 +190,15 @@ export async function POST(request: Request) {
     }
     if (msg === "SLOT_TAKEN") {
       return NextResponse.json({ error: "That time is no longer available" }, { status: 409 });
+    }
+    if (msg === "WRONG_SLOT_TYPE") {
+      return NextResponse.json(
+        {
+          error:
+            "This slot is reserved for a different exam type to avoid leaving an unfillable gap.",
+        },
+        { status: 409 },
+      );
     }
     return NextResponse.json({ error: "Failed to create appointment" }, { status: 500 });
   }

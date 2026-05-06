@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { gapToNextBookingMinutes, dynamicSlotType } from "@/lib/slot-rules";
 
 export const START_GRAIN_MINUTES = 5;
 
@@ -133,12 +134,33 @@ export async function computeAvailableSlots(opts: {
       [{ start: sched.startTime, end: sched.endTime }],
       blocks,
     );
+    const sortedBlockStartsMs = [...blocks]
+      .map((b) => b.start.getTime())
+      .sort((a, b) => a - b);
+    const windowEndMs = sched.endTime.getTime();
+    const applyDynamicRule =
+      sched.slotType === "ANY" && (isMSE || isPsychTesting);
     for (const interval of free) {
       let start =
         sched.bookingDurationMinutes != null
           ? new Date(interval.start)
           : ceilToGrain(interval.start, START_GRAIN_MINUTES);
       while (start.getTime() + durationMs <= interval.end.getTime()) {
+        if (applyDynamicRule) {
+          const gap = gapToNextBookingMinutes(
+            start.getTime(),
+            windowEndMs,
+            sortedBlockStartsMs,
+          );
+          const dyn = dynamicSlotType(gap);
+          if (
+            (isMSE && dyn === "PSYCH_TESTING") ||
+            (isPsychTesting && dyn === "LOOKALIKE")
+          ) {
+            start = new Date(start.getTime() + stepMs);
+            continue;
+          }
+        }
         const end = new Date(start.getTime() + durationMs);
         out.push({
           id: syntheticSlotId(sched.doctorId, sched.locationId, start),
