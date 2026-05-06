@@ -124,12 +124,20 @@ export async function computeAvailableSlots(opts: {
         ? sched.bookingDurationMinutes
         : (overrideByDoctor.get(sched.doctorId) ?? defaultDuration);
     const durationMs = duration * 60_000;
+    // Step the grid at the window's intended slot length when set, so the
+    // booking flow shows the same start times as the appointment-slots list.
+    // Otherwise fall back to the legacy 5-min grain.
+    const stepMinutes = sched.bookingDurationMinutes ?? START_GRAIN_MINUTES;
+    const stepMs = stepMinutes * 60_000;
     const free = subtract(
       [{ start: sched.startTime, end: sched.endTime }],
       blocks,
     );
     for (const interval of free) {
-      let start = ceilToGrain(interval.start, START_GRAIN_MINUTES);
+      let start =
+        sched.bookingDurationMinutes != null
+          ? new Date(interval.start)
+          : ceilToGrain(interval.start, START_GRAIN_MINUTES);
       while (start.getTime() + durationMs <= interval.end.getTime()) {
         const end = new Date(start.getTime() + durationMs);
         out.push({
@@ -140,7 +148,7 @@ export async function computeAvailableSlots(opts: {
           doctorName: sched.doctor.name,
           locationId: sched.locationId,
         });
-        start = new Date(start.getTime() + START_GRAIN_MINUTES * 60_000);
+        start = new Date(start.getTime() + stepMs);
       }
     }
   }
