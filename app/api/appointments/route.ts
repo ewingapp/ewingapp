@@ -98,10 +98,11 @@ export async function POST(request: Request) {
       });
       if (!window) throw new Error("NO_OPEN_WINDOW");
 
-      const duration =
-        window.bookingDurationMinutes ??
-        override?.durationMinutes ??
-        specialty.durationMinutes;
+      const isTypedSlot =
+        window.slotType === "LOOKALIKE" || window.slotType === "PSYCH_TESTING";
+      const duration = isTypedSlot && window.bookingDurationMinutes != null
+        ? window.bookingDurationMinutes
+        : (override?.durationMinutes ?? specialty.durationMinutes);
       const endTime = new Date(startTime.getTime() + duration * 60_000);
 
       if (endTime.getTime() > window.endTime.getTime()) {

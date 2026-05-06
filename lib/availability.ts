@@ -117,10 +117,12 @@ export async function computeAvailableSlots(opts: {
     if (sched.slotType === "LOOKALIKE" && !isMSE) continue;
     if (sched.slotType === "PSYCH_TESTING" && !isPsychTesting) continue;
     const blocks = apptByDoctor.get(sched.doctorId) ?? [];
+    const isTypedSlot =
+      sched.slotType === "LOOKALIKE" || sched.slotType === "PSYCH_TESTING";
     const duration =
-      sched.bookingDurationMinutes ??
-      overrideByDoctor.get(sched.doctorId) ??
-      defaultDuration;
+      isTypedSlot && sched.bookingDurationMinutes != null
+        ? sched.bookingDurationMinutes
+        : (overrideByDoctor.get(sched.doctorId) ?? defaultDuration);
     const durationMs = duration * 60_000;
     const free = subtract(
       [{ start: sched.startTime, end: sched.endTime }],
