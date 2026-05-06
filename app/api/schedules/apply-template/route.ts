@@ -45,6 +45,7 @@ export async function POST(request: Request) {
           startTime: start,
           endTime: end,
           slotType: t.slotType,
+          bookingDurationMinutes: dur,
         },
       });
     }),

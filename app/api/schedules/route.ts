@@ -11,6 +11,7 @@ const createSchema = z.object({
   startTime: z.string().min(1),
   endTime: z.string().min(1),
   slotType: SLOT_TYPE.optional().default("ANY"),
+  bookingDurationMinutes: z.number().int().min(5).max(240).optional(),
 });
 
 export async function GET(request: Request) {
@@ -47,7 +48,8 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  const { doctorId, locationId, startTime, endTime, slotType } = parsed.data;
+  const { doctorId, locationId, startTime, endTime, slotType, bookingDurationMinutes } =
+    parsed.data;
   const start = new Date(startTime);
   const end = new Date(endTime);
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
@@ -61,7 +63,14 @@ export async function POST(request: Request) {
   }
 
   const created = await prisma.doctorSchedule.create({
-    data: { doctorId, locationId, startTime: start, endTime: end, slotType },
+    data: {
+      doctorId,
+      locationId,
+      startTime: start,
+      endTime: end,
+      slotType,
+      bookingDurationMinutes,
+    },
     include: {
       doctor: { select: { id: true, name: true } },
       location: { select: { id: true, name: true } },

@@ -86,15 +86,16 @@ model DoctorSpecialtyOverride {
 }
 
 model DoctorSchedule {
-  id         String   @id @default(cuid())
-  doctor     Doctor   @relation(fields: [doctorId], references: [id])
-  doctorId   String
-  location   Location @relation(fields: [locationId], references: [id])
-  locationId String
-  startTime  DateTime
-  endTime    DateTime
-  slotType   String   @default("ANY")
-  createdAt  DateTime @default(now())
+  id                     String   @id @default(cuid())
+  doctor                 Doctor   @relation(fields: [doctorId], references: [id])
+  doctorId               String
+  location               Location @relation(fields: [locationId], references: [id])
+  locationId             String
+  startTime              DateTime
+  endTime                DateTime
+  slotType               String   @default("ANY")
+  bookingDurationMinutes Int?
+  createdAt              DateTime @default(now())
 
   @@index([locationId, startTime])
   @@index([doctorId, startTime])
