@@ -22,6 +22,10 @@ import {
 import { BookSlotDialog, type SlotInfo } from "./book-slot-dialog";
 import { ptDateTime, ptFmtTime } from "@/lib/pt";
 import { getCaHolidaysRange } from "@/lib/ca-holidays";
+import {
+  gapToNextBookingMinutes,
+  dynamicSlotType,
+} from "@/lib/slot-rules";
 
 type SlotType = "ANY" | "LOOKALIKE" | "PSYCH_TESTING";
 
@@ -108,10 +112,14 @@ function computeSlotRows(
   windows: Schedule[],
   appointments: Appointment[],
   fallbackGridMin: number,
+  doctorIsPsych: boolean,
 ): SlotRow[] {
   const rows: SlotRow[] = [];
   const sortedAppts = [...appointments].sort(
     (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+  );
+  const sortedApptStartMs = sortedAppts.map((a) =>
+    new Date(a.startTime).getTime(),
   );
   for (const w of windows) {
     const gridMin = w.bookingDurationMinutes ?? fallbackGridMin;
@@ -139,6 +147,15 @@ function computeSlotRows(
         });
         cursor = new Date(overlap.endTime).getTime();
       } else {
+        let slotType: SlotType = w.slotType;
+        if (w.slotType === "ANY" && doctorIsPsych) {
+          const gap = gapToNextBookingMinutes(
+            cursor,
+            winEnd,
+            sortedApptStartMs,
+          );
+          slotType = dynamicSlotType(gap);
+        }
         rows.push({
           key: `${w.id}_${cursor}`,
           startTime: slotStart,
@@ -146,7 +163,7 @@ function computeSlotRows(
           windowId: w.id,
           locationId: w.locationId,
           locationName: w.location.name,
-          slotType: w.slotType,
+          slotType,
           status: "OPEN",
         });
         cursor += gridMin * 60_000;
@@ -473,8 +490,8 @@ export default function AppointmentSlotsPage() {
   }, [doctors, specialties, bookingSlot]);
 
   const slotRows = useMemo(
-    () => computeSlotRows(schedules, appointments, duration),
-    [schedules, appointments, duration],
+    () => computeSlotRows(schedules, appointments, duration, doctorIsPsych),
+    [schedules, appointments, duration, doctorIsPsych],
   );
 
   const selectedDoctor = doctors.find((d) => d.id === doctorId);
