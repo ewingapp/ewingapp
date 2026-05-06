@@ -243,6 +243,11 @@
   color: #5C4A1E !important;
 }
 
+.ewing-calendar .rdp-day-holiday .rdp-day_button {
+  color: #dc2626;
+  font-weight: 700;
+}
+
 /* Appointment confirmation print: hide everything except .ewing-print-area */
 @media print {
   body * {
