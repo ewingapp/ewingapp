@@ -396,10 +396,10 @@ function ResultsView() {
                 type="submit"
                 disabled={submitting}
                 className="text-white hover:brightness-95"
-                style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+                style={{ background: "#DC2626", border: "2px solid #C9A55C" }}
               >
                 {submitting && <Loader2 className="size-4 animate-spin" />}
-                Submit appointment
+                Book Appointment
               </Button>
             </DialogFooter>
           </form>
@@ -503,32 +503,31 @@ function ResultsView() {
                 )}
               </div>
 
-              <DialogFooter className="ewing-print-hide flex flex-col-reverse sm:flex-row gap-2 sm:justify-between sm:items-center pt-2 border-t border-slate-200">
+              <DialogFooter className="ewing-print-hide flex flex-col-reverse sm:flex-row gap-2 sm:justify-end sm:items-center pt-2 border-t border-slate-200">
                 <Button
                   type="button"
                   variant="outline"
+                  onClick={handleScheduleSameClaimant}
+                >
+                  Schedule another for same claimant
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleScheduleNewAppointment}
+                >
+                  New appointment
+                </Button>
+                <Button
+                  type="button"
                   onClick={() => window.print()}
-                  className="sm:mr-auto"
+                  autoFocus
+                  className="text-white hover:brightness-95"
+                  style={{ background: "#DC2626", border: "2px solid #C9A55C" }}
                 >
                   <Printer className="size-4" />
                   Print
                 </Button>
-                <div className="flex flex-col-reverse sm:flex-row gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleScheduleSameClaimant}
-                  >
-                    Schedule another appointment for same claimant
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={handleScheduleNewAppointment}
-                    style={{ background: "#0085CA" }}
-                  >
-                    Schedule a new appointment
-                  </Button>
-                </div>
               </DialogFooter>
             </>
           )}

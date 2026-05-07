@@ -310,10 +310,10 @@ export function BookSlotDialog({
               type="submit"
               disabled={isSubmitting}
               className="text-white hover:brightness-95"
-              style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+              style={{ background: "#DC2626", border: "2px solid #C9A55C" }}
             >
               {isSubmitting && <Loader2 className="size-4 animate-spin" />}
-              Submit appointment
+              Book Appointment
             </Button>
           </DialogFooter>
         </form>
