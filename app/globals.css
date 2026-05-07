@@ -155,43 +155,62 @@
   justify-content: center;
 }
 
+.ewing-calendar .rdp-month {
+  position: relative;
+}
+
 .ewing-calendar .rdp-month_caption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem;
   background: #F1F5F9;
   border-radius: 0.5rem;
-  padding: 0.5rem;
+  padding: 0;
   font-weight: 600;
   color: #475569;
   text-align: center;
   margin-bottom: 0.5rem;
 }
 
+.ewing-calendar .rdp-caption_label {
+  display: inline-block;
+  text-align: center;
+  line-height: 1;
+}
+
 .ewing-calendar .rdp-nav {
   position: absolute;
-  top: 0.25rem;
-  right: 0.25rem;
-  display: flex;
-  gap: 0.25rem;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.5rem;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .ewing-calendar .rdp-nav button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 1.75rem;
+  width: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
   color: #64748B;
   cursor: pointer;
+  pointer-events: auto;
 }
 
 .ewing-calendar .rdp-button_previous {
-  position: absolute;
   left: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
 }
 
 .ewing-calendar .rdp-button_next {
-  position: absolute;
   right: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
 }
 
 .ewing-calendar .rdp-weekdays {
