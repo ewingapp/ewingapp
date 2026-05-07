@@ -186,6 +186,11 @@ function ResultsView() {
       setConfirmation({ slot: bookingSlot, values });
       setSlots((curr) => (curr ? curr.filter((s) => s.id !== bookingSlot.id) : curr));
       setBookingSlot(null);
+      // Default: wipe the form after a successful booking so the next slot
+      // booking on the same page starts fresh. "Schedule for same claimant"
+      // re-saves the values to sessionStorage on demand.
+      form.reset(EMPTY_FORM);
+      window.sessionStorage.removeItem(CLAIMANT_STORAGE_KEY);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Booking failed");
     } finally {
