@@ -881,7 +881,7 @@ export default function AppointmentSlotsPage() {
                               </span>
                             ) : (
                               <span className="text-slate-700 font-medium">
-                                Booked ({row.appointment?.specialty.name})
+                                Scheduled ({row.appointment?.specialty.name})
                               </span>
                             )}
                             {row.slotType !== "ANY" && (
