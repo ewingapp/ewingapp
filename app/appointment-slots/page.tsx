@@ -364,12 +364,26 @@ export default function AppointmentSlotsPage() {
           throw new Error("Range end must be after start.");
         }
         const totalMin = (end.getTime() - start.getTime()) / 60_000;
-        const count = Math.floor(totalMin / rangeDuration);
+        const dur =
+          slotType === "LOOKALIKE"
+            ? 40
+            : slotType === "PSYCH_TESTING"
+              ? 60
+              : rangeDuration;
+        const count = Math.floor(totalMin / dur);
+        const slotKindLabel =
+          slotType === "LOOKALIKE"
+            ? "MSE "
+            : slotType === "PSYCH_TESTING"
+              ? "Testing "
+              : "";
         await postWindow(start.toISOString(), end.toISOString(), {
-          slotType: "ANY",
-          bookingDurationMinutes: rangeDuration,
+          slotType,
+          bookingDurationMinutes: dur,
         });
-        setInfo(`${count} appointment slot${count === 1 ? "" : "s"} were added.`);
+        setInfo(
+          `${count} ${slotKindLabel}appointment slot${count === 1 ? "" : "s"} were added.`,
+        );
       } else if (mode === "TEMPLATE") {
         if (!templateId) throw new Error("Choose a template first.");
         const res = await fetch("/api/schedules/apply-template", {
@@ -720,23 +734,25 @@ export default function AppointmentSlotsPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <span className="ml-3 text-slate-700 inline-flex items-center gap-1">
-                    Each:
-                    <Input
-                      type="number"
-                      min={5}
-                      max={240}
-                      step={5}
-                      value={rangeDuration}
-                      onChange={(e) =>
-                        setRangeDuration(
-                          Number(e.target.value) || (doctorIsPsych ? 60 : 30),
-                        )
-                      }
-                      className="inline-block w-16 h-8"
-                    />
-                    min
-                  </span>
+                  {slotType === "ANY" && (
+                    <span className="ml-3 text-slate-700 inline-flex items-center gap-1">
+                      Each:
+                      <Input
+                        type="number"
+                        min={5}
+                        max={240}
+                        step={5}
+                        value={rangeDuration}
+                        onChange={(e) =>
+                          setRangeDuration(
+                            Number(e.target.value) || (doctorIsPsych ? 60 : 30),
+                          )
+                        }
+                        className="inline-block w-16 h-8"
+                      />
+                      min
+                    </span>
+                  )}
                 </div>
               </Row>
 
