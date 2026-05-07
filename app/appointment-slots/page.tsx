@@ -801,9 +801,6 @@ export default function AppointmentSlotsPage() {
                 )}
                 Add Appointment Slot(s)
               </Button>
-              <Button variant="outline" disabled className="h-9">
-                Add Recurring Appointment Slots
-              </Button>
             </div>
 
             <h2
