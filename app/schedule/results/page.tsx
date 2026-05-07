@@ -508,13 +508,15 @@ function ResultsView() {
                   type="button"
                   variant="outline"
                   onClick={handleScheduleSameClaimant}
+                  style={{ borderColor: "#C9A55C", borderWidth: "2px" }}
                 >
-                  Schedule another for same claimant
+                  Schedule for same claimant
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleScheduleNewAppointment}
+                  style={{ borderColor: "#C9A55C", borderWidth: "2px" }}
                 >
                   New appointment
                 </Button>
