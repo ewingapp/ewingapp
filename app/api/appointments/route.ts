@@ -16,6 +16,7 @@ export async function GET(request: Request) {
   const lastName = (searchParams.get("lastName") ?? "").trim();
   const firstInitial = (searchParams.get("firstInitial") ?? "").trim();
   const caseNumber = (searchParams.get("caseNumber") ?? "").trim();
+  const stateBranch = (searchParams.get("stateBranch") ?? "").trim();
   const noShowOnly = searchParams.get("noShowOnly") === "1";
 
   const where: Prisma.AppointmentWhereInput = {};
@@ -28,6 +29,7 @@ export async function GET(request: Request) {
   if (lastName) where.lastNamePrefix = { startsWith: lastName.toUpperCase() };
   if (firstInitial) where.firstInitial = firstInitial.charAt(0).toUpperCase();
   if (caseNumber) where.caseNumber = { contains: caseNumber };
+  if (stateBranch) where.stateBranch = stateBranch;
   if (noShowOnly) where.status = "NO_SHOW";
 
   const appts = await prisma.appointment.findMany({
