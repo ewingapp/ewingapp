@@ -616,7 +616,7 @@ function ResultsTable({ slots, onPick }: { slots: Slot[]; onPick: (s: Slot) => v
             <th className="px-3 py-2 font-medium whitespace-nowrap">Date</th>
             <th className="px-3 py-2 font-medium whitespace-nowrap">Time</th>
             <th className="px-3 py-2 font-medium whitespace-nowrap">Doctor</th>
-            <th className="px-3 py-2 font-medium whitespace-nowrap">Claimant Ages</th>
+            <th className="px-3 py-2 font-medium whitespace-nowrap text-center">Claimant Ages</th>
             <th className="px-3 py-2 font-medium whitespace-nowrap">Remarks</th>
             <th className="px-3 py-2 font-medium text-right whitespace-nowrap">Action</th>
           </tr>
@@ -633,7 +633,7 @@ function ResultsTable({ slots, onPick }: { slots: Slot[]; onPick: (s: Slot) => v
                   {ptFmtTime(start)}
                 </td>
                 <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{s.doctor.name}</td>
-                <td className="px-3 py-2 text-slate-700 whitespace-nowrap">
+                <td className="px-3 py-2 text-slate-700 whitespace-nowrap text-center">
                   {s.doctor.claimantAges?.trim() || "—"}
                 </td>
                 <td className="px-3 py-2 text-slate-700">
