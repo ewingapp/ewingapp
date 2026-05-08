@@ -637,7 +637,7 @@ function ResultsTable({ slots, onPick }: { slots: Slot[]; onPick: (s: Slot) => v
                   {s.doctor.claimantAges?.trim() || "—"}
                 </td>
                 <td className="px-3 py-2 text-slate-700">
-                  {s.doctor.remarks?.trim() || "—"}
+                  {s.doctor.remarks?.trim() ?? ""}
                 </td>
                 <td className="px-3 py-2 text-right whitespace-nowrap">
                   <Button
