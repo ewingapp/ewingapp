@@ -592,21 +592,6 @@ export default function AppointmentSlotsPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <span className="text-slate-700 inline-flex items-center gap-1">
-                    Appt Duration:
-                    <Input
-                      type="number"
-                      min={5}
-                      max={240}
-                      step={5}
-                      value={duration}
-                      onChange={(e) =>
-                        setDuration(Number(e.target.value) || 30)
-                      }
-                      className="inline-block w-16 h-8"
-                    />
-                    Minutes
-                  </span>
                 </div>
               </Row>
 
