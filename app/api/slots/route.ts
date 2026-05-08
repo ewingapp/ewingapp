@@ -33,6 +33,8 @@ export async function GET(request: Request) {
       doctor: {
         id: s.doctorId,
         name: s.doctorName,
+        firstName: s.doctorFirstName,
+        lastName: s.doctorLastName,
         claimantAges: s.doctorClaimantAges,
         remarks: s.doctorRemarks,
       },

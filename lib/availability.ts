@@ -9,6 +9,8 @@ export type AvailableSlot = {
   endTime: Date;
   doctorId: string;
   doctorName: string;
+  doctorFirstName: string;
+  doctorLastName: string;
   doctorClaimantAges: string;
   doctorRemarks: string;
   locationId: string;
@@ -94,7 +96,14 @@ export async function computeAvailableSlots(opts: {
     where,
     include: {
       doctor: {
-        select: { id: true, name: true, claimantAges: true, remarks: true },
+        select: {
+          id: true,
+          name: true,
+          firstName: true,
+          lastName: true,
+          claimantAges: true,
+          remarks: true,
+        },
       },
     },
     orderBy: [{ startTime: "asc" }],
@@ -174,6 +183,8 @@ export async function computeAvailableSlots(opts: {
           endTime: end,
           doctorId: sched.doctorId,
           doctorName: sched.doctor.name,
+          doctorFirstName: sched.doctor.firstName ?? "",
+          doctorLastName: sched.doctor.lastName ?? "",
           doctorClaimantAges: sched.doctor.claimantAges ?? "",
           doctorRemarks: sched.doctor.remarks ?? "",
           locationId: sched.locationId,
