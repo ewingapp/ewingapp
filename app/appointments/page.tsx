@@ -3,7 +3,10 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { addWeeks, startOfDay } from "date-fns";
+import { DayPicker, type DateRange } from "react-day-picker";
+import "react-day-picker/style.css";
 import {
+  ArrowLeft,
   ArrowUp,
   ArrowDown,
   Download,
@@ -43,6 +46,7 @@ import {
   ptDateIso,
   ptTodayIso,
 } from "@/lib/pt";
+import { getCaHolidaysRange } from "@/lib/ca-holidays";
 
 type Location = { id: string; name: string };
 type Specialty = { id: string; name: string };
@@ -93,13 +97,19 @@ function isoDate(d: Date) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function formatMmDdYyyy(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return iso;
+  return `${m[2]}/${m[3]}/${m[1]}`;
+}
+
 function csvEscape(value: string | null | undefined): string {
   const s = value ?? "";
   if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
 }
 
-function downloadCsv(rows: Appt[]) {
+function downloadCsv(rows: Appt[], includeBranch: boolean) {
   const headers = [
     "Office",
     "Date",
@@ -108,7 +118,7 @@ function downloadCsv(rows: Appt[]) {
     "Claimant",
     "Doctor",
     "Exam",
-    "Branch",
+    ...(includeBranch ? ["Branch"] : []),
     "Status",
     "Status Note",
     "Scheduled By",
@@ -126,7 +136,7 @@ function downloadCsv(rows: Appt[]) {
         `${a.lastNamePrefix}, ${a.firstInitial}`,
         a.doctor.name,
         a.specialty.name,
-        a.stateBranch,
+        ...(includeBranch ? [a.stateBranch] : []),
         STATUS_LABEL[a.status],
         a.statusNote ?? "",
         a.scheduledBy,
@@ -177,20 +187,22 @@ function ScheduledAppointmentsView() {
   const [lastName, setLastName] = useState("");
   const [firstInitial, setFirstInitial] = useState("");
   const [caseNumber, setCaseNumber] = useState("");
-  const [stateBranch, setStateBranch] = useState("");
+  const [includeBranch, setIncludeBranch] = useState(false);
   const [noShowOnly, setNoShowOnly] = useState(false);
+  const [showBranchInResults, setShowBranchInResults] = useState(false);
 
   const [locations, setLocations] = useState<Location[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
-  const [branches, setBranches] = useState<Branch[]>([]);
 
-  const [fromDate, setFromDate] = useState<string>(() =>
-    isoDate(startOfDay(new Date())),
-  );
-  const [toDate, setToDate] = useState<string>(() =>
-    isoDate(addWeeks(startOfDay(new Date()), 6)),
-  );
+  const [range, setRange] = useState<DateRange | undefined>(() => {
+    const today = startOfDay(new Date());
+    return { from: today, to: addWeeks(today, 6) };
+  });
+  const fromDate = range?.from ? isoDate(range.from) : "";
+  const toDate = range?.to ? isoDate(range.to) : "";
+
+  const caHolidays = useMemo(() => getCaHolidaysRange(2), []);
 
   const [results, setResults] = useState<Appt[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -219,10 +231,6 @@ function ScheduledAppointmentsView() {
       .then((r) => r.json())
       .then((s: Specialty[]) => setSpecialties(s))
       .catch(() => {});
-    fetch("/api/branches")
-      .then((r) => r.json())
-      .then((b: Branch[]) => setBranches(b))
-      .catch(() => {});
   }, []);
 
   function onSearch() {
@@ -245,8 +253,9 @@ function ScheduledAppointmentsView() {
     if (lastName.trim()) qs.set("lastName", lastName.trim());
     if (firstInitial.trim()) qs.set("firstInitial", firstInitial.trim().charAt(0));
     if (caseNumber.trim()) qs.set("caseNumber", caseNumber.trim());
-    if (stateBranch) qs.set("stateBranch", stateBranch);
     if (noShowOnly) qs.set("noShowOnly", "1");
+
+    setShowBranchInResults(includeBranch);
 
     fetch(`/api/appointments?${qs.toString()}`)
       .then((r) => r.json())
@@ -289,11 +298,28 @@ function ScheduledAppointmentsView() {
     return [...results].sort(cmp);
   }, [results, sortKey, sortDir]);
 
+  const hasResults = sorted !== null;
+
   return (
     <AppShell>
       <div className="max-w-7xl mx-auto px-6 py-8">
-        <PageHeader title="Scheduled Appointments" />
+        <PageHeader
+          title="Scheduled Appointments"
+          trailing={
+            hasResults ? (
+              <button
+                type="button"
+                onClick={() => setResults(null)}
+                className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-[#0085CA]"
+              >
+                <ArrowLeft className="size-4" />
+                Change search
+              </button>
+            ) : undefined
+          }
+        />
 
+        {!hasResults && (
         <div
           className="rounded-lg p-5 mb-6 bg-slate-50"
           style={{ border: "2px solid #C9A55C" }}
@@ -396,28 +422,26 @@ function ScheduledAppointmentsView() {
               </Select>
             </div>
 
-            {/* Date range */}
+            {/* Date range readouts (driven by the calendar below) */}
             <div className="md:col-span-2 space-y-2">
-              <Label htmlFor="from-date" className="text-xs uppercase tracking-wide text-slate-500">
+              <Label className="text-xs uppercase tracking-wide text-slate-500">
                 From Date
               </Label>
               <Input
-                id="from-date"
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
+                value={fromDate ? formatMmDdYyyy(fromDate) : ""}
+                readOnly
+                placeholder="––/––/––––"
                 className="h-10 bg-white"
               />
             </div>
             <div className="md:col-span-2 space-y-2">
-              <Label htmlFor="to-date" className="text-xs uppercase tracking-wide text-slate-500">
+              <Label className="text-xs uppercase tracking-wide text-slate-500">
                 To Date
               </Label>
               <Input
-                id="to-date"
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
+                value={toDate ? formatMmDdYyyy(toDate) : ""}
+                readOnly
+                placeholder="––/––/––––"
                 className="h-10 bg-white"
               />
             </div>
@@ -476,32 +500,7 @@ function ScheduledAppointmentsView() {
                 className="h-10 bg-white"
               />
             </div>
-            <div className="md:col-span-4 space-y-1.5">
-              <Label className="text-xs uppercase tracking-wide text-slate-500">
-                Branch
-              </Label>
-              <Select
-                value={stateBranch || ALL}
-                onValueChange={(v) => setStateBranch(v === ALL ? "" : (v ?? ""))}
-                items={[
-                  { value: ALL, label: "All Branches" },
-                  ...branches.map((b) => ({ value: b.name, label: b.name })),
-                ]}
-              >
-                <SelectTrigger className="w-full h-10 bg-white">
-                  <SelectValue placeholder="All Branches" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL}>All Branches</SelectItem>
-                  {branches.map((b) => (
-                    <SelectItem key={b.id} value={b.name}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="md:col-span-2 flex items-end pb-1">
+            <div className="md:col-span-6 flex items-end pb-1 gap-6">
               <label className="inline-flex items-center gap-2 text-sm cursor-pointer">
                 <Checkbox
                   checked={noShowOnly}
@@ -509,9 +508,30 @@ function ScheduledAppointmentsView() {
                 />
                 No-Show Only
               </label>
+              <label className="inline-flex items-center gap-2 text-sm cursor-pointer">
+                <Checkbox
+                  checked={includeBranch}
+                  onCheckedChange={(v) => setIncludeBranch(v === true)}
+                />
+                Include Branch
+              </label>
             </div>
           </div>
         </div>
+        )}
+
+        {!hasResults && (
+          <div className="bg-white rounded-lg border shadow-sm p-4 mb-6 ewing-calendar">
+            <DayPicker
+              mode="range"
+              numberOfMonths={2}
+              selected={range}
+              onSelect={setRange}
+              modifiers={{ holiday: caHolidays }}
+              modifiersClassNames={{ holiday: "rdp-day-holiday" }}
+            />
+          </div>
+        )}
 
         {error && <p className="text-sm text-destructive mb-4">{error}</p>}
 
@@ -530,6 +550,7 @@ function ScheduledAppointmentsView() {
             }}
             onCancelClick={setCancelTarget}
             onStatusUpdated={applyUpdated}
+            showBranch={showBranchInResults}
           />
         )}
 
@@ -553,6 +574,7 @@ function ResultsTable({
   onSort,
   onCancelClick,
   onStatusUpdated,
+  showBranch,
 }: {
   rows: Appt[];
   sortKey: SortKey;
@@ -560,6 +582,7 @@ function ResultsTable({
   onSort: (k: SortKey) => void;
   onCancelClick: (appt: Appt) => void;
   onStatusUpdated: (updated: Appt) => void;
+  showBranch: boolean;
 }) {
   if (rows.length === 0) {
     return (
@@ -576,7 +599,7 @@ function ResultsTable({
         </span>
         <button
           type="button"
-          onClick={() => downloadCsv(rows)}
+          onClick={() => downloadCsv(rows, showBranch)}
           className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-medium text-white shadow-sm hover:brightness-95"
           style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
         >
@@ -614,9 +637,11 @@ function ResultsTable({
               <Th sortKey="exam" current={sortKey} dir={sortDir} onSort={onSort}>
                 Exam
               </Th>
-              <Th sortKey="branch" current={sortKey} dir={sortDir} onSort={onSort}>
-                Branch
-              </Th>
+              {showBranch && (
+                <Th sortKey="branch" current={sortKey} dir={sortDir} onSort={onSort}>
+                  Branch
+                </Th>
+              )}
               <Th
                 sortKey="status"
                 current={sortKey}
@@ -644,7 +669,9 @@ function ResultsTable({
                 </td>
                 <td className="px-3 py-2">{a.doctor.name}</td>
                 <td className="px-3 py-2">{a.specialty.name}</td>
-                <td className="px-3 py-2 whitespace-nowrap">{a.stateBranch}</td>
+                {showBranch && (
+                  <td className="px-3 py-2 whitespace-nowrap">{a.stateBranch}</td>
+                )}
                 <td className="px-3 py-2">
                   <StatusCell appt={a} onUpdated={onStatusUpdated} />
                 </td>
