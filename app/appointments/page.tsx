@@ -2,13 +2,11 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { addWeeks, format, parseISO, startOfDay } from "date-fns";
-import { DayPicker, type DateRange } from "react-day-picker";
-import "react-day-picker/style.css";
+import { addWeeks, startOfDay } from "date-fns";
 import {
   ArrowUp,
   ArrowDown,
-  Calendar as CalendarIcon,
+  Download,
   Eye,
   Loader2,
   Pencil,
@@ -45,7 +43,6 @@ import {
   ptDateIso,
   ptTodayIso,
 } from "@/lib/pt";
-import { getCaHolidaysRange } from "@/lib/ca-holidays";
 
 type Location = { id: string; name: string };
 type Specialty = { id: string; name: string };
@@ -92,6 +89,63 @@ function isoDate(d: Date) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function csvEscape(value: string | null | undefined): string {
+  const s = value ?? "";
+  if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function downloadCsv(rows: Appt[]) {
+  const headers = [
+    "Office",
+    "Date",
+    "Time",
+    "Case#",
+    "Claimant",
+    "Doctor",
+    "Exam",
+    "Status",
+    "Status Note",
+    "Scheduled By",
+    "Cancelled By",
+    "Cancelled At",
+  ];
+  const lines = [headers.map(csvEscape).join(",")];
+  for (const a of rows) {
+    lines.push(
+      [
+        a.location.name,
+        ptFmtDateShort(a.startTime),
+        ptFmtTime(a.startTime),
+        a.caseNumber,
+        `${a.lastNamePrefix}, ${a.firstInitial}`,
+        a.doctor.name,
+        a.specialty.name,
+        STATUS_LABEL[a.status],
+        a.statusNote ?? "",
+        a.scheduledBy,
+        a.cancelledBy ?? "",
+        a.cancelledAt
+          ? `${ptFmtDateShort(a.cancelledAt)} ${ptFmtTime(a.cancelledAt)}`
+          : "",
+      ]
+        .map(csvEscape)
+        .join(","),
+    );
+  }
+  const csv = "\uFEFF" + lines.join("\r\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  const stamp = isoDate(new Date());
+  link.download = `scheduled-appointments-${stamp}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 const STATUS_LABEL: Record<Appt["status"], string> = {
   SCHEDULED: "Scheduled",
   KEPT: "Kept",
@@ -123,10 +177,12 @@ function ScheduledAppointmentsView() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
 
-  const [range, setRange] = useState<DateRange | undefined>(() => {
-    const today = startOfDay(new Date());
-    return { from: today, to: addWeeks(today, 6) };
-  });
+  const [fromDate, setFromDate] = useState<string>(() =>
+    isoDate(startOfDay(new Date())),
+  );
+  const [toDate, setToDate] = useState<string>(() =>
+    isoDate(addWeeks(startOfDay(new Date()), 6)),
+  );
 
   const [results, setResults] = useState<Appt[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -136,12 +192,11 @@ function ScheduledAppointmentsView() {
   const [cancelTarget, setCancelTarget] = useState<Appt | null>(null);
 
   function applyUpdated(updated: Appt) {
+
     setResults((prev) =>
       prev ? prev.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)) : prev,
     );
   }
-
-  const caHolidays = useMemo(() => getCaHolidaysRange(2), []);
 
   useEffect(() => {
     fetch("/api/locations")
@@ -159,8 +214,12 @@ function ScheduledAppointmentsView() {
   }, []);
 
   function onSearch() {
-    if (!range?.from || !range?.to) {
+    if (!fromDate || !toDate) {
       setError("Pick a from and to date.");
+      return;
+    }
+    if (fromDate > toDate) {
+      setError("From date must be before To date.");
       return;
     }
     setError(null);
@@ -169,8 +228,8 @@ function ScheduledAppointmentsView() {
     if (chooseBy === "office" && locationId) qs.set("locationId", locationId);
     if (chooseBy === "doctor" && doctorId) qs.set("doctorId", doctorId);
     if (specialtyId) qs.set("specialtyId", specialtyId);
-    qs.set("from", isoDate(range.from));
-    qs.set("to", isoDate(range.to));
+    qs.set("from", fromDate);
+    qs.set("to", toDate);
     if (lastName.trim()) qs.set("lastName", lastName.trim());
     if (firstInitial.trim()) qs.set("firstInitial", firstInitial.trim().charAt(0));
     if (caseNumber.trim()) qs.set("caseNumber", caseNumber.trim());
@@ -214,9 +273,6 @@ function ScheduledAppointmentsView() {
     };
     return [...results].sort(cmp);
   }, [results, sortKey, sortDir]);
-
-  const fromInput = range?.from ? format(range.from, "MM/dd/yyyy") : "";
-  const toInput = range?.to ? format(range.to, "MM/dd/yyyy") : "";
 
   return (
     <AppShell>
@@ -325,34 +381,30 @@ function ScheduledAppointmentsView() {
               </Select>
             </div>
 
-            {/* Date range readouts */}
+            {/* Date range */}
             <div className="md:col-span-2 space-y-2">
-              <Label className="text-xs uppercase tracking-wide text-slate-500">
+              <Label htmlFor="from-date" className="text-xs uppercase tracking-wide text-slate-500">
                 From Date
               </Label>
-              <div className="relative">
-                <Input
-                  value={fromInput}
-                  readOnly
-                  placeholder="––/––/––––"
-                  className="h-10 pr-9 bg-white"
-                />
-                <CalendarIcon className="absolute right-2.5 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none" />
-              </div>
+              <Input
+                id="from-date"
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="h-10 bg-white"
+              />
             </div>
             <div className="md:col-span-2 space-y-2">
-              <Label className="text-xs uppercase tracking-wide text-slate-500">
+              <Label htmlFor="to-date" className="text-xs uppercase tracking-wide text-slate-500">
                 To Date
               </Label>
-              <div className="relative">
-                <Input
-                  value={toInput}
-                  readOnly
-                  placeholder="––/––/––––"
-                  className="h-10 pr-9 bg-white"
-                />
-                <CalendarIcon className="absolute right-2.5 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none" />
-              </div>
+              <Input
+                id="to-date"
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="h-10 bg-white"
+              />
             </div>
 
             <div className="md:col-span-2 flex items-end">
@@ -423,17 +475,6 @@ function ScheduledAppointmentsView() {
 
         {error && <p className="text-sm text-destructive mb-4">{error}</p>}
 
-        <div className="bg-white rounded-lg border shadow-sm p-4 mb-6 ewing-calendar">
-          <DayPicker
-            mode="range"
-            numberOfMonths={2}
-            selected={range}
-            onSelect={setRange}
-            modifiers={{ holiday: caHolidays }}
-            modifiersClassNames={{ holiday: "rdp-day-holiday" }}
-          />
-        </div>
-
         {sorted && (
           <ResultsTable
             rows={sorted}
@@ -489,8 +530,19 @@ function ResultsTable({
   }
   return (
     <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
-      <div className="px-4 py-2 border-b border-slate-200 bg-slate-50 text-sm text-slate-600">
-        <strong>{rows.length}</strong> result{rows.length === 1 ? "" : "s"}
+      <div className="px-4 py-2 border-b border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
+        <span className="text-sm text-slate-600">
+          <strong>{rows.length}</strong> result{rows.length === 1 ? "" : "s"}
+        </span>
+        <button
+          type="button"
+          onClick={() => downloadCsv(rows)}
+          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-medium text-white shadow-sm hover:brightness-95"
+          style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+        >
+          <Download className="size-3.5" />
+          Download CSV
+        </button>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
