@@ -38,7 +38,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { ptFmtTime, ptFmtDateShort, ptFmtDateLong } from "@/lib/pt";
+import {
+  ptFmtTime,
+  ptFmtDateShort,
+  ptFmtDateLong,
+  ptDateIso,
+  ptTodayIso,
+} from "@/lib/pt";
 import { getCaHolidaysRange } from "@/lib/ca-holidays";
 
 type Location = { id: string; name: string };
@@ -128,6 +134,10 @@ function ScheduledAppointmentsView() {
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [cancelTarget, setCancelTarget] = useState<Appt | null>(null);
+  const [statusTarget, setStatusTarget] = useState<{
+    appt: Appt;
+    next: "KEPT" | "NO_SHOW" | "SCHEDULED";
+  } | null>(null);
 
   function applyUpdated(updated: Appt) {
     setResults((prev) =>
@@ -442,6 +452,7 @@ function ScheduledAppointmentsView() {
               }
             }}
             onCancelClick={setCancelTarget}
+            onStatusChange={(appt, next) => setStatusTarget({ appt, next })}
           />
         )}
 
@@ -451,6 +462,15 @@ function ScheduledAppointmentsView() {
           onCancelled={(updated) => {
             applyUpdated(updated);
             setCancelTarget(null);
+          }}
+        />
+
+        <StatusUpdateDialog
+          target={statusTarget}
+          onClose={() => setStatusTarget(null)}
+          onUpdated={(updated) => {
+            applyUpdated(updated);
+            setStatusTarget(null);
           }}
         />
       </div>
@@ -464,12 +484,14 @@ function ResultsTable({
   sortDir,
   onSort,
   onCancelClick,
+  onStatusChange,
 }: {
   rows: Appt[];
   sortKey: SortKey;
   sortDir: "asc" | "desc";
   onSort: (k: SortKey) => void;
   onCancelClick: (appt: Appt) => void;
+  onStatusChange: (appt: Appt, next: "KEPT" | "NO_SHOW" | "SCHEDULED") => void;
 }) {
   if (rows.length === 0) {
     return (
@@ -541,7 +563,7 @@ function ResultsTable({
                 <td className="px-3 py-2">{a.doctor.name}</td>
                 <td className="px-3 py-2">{a.specialty.name}</td>
                 <td className="px-3 py-2">
-                  <StatusBadge status={a.status} />
+                  <StatusCell appt={a} onChange={onStatusChange} />
                 </td>
                 <td className="px-3 py-2">
                   <ActionGroup appt={a} onCancelClick={onCancelClick} />
@@ -793,6 +815,162 @@ function CancelDialog({
               <X className="size-4" />
             )}
             Cancel appointment
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function StatusCell({
+  appt,
+  onChange,
+}: {
+  appt: Appt;
+  onChange: (appt: Appt, next: "KEPT" | "NO_SHOW" | "SCHEDULED") => void;
+}) {
+  const terminal =
+    appt.status === "CANCELLED" || appt.status === "MOVED" || appt.status === "OTHER";
+  const apptDay = ptDateIso(new Date(appt.startTime));
+  const today = ptTodayIso();
+  const editable = !terminal && apptDay <= today;
+
+  if (!editable) {
+    return (
+      <div className="flex flex-col gap-1">
+        <StatusBadge status={appt.status} />
+        {appt.statusNote && appt.status !== "CANCELLED" && (
+          <span className="text-[11px] text-slate-500 max-w-[12rem] leading-tight">
+            {appt.statusNote}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <select
+        value={appt.status === "NO_SHOW" ? "NO_SHOW" : appt.status === "KEPT" ? "KEPT" : "SCHEDULED"}
+        onChange={(e) => {
+          const v = e.target.value as "SCHEDULED" | "KEPT" | "NO_SHOW";
+          if (v !== appt.status) onChange(appt, v);
+        }}
+        className="h-8 rounded border border-slate-300 bg-white px-2 text-xs hover:border-[#0085CA] focus:outline-none focus:ring-2 focus:ring-[#0085CA]/30"
+      >
+        <option value="SCHEDULED">Scheduled</option>
+        <option value="KEPT">Kept</option>
+        <option value="NO_SHOW">No Show</option>
+      </select>
+      {appt.statusNote && (
+        <span className="text-[11px] text-slate-500 max-w-[12rem] leading-tight">
+          {appt.statusNote}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function StatusUpdateDialog({
+  target,
+  onClose,
+  onUpdated,
+}: {
+  target: { appt: Appt; next: "KEPT" | "NO_SHOW" | "SCHEDULED" } | null;
+  onClose: () => void;
+  onUpdated: (updated: Appt) => void;
+}) {
+  const [note, setNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (target) {
+      setNote(target.appt.statusNote ?? "");
+      setErr(null);
+    }
+  }, [target]);
+
+  async function submit() {
+    if (!target) return;
+    setSubmitting(true);
+    setErr(null);
+    try {
+      const res = await fetch(`/api/appointments/${target.appt.id}/status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: target.next, note: note.trim() }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? "Failed to update");
+      }
+      const updated = await res.json();
+      onUpdated({ ...target.appt, ...updated });
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed to update");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const nextLabel: Record<"KEPT" | "NO_SHOW" | "SCHEDULED", string> = {
+    KEPT: "Kept",
+    NO_SHOW: "No Show",
+    SCHEDULED: "Scheduled",
+  };
+
+  return (
+    <Dialog open={!!target} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>
+            Mark appointment as {target ? nextLabel[target.next] : ""}
+          </DialogTitle>
+          <DialogDescription>
+            {target && (
+              <>
+                {ptFmtDateLong(target.appt.startTime)} at{" "}
+                {ptFmtTime(target.appt.startTime)} — {target.appt.lastNamePrefix},{" "}
+                {target.appt.firstInitial} (Case #{target.appt.caseNumber})
+              </>
+            )}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Label htmlFor="status-note" className="text-sm">
+            Note <span className="text-slate-400">(optional)</span>
+          </Label>
+          <Textarea
+            id="status-note"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={3}
+            placeholder="Short note for the State branch (e.g. arrived 15 min late, claimant called to reschedule)…"
+          />
+          <p className="text-xs text-slate-500">
+            This note is visible to the State branch.
+          </p>
+          {err && <p className="text-sm text-destructive">{err}</p>}
+        </div>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={submitting}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            onClick={submit}
+            disabled={submitting}
+            className="text-white font-medium"
+            style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+          >
+            {submitting ? <Loader2 className="size-4 animate-spin" /> : null}
+            Save
           </Button>
         </DialogFooter>
       </DialogContent>
