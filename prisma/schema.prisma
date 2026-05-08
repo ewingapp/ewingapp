@@ -126,10 +126,16 @@ enum AppointmentStatus {
   KEPT
   NO_SHOW
   CANCELLED
+  MOVED
   OTHER
 }
 
 enum CancelledBy {
+  BRANCH
+  VENDOR
+}
+
+enum ScheduledBy {
   BRANCH
   VENDOR
 }
@@ -162,6 +168,7 @@ model Appointment {
   notes              String            @default("")
   status             AppointmentStatus @default(SCHEDULED)
   statusNote         String            @default("")
+  scheduledBy        ScheduledBy       @default(VENDOR)
   cancelledBy        CancelledBy?
   cancelledAt        DateTime?
   isLateCancellation Boolean           @default(false)
