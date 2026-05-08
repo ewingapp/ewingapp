@@ -610,14 +610,14 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 function ResultsTable({ slots, onPick }: { slots: Slot[]; onPick: (s: Slot) => void }) {
   return (
     <div className="overflow-x-auto">
-      <table className="text-sm w-full">
+      <table className="text-sm">
         <thead className="text-left text-xs uppercase tracking-wide text-slate-500 bg-slate-50">
           <tr className="border-b">
             <th className="px-3 py-2 font-medium whitespace-nowrap">Date</th>
             <th className="px-3 py-2 font-medium whitespace-nowrap">Time</th>
             <th className="px-3 py-2 font-medium whitespace-nowrap">Doctor</th>
             <th className="px-3 py-2 font-medium whitespace-nowrap">Claimant Ages</th>
-            <th className="px-3 py-2 font-medium">Remarks</th>
+            <th className="px-3 py-2 font-medium whitespace-nowrap">Remarks</th>
             <th className="px-3 py-2 font-medium text-right whitespace-nowrap">Action</th>
           </tr>
         </thead>
