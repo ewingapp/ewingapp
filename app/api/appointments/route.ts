@@ -10,19 +10,25 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const locationId = searchParams.get("locationId") ?? undefined;
   const doctorId = searchParams.get("doctorId") ?? undefined;
+  const specialtyId = searchParams.get("specialtyId") ?? undefined;
   const from = searchParams.get("from");
   const to = searchParams.get("to");
+  const lastName = (searchParams.get("lastName") ?? "").trim();
+  const firstInitial = (searchParams.get("firstInitial") ?? "").trim();
+  const caseNumber = (searchParams.get("caseNumber") ?? "").trim();
+  const noShowOnly = searchParams.get("noShowOnly") === "1";
 
-  const where: {
-    locationId?: string;
-    doctorId?: string;
-    startTime?: { gte: Date; lte: Date };
-  } = {};
+  const where: Prisma.AppointmentWhereInput = {};
   if (locationId) where.locationId = locationId;
   if (doctorId) where.doctorId = doctorId;
+  if (specialtyId) where.specialtyId = specialtyId;
   if (from && to) {
     where.startTime = { gte: ptStartOfDay(from), lte: ptEndOfDay(to) };
   }
+  if (lastName) where.lastNamePrefix = { startsWith: lastName.toUpperCase() };
+  if (firstInitial) where.firstInitial = firstInitial.charAt(0).toUpperCase();
+  if (caseNumber) where.caseNumber = { contains: caseNumber };
+  if (noShowOnly) where.status = "NO_SHOW";
 
   const appts = await prisma.appointment.findMany({
     where,
@@ -30,6 +36,7 @@ export async function GET(request: Request) {
     include: {
       doctor: { select: { id: true, name: true } },
       specialty: { select: { id: true, name: true } },
+      location: { select: { id: true, name: true } },
     },
   });
   return NextResponse.json(appts);
@@ -182,6 +189,7 @@ export async function POST(request: Request) {
           hasInterpreter: data.hasInterpreter,
           isOdarCase: data.isOdarCase,
           notes: data.notes ?? "",
+          scheduledBy: "VENDOR",
         },
       });
 
