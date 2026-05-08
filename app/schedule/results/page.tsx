@@ -257,7 +257,10 @@ function ResultsView() {
         />
 
         {/* Search summary */}
-        <div className="rounded-lg p-4 mb-6 bg-slate-50 border border-slate-200 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+        <div
+          className="rounded-lg p-4 mb-6 bg-slate-50 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm"
+          style={{ border: "2px solid #C9A55C" }}
+        >
           <SummaryItem label="Office" value={location?.name ?? "—"} />
           <SummaryItem label="Specialty" value={specialty?.name ?? "—"} />
           <SummaryItem label="From" value={fromLabel} />
