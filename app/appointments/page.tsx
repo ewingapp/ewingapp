@@ -50,7 +50,7 @@ import { getCaHolidaysRange } from "@/lib/ca-holidays";
 
 type Location = { id: string; name: string };
 type Specialty = { id: string; name: string };
-type Doctor = { id: string; name: string };
+type Doctor = { id: string; name: string; firstName: string; lastName: string };
 
 type Branch = { id: string; name: string };
 
@@ -72,10 +72,14 @@ type Appt = {
   cancelledAt: string | null;
   statusNote: string;
   stateBranch: string;
-  doctor: { id: string; name: string };
+  doctor: { id: string; name: string; firstName: string; lastName: string };
   specialty: { id: string; name: string };
   location: { id: string; name: string };
 };
+
+function doctorDisplay(d: { firstName: string; lastName: string }): string {
+  return `${d.firstName} ${d.lastName}`.trim();
+}
 
 type SortKey =
   | "office"
@@ -134,7 +138,7 @@ function downloadCsv(rows: Appt[], includeBranch: boolean) {
         ptFmtTime(a.startTime),
         a.caseNumber,
         `${a.lastNamePrefix}, ${a.firstInitial}`,
-        a.doctor.name,
+        doctorDisplay(a.doctor),
         a.specialty.name,
         ...(includeBranch ? [a.stateBranch] : []),
         STATUS_LABEL[a.status],
@@ -286,7 +290,7 @@ function ScheduledAppointmentsView() {
             ) * dir
           );
         case "doctor":
-          return a.doctor.name.localeCompare(b.doctor.name) * dir;
+          return doctorDisplay(a.doctor).localeCompare(doctorDisplay(b.doctor)) * dir;
         case "exam":
           return a.specialty.name.localeCompare(b.specialty.name) * dir;
         case "branch":
@@ -377,7 +381,7 @@ function ScheduledAppointmentsView() {
                   onValueChange={(v) => setDoctorId(v === ALL ? "" : (v ?? ""))}
                   items={[
                     { value: ALL, label: "All Doctors" },
-                    ...doctors.map((d) => ({ value: d.id, label: d.name })),
+                    ...doctors.map((d) => ({ value: d.id, label: doctorDisplay(d) })),
                   ]}
                 >
                   <SelectTrigger className="w-full h-10 bg-white">
@@ -387,7 +391,7 @@ function ScheduledAppointmentsView() {
                     <SelectItem value={ALL}>All Doctors</SelectItem>
                     {doctors.map((d) => (
                       <SelectItem key={d.id} value={d.id}>
-                        {d.name}
+                        {doctorDisplay(d)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -667,7 +671,7 @@ function ResultsTable({
                 <td className="px-3 py-2">
                   {a.lastNamePrefix}, {a.firstInitial}
                 </td>
-                <td className="px-3 py-2">{a.doctor.name}</td>
+                <td className="px-3 py-2">{doctorDisplay(a.doctor)}</td>
                 <td className="px-3 py-2">{a.specialty.name}</td>
                 {showBranch && (
                   <td className="px-3 py-2 whitespace-nowrap">{a.stateBranch}</td>
@@ -881,7 +885,7 @@ function CancelDialog({
               <>
                 {ptFmtDateLong(target.startTime)} at {ptFmtTime(target.startTime)} —{" "}
                 {target.lastNamePrefix}, {target.firstInitial} (Case #
-                {target.caseNumber}) with {target.doctor.name} at{" "}
+                {target.caseNumber}) with {doctorDisplay(target.doctor)} at{" "}
                 {target.location.name}.
               </>
             )}

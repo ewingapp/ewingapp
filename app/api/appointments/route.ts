@@ -34,7 +34,9 @@ export async function GET(request: Request) {
     where,
     orderBy: [{ startTime: "asc" }],
     include: {
-      doctor: { select: { id: true, name: true } },
+      doctor: {
+        select: { id: true, name: true, firstName: true, lastName: true },
+      },
       specialty: { select: { id: true, name: true } },
       location: { select: { id: true, name: true } },
     },

@@ -35,10 +35,16 @@ type Slot = {
   doctor: {
     id: string;
     name: string;
+    firstName: string;
+    lastName: string;
     claimantAges: string;
     remarks: string;
   };
 };
+
+function doctorDisplay(d: { firstName: string; lastName: string }): string {
+  return `${d.firstName} ${d.lastName}`.trim();
+}
 
 const formSchema = z.object({
   caseNumber: z.string().min(1, "Required"),
@@ -324,7 +330,7 @@ function ResultsView() {
             {bookingSlot && (
               <DialogDescription>
                 {ptFmtDateLong(bookingSlot.startTime)} at {ptFmtTime(bookingSlot.startTime)} ·{" "}
-                {bookingSlot.doctor.name}
+                {doctorDisplay(bookingSlot.doctor)}
                 {location && <> · {location.name}</>}
               </DialogDescription>
             )}
@@ -482,7 +488,7 @@ function ResultsView() {
                     label="Time"
                     value={ptFmtTime(confirmation.slot.startTime)}
                   />
-                  <DetailRow label="Doctor" value={confirmation.slot.doctor.name} />
+                  <DetailRow label="Doctor" value={doctorDisplay(confirmation.slot.doctor)} />
                   <DetailRow label="Office" value={location?.name ?? "—"} />
                   <DetailRow label="Specialty" value={specialty?.name ?? "—"} />
                 </Section>
@@ -635,7 +641,7 @@ function ResultsTable({ slots, onPick }: { slots: Slot[]; onPick: (s: Slot) => v
                 <td className="px-3 py-2 tabular-nums text-slate-700 whitespace-nowrap">
                   {ptFmtTime(start)}
                 </td>
-                <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{s.doctor.name}</td>
+                <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{doctorDisplay(s.doctor)}</td>
                 <td className="px-3 py-2 text-slate-700 whitespace-nowrap text-center">
                   {s.doctor.claimantAges?.trim() || "—"}
                 </td>
