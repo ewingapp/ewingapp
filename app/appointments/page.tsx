@@ -11,7 +11,10 @@ import {
   Calendar as CalendarIcon,
   Eye,
   Loader2,
+  Pencil,
   Search,
+  X,
+  Move as MoveIcon,
 } from "lucide-react";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
@@ -26,7 +29,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ptFmtTime, ptFmtDateShort } from "@/lib/pt";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { ptFmtTime, ptFmtDateShort, ptFmtDateLong } from "@/lib/pt";
 import { getCaHolidaysRange } from "@/lib/ca-holidays";
 
 type Location = { id: string; name: string };
@@ -47,6 +59,9 @@ type Appt = {
     | "MOVED"
     | "OTHER";
   scheduledBy: "BRANCH" | "VENDOR";
+  cancelledBy: "BRANCH" | "VENDOR" | null;
+  cancelledAt: string | null;
+  statusNote: string;
   doctor: { id: string; name: string };
   specialty: { id: string; name: string };
   location: { id: string; name: string };
@@ -112,6 +127,13 @@ function ScheduledAppointmentsView() {
   const [error, setError] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [cancelTarget, setCancelTarget] = useState<Appt | null>(null);
+
+  function applyUpdated(updated: Appt) {
+    setResults((prev) =>
+      prev ? prev.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)) : prev,
+    );
+  }
 
   const caHolidays = useMemo(() => getCaHolidaysRange(2), []);
 
@@ -419,8 +441,18 @@ function ScheduledAppointmentsView() {
                 setSortDir("asc");
               }
             }}
+            onCancelClick={setCancelTarget}
           />
         )}
+
+        <CancelDialog
+          target={cancelTarget}
+          onClose={() => setCancelTarget(null)}
+          onCancelled={(updated) => {
+            applyUpdated(updated);
+            setCancelTarget(null);
+          }}
+        />
       </div>
     </AppShell>
   );
@@ -431,11 +463,13 @@ function ResultsTable({
   sortKey,
   sortDir,
   onSort,
+  onCancelClick,
 }: {
   rows: Appt[];
   sortKey: SortKey;
   sortDir: "asc" | "desc";
   onSort: (k: SortKey) => void;
+  onCancelClick: (appt: Appt) => void;
 }) {
   if (rows.length === 0) {
     return (
@@ -510,13 +544,7 @@ function ResultsTable({
                   <StatusBadge status={a.status} />
                 </td>
                 <td className="px-3 py-2">
-                  <Link
-                    href={`/appointments/${a.id}`}
-                    className="inline-flex items-center gap-1 text-[#0085CA] hover:underline"
-                  >
-                    <Eye className="size-3.5" />
-                    View
-                  </Link>
+                  <ActionGroup appt={a} onCancelClick={onCancelClick} />
                 </td>
               </tr>
             ))}
@@ -556,6 +584,219 @@ function Th({
           ))}
       </span>
     </th>
+  );
+}
+
+function ActionGroup({
+  appt,
+  onCancelClick,
+}: {
+  appt: Appt;
+  onCancelClick: (appt: Appt) => void;
+}) {
+  const cancelDisabled =
+    appt.status === "CANCELLED" || appt.status === "MOVED";
+  const moveDisabled = appt.status === "MOVED" || appt.status === "CANCELLED";
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex flex-wrap gap-1">
+        <ActionLink href={`/appointments/${appt.id}`} icon={<Eye className="size-3.5" />}>
+          View
+        </ActionLink>
+        <ActionLink
+          href={`/appointments/${appt.id}/edit`}
+          icon={<Pencil className="size-3.5" />}
+        >
+          Edit
+        </ActionLink>
+        <ActionButton
+          disabled={cancelDisabled}
+          onClick={() => onCancelClick(appt)}
+          icon={<X className="size-3.5" />}
+        >
+          Cancel
+        </ActionButton>
+        <ActionLink
+          href={`/reschedule/${appt.id}`}
+          icon={<MoveIcon className="size-3.5" />}
+          disabled={moveDisabled}
+        >
+          Move
+        </ActionLink>
+      </div>
+      {appt.status === "CANCELLED" && appt.cancelledAt && (
+        <div className="text-[11px] leading-tight text-slate-600 max-w-[14rem]">
+          Cancelled by {appt.cancelledBy === "BRANCH" ? "Branch" : "Vendor"} on{" "}
+          {ptFmtDateShort(appt.cancelledAt)} {ptFmtTime(appt.cancelledAt)}
+          {appt.statusNote && (
+            <div className="text-slate-500">Reason: {appt.statusNote}</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ActionLink({
+  href,
+  icon,
+  disabled,
+  children,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) {
+  if (disabled) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 text-xs text-slate-400 bg-slate-50 cursor-not-allowed">
+        {icon}
+        {children}
+      </span>
+    );
+  }
+  return (
+    <Link
+      href={href}
+      className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 text-xs text-slate-700 hover:bg-slate-50 hover:text-[#0085CA] hover:border-[#0085CA]"
+    >
+      {icon}
+      {children}
+    </Link>
+  );
+}
+
+function ActionButton({
+  onClick,
+  icon,
+  disabled,
+  children,
+}: {
+  onClick: () => void;
+  icon: React.ReactNode;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 text-xs text-slate-700 hover:bg-slate-50 hover:text-[#0085CA] hover:border-[#0085CA] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400 disabled:hover:border-slate-200"
+    >
+      {icon}
+      {children}
+    </button>
+  );
+}
+
+function CancelDialog({
+  target,
+  onClose,
+  onCancelled,
+}: {
+  target: Appt | null;
+  onClose: () => void;
+  onCancelled: (updated: Appt) => void;
+}) {
+  const [reason, setReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (target) {
+      setReason("");
+      setErr(null);
+    }
+  }, [target]);
+
+  async function submit() {
+    if (!target) return;
+    if (!reason.trim()) {
+      setErr("Reason is required.");
+      return;
+    }
+    setSubmitting(true);
+    setErr(null);
+    try {
+      const res = await fetch(`/api/appointments/${target.id}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: reason.trim() }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? "Failed to cancel");
+      }
+      const updated = await res.json();
+      onCancelled({ ...target, ...updated });
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed to cancel");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Dialog open={!!target} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Cancel appointment</DialogTitle>
+          <DialogDescription>
+            {target && (
+              <>
+                {ptFmtDateLong(target.startTime)} at {ptFmtTime(target.startTime)} —{" "}
+                {target.lastNamePrefix}, {target.firstInitial} (Case #
+                {target.caseNumber}) with {target.doctor.name} at{" "}
+                {target.location.name}.
+              </>
+            )}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Label htmlFor="cancel-reason" className="text-sm">
+            Reason for cancellation <span className="text-rose-600">*</span>
+          </Label>
+          <Textarea
+            id="cancel-reason"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            rows={4}
+            placeholder="e.g. Branch requested cancellation; claimant unavailable; …"
+          />
+          <p className="text-xs text-slate-500">
+            This note is visible to the State branch.
+          </p>
+          {err && <p className="text-sm text-destructive">{err}</p>}
+        </div>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={submitting}
+          >
+            Keep appointment
+          </Button>
+          <Button
+            type="button"
+            onClick={submit}
+            disabled={submitting}
+            className="text-white font-medium"
+            style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+          >
+            {submitting ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <X className="size-4" />
+            )}
+            Cancel appointment
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
