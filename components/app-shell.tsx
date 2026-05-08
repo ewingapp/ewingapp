@@ -3,7 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Plus, ChevronDown, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CalendarCheck2, Plus, ChevronDown, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type NavItem = { href: string; label: string };
@@ -28,6 +29,43 @@ export function BrandMark() {
       priority
       className="h-20 w-auto"
     />
+  );
+}
+
+function TodayCounter() {
+  const pathname = usePathname();
+  const [count, setCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/stats/today", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data && typeof data.count === "number") setCount(data.count);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+
+  return (
+    <div
+      className="max-w-7xl mx-auto px-6 py-2 flex justify-end"
+      aria-live="polite"
+    >
+      <span
+        className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium text-slate-700 bg-white shadow-sm"
+        style={{ border: "1.5px solid #C9A55C" }}
+        title="Appointments scheduled for today"
+      >
+        <CalendarCheck2 className="size-3.5" style={{ color: "#0085CA" }} />
+        <span className="text-slate-500">Today:</span>
+        <span className="font-semibold text-slate-900 tabular-nums">
+          {count ?? "—"}
+        </span>
+      </span>
+    </div>
   );
 }
 
@@ -98,6 +136,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </nav>
       </header>
+
+      <TodayCounter />
 
       <main className="flex-1 min-w-0 bg-white">{children}</main>
 
