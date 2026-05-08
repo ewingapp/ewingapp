@@ -138,7 +138,10 @@ function SearchView() {
       <div className="max-w-7xl mx-auto px-6 py-8">
         <PageHeader title="Create a New Appointment" />
 
-        <div className="rounded-lg p-5 flex gap-4 mb-6 bg-slate-50 border border-slate-200">
+        <div
+          className="rounded-lg p-5 flex gap-4 mb-6 bg-slate-50"
+          style={{ border: "2px solid #C9A55C" }}
+        >
           <div
             className="grid place-items-center size-9 rounded-full shrink-0"
             style={{ background: "#C9A55C" }}
