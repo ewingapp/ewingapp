@@ -48,6 +48,8 @@ type Location = { id: string; name: string };
 type Specialty = { id: string; name: string };
 type Doctor = { id: string; name: string };
 
+type Branch = { id: string; name: string };
+
 type Appt = {
   id: string;
   startTime: string;
@@ -65,6 +67,7 @@ type Appt = {
   cancelledBy: "BRANCH" | "VENDOR" | null;
   cancelledAt: string | null;
   statusNote: string;
+  stateBranch: string;
   doctor: { id: string; name: string };
   specialty: { id: string; name: string };
   location: { id: string; name: string };
@@ -78,6 +81,7 @@ type SortKey =
   | "claimant"
   | "doctor"
   | "exam"
+  | "branch"
   | "status";
 
 const ALL = "__all";
@@ -104,6 +108,7 @@ function downloadCsv(rows: Appt[]) {
     "Claimant",
     "Doctor",
     "Exam",
+    "Branch",
     "Status",
     "Status Note",
     "Scheduled By",
@@ -121,6 +126,7 @@ function downloadCsv(rows: Appt[]) {
         `${a.lastNamePrefix}, ${a.firstInitial}`,
         a.doctor.name,
         a.specialty.name,
+        a.stateBranch,
         STATUS_LABEL[a.status],
         a.statusNote ?? "",
         a.scheduledBy,
@@ -171,11 +177,13 @@ function ScheduledAppointmentsView() {
   const [lastName, setLastName] = useState("");
   const [firstInitial, setFirstInitial] = useState("");
   const [caseNumber, setCaseNumber] = useState("");
+  const [stateBranch, setStateBranch] = useState("");
   const [noShowOnly, setNoShowOnly] = useState(false);
 
   const [locations, setLocations] = useState<Location[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
 
   const [fromDate, setFromDate] = useState<string>(() =>
     isoDate(startOfDay(new Date())),
@@ -211,6 +219,10 @@ function ScheduledAppointmentsView() {
       .then((r) => r.json())
       .then((s: Specialty[]) => setSpecialties(s))
       .catch(() => {});
+    fetch("/api/branches")
+      .then((r) => r.json())
+      .then((b: Branch[]) => setBranches(b))
+      .catch(() => {});
   }, []);
 
   function onSearch() {
@@ -233,6 +245,7 @@ function ScheduledAppointmentsView() {
     if (lastName.trim()) qs.set("lastName", lastName.trim());
     if (firstInitial.trim()) qs.set("firstInitial", firstInitial.trim().charAt(0));
     if (caseNumber.trim()) qs.set("caseNumber", caseNumber.trim());
+    if (stateBranch) qs.set("stateBranch", stateBranch);
     if (noShowOnly) qs.set("noShowOnly", "1");
 
     fetch(`/api/appointments?${qs.toString()}`)
@@ -267,6 +280,8 @@ function ScheduledAppointmentsView() {
           return a.doctor.name.localeCompare(b.doctor.name) * dir;
         case "exam":
           return a.specialty.name.localeCompare(b.specialty.name) * dir;
+        case "branch":
+          return a.stateBranch.localeCompare(b.stateBranch) * dir;
         case "status":
           return a.status.localeCompare(b.status) * dir;
       }
@@ -424,7 +439,7 @@ function ScheduledAppointmentsView() {
             </div>
 
             {/* Search criteria row */}
-            <div className="md:col-span-3 space-y-1.5">
+            <div className="md:col-span-2 space-y-1.5">
               <Label className="text-xs uppercase tracking-wide text-slate-500">
                 Last Name
               </Label>
@@ -448,7 +463,7 @@ function ScheduledAppointmentsView() {
                 className="h-10 bg-white"
               />
             </div>
-            <div className="md:col-span-3 space-y-1.5">
+            <div className="md:col-span-2 space-y-1.5">
               <Label className="text-xs uppercase tracking-wide text-slate-500">
                 Case Number
               </Label>
@@ -460,6 +475,31 @@ function ScheduledAppointmentsView() {
                 placeholder="case #"
                 className="h-10 bg-white"
               />
+            </div>
+            <div className="md:col-span-4 space-y-1.5">
+              <Label className="text-xs uppercase tracking-wide text-slate-500">
+                Branch
+              </Label>
+              <Select
+                value={stateBranch || ALL}
+                onValueChange={(v) => setStateBranch(v === ALL ? "" : (v ?? ""))}
+                items={[
+                  { value: ALL, label: "All Branches" },
+                  ...branches.map((b) => ({ value: b.name, label: b.name })),
+                ]}
+              >
+                <SelectTrigger className="w-full h-10 bg-white">
+                  <SelectValue placeholder="All Branches" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>All Branches</SelectItem>
+                  {branches.map((b) => (
+                    <SelectItem key={b.id} value={b.name}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="md:col-span-2 flex items-end pb-1">
               <label className="inline-flex items-center gap-2 text-sm cursor-pointer">
@@ -574,6 +614,9 @@ function ResultsTable({
               <Th sortKey="exam" current={sortKey} dir={sortDir} onSort={onSort}>
                 Exam
               </Th>
+              <Th sortKey="branch" current={sortKey} dir={sortDir} onSort={onSort}>
+                Branch
+              </Th>
               <Th
                 sortKey="status"
                 current={sortKey}
@@ -601,6 +644,7 @@ function ResultsTable({
                 </td>
                 <td className="px-3 py-2">{a.doctor.name}</td>
                 <td className="px-3 py-2">{a.specialty.name}</td>
+                <td className="px-3 py-2 whitespace-nowrap">{a.stateBranch}</td>
                 <td className="px-3 py-2">
                   <StatusCell appt={a} onUpdated={onStatusUpdated} />
                 </td>
@@ -942,13 +986,12 @@ function StatusCell({
         <option value="KEPT">Kept</option>
         <option value="NO_SHOW">No Show</option>
       </select>
-      <Textarea
+      <Input
         value={pendingNote}
         onChange={(e) => setPendingNote(e.target.value)}
         disabled={saving}
-        rows={2}
         placeholder="Note for branch (optional)"
-        className="text-xs leading-snug min-h-[3rem] py-1.5"
+        className="h-8 text-xs"
       />
       <div className="flex items-center gap-2">
         <button
