@@ -30,7 +30,12 @@ export async function GET(request: Request) {
       id: s.id,
       startTime: s.startTime,
       endTime: s.endTime,
-      doctor: { id: s.doctorId, name: s.doctorName },
+      doctor: {
+        id: s.doctorId,
+        name: s.doctorName,
+        claimantAges: s.doctorClaimantAges,
+        remarks: s.doctorRemarks,
+      },
     })),
   );
 }

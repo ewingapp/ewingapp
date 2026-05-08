@@ -9,6 +9,8 @@ export type AvailableSlot = {
   endTime: Date;
   doctorId: string;
   doctorName: string;
+  doctorClaimantAges: string;
+  doctorRemarks: string;
   locationId: string;
 };
 
@@ -90,7 +92,11 @@ export async function computeAvailableSlots(opts: {
 
   const schedules = await prisma.doctorSchedule.findMany({
     where,
-    include: { doctor: { select: { id: true, name: true } } },
+    include: {
+      doctor: {
+        select: { id: true, name: true, claimantAges: true, remarks: true },
+      },
+    },
     orderBy: [{ startTime: "asc" }],
   });
 
@@ -168,6 +174,8 @@ export async function computeAvailableSlots(opts: {
           endTime: end,
           doctorId: sched.doctorId,
           doctorName: sched.doctor.name,
+          doctorClaimantAges: sched.doctor.claimantAges ?? "",
+          doctorRemarks: sched.doctor.remarks ?? "",
           locationId: sched.locationId,
         });
         start = new Date(start.getTime() + stepMs);

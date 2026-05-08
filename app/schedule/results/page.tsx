@@ -32,7 +32,12 @@ type Slot = {
   id: string;
   startTime: string;
   endTime: string;
-  doctor: { id: string; name: string };
+  doctor: {
+    id: string;
+    name: string;
+    claimantAges: string;
+    remarks: string;
+  };
 };
 
 const formSchema = z.object({
@@ -605,12 +610,14 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 function ResultsTable({ slots, onPick }: { slots: Slot[]; onPick: (s: Slot) => void }) {
   return (
     <div className="overflow-x-auto">
-      <table className="text-sm">
+      <table className="text-sm w-full">
         <thead className="text-left text-xs uppercase tracking-wide text-slate-500 bg-slate-50">
           <tr className="border-b">
             <th className="px-3 py-2 font-medium whitespace-nowrap">Date</th>
             <th className="px-3 py-2 font-medium whitespace-nowrap">Time</th>
             <th className="px-3 py-2 font-medium whitespace-nowrap">Doctor</th>
+            <th className="px-3 py-2 font-medium whitespace-nowrap">Claimant Ages</th>
+            <th className="px-3 py-2 font-medium">Remarks</th>
             <th className="px-3 py-2 font-medium text-right whitespace-nowrap">Action</th>
           </tr>
         </thead>
@@ -626,6 +633,12 @@ function ResultsTable({ slots, onPick }: { slots: Slot[]; onPick: (s: Slot) => v
                   {ptFmtTime(start)}
                 </td>
                 <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{s.doctor.name}</td>
+                <td className="px-3 py-2 text-slate-700 whitespace-nowrap">
+                  {s.doctor.claimantAges?.trim() || "—"}
+                </td>
+                <td className="px-3 py-2 text-slate-700">
+                  {s.doctor.remarks?.trim() || "—"}
+                </td>
                 <td className="px-3 py-2 text-right whitespace-nowrap">
                   <Button
                     size="sm"
