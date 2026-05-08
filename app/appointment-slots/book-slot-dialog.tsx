@@ -41,12 +41,22 @@ const formSchema = z.object({
   lastNamePrefix: z.string().min(1, "Required").max(5, "Max 5 letters"),
   stateBranch: z.string().min(1, "Required"),
   analystName: z.string().min(1, "Required"),
-  analystPhone: z.string().regex(/^\d{1,15}$/, "Digits only"),
+  analystPhone: z.string().regex(/^\d{10}$/, "10 digits"),
+  analystExt: z
+    .string()
+    .regex(/^\d{0,10}$/, "Digits only")
+    .optional()
+    .or(z.literal("")),
   schedulerName: z.string().min(1, "Required"),
-  schedulerPhone: z.string().regex(/^\d{1,15}$/, "Digits only"),
+  schedulerPhone: z.string().regex(/^\d{10}$/, "10 digits"),
+  schedulerExt: z
+    .string()
+    .regex(/^\d{0,10}$/, "Digits only")
+    .optional()
+    .or(z.literal("")),
   claimantPhone: z
     .string()
-    .regex(/^\d{1,15}$/, "Digits only")
+    .regex(/^\d{10}$/, "10 digits")
     .optional()
     .or(z.literal("")),
   hasInterpreter: z.enum(["yes", "no"]),
@@ -64,8 +74,10 @@ const EMPTY_FORM: FormValues = {
   stateBranch: "",
   analystName: "",
   analystPhone: "",
+  analystExt: "",
   schedulerName: "",
   schedulerPhone: "",
+  schedulerExt: "",
   claimantPhone: "",
   hasInterpreter: "no",
   isOdarCase: "no",
@@ -85,12 +97,16 @@ function filterSpecialtiesForSlot(
   return doctorSpecialties;
 }
 
-function formatPhoneDisplay(s: string | undefined): string {
-  if (!s) return "—";
-  const d = s.replace(/\D/g, "");
-  if (d.length === 10) return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
-  if (d.length === 7) return `${d.slice(0, 3)}-${d.slice(3)}`;
-  return s;
+function formatPhoneDisplay(s: string | undefined, ext?: string): string {
+  let base = "—";
+  if (s) {
+    const d = s.replace(/\D/g, "");
+    if (d.length === 10) base = `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+    else if (d.length === 7) base = `${d.slice(0, 3)}-${d.slice(3)}`;
+    else base = s;
+  }
+  if (ext && ext.trim()) return `${base} ext. ${ext.trim()}`;
+  return base;
 }
 
 type Confirmation = {
@@ -246,7 +262,10 @@ export function BookSlotDialog({
                 <DetailRow label="Analyst" value={confirmation.values.analystName} />
                 <DetailRow
                   label="Analyst phone"
-                  value={formatPhoneDisplay(confirmation.values.analystPhone)}
+                  value={formatPhoneDisplay(
+                    confirmation.values.analystPhone,
+                    confirmation.values.analystExt,
+                  )}
                 />
               </Section>
 
@@ -254,7 +273,10 @@ export function BookSlotDialog({
                 <DetailRow label="Name" value={confirmation.values.schedulerName} />
                 <DetailRow
                   label="Phone"
-                  value={formatPhoneDisplay(confirmation.values.schedulerPhone)}
+                  value={formatPhoneDisplay(
+                    confirmation.values.schedulerPhone,
+                    confirmation.values.schedulerExt,
+                  )}
                 />
               </Section>
 
@@ -355,28 +377,35 @@ export function BookSlotDialog({
                 <Field label="Analyst name" error={errors.analystName?.message}>
                   <Input {...register("analystName")} />
                 </Field>
-                <Field
-                  label="Analyst phone or ext."
-                  error={errors.analystPhone?.message}
-                >
-                  <Input inputMode="numeric" {...register("analystPhone")} />
-                </Field>
+                <PhoneExtField
+                  phoneLabel="Analyst phone"
+                  phoneRegister={register("analystPhone")}
+                  phoneError={errors.analystPhone?.message}
+                  extRegister={register("analystExt")}
+                  extError={errors.analystExt?.message}
+                />
 
                 <Field label="Scheduler name" error={errors.schedulerName?.message}>
                   <Input {...register("schedulerName")} />
                 </Field>
-                <Field
-                  label="Scheduler phone or ext."
-                  error={errors.schedulerPhone?.message}
-                >
-                  <Input inputMode="numeric" {...register("schedulerPhone")} />
-                </Field>
+                <PhoneExtField
+                  phoneLabel="Scheduler phone"
+                  phoneRegister={register("schedulerPhone")}
+                  phoneError={errors.schedulerPhone?.message}
+                  extRegister={register("schedulerExt")}
+                  extError={errors.schedulerExt?.message}
+                />
 
                 <Field
                   label="Claimant phone (optional)"
                   error={errors.claimantPhone?.message}
                 >
-                  <Input inputMode="numeric" {...register("claimantPhone")} />
+                  <Input
+                    inputMode="numeric"
+                    maxLength={10}
+                    placeholder="10-digit number"
+                    {...register("claimantPhone")}
+                  />
                 </Field>
                 <Field
                   label="Contract number (optional)"
@@ -491,6 +520,47 @@ function Field({
       <Label className="text-xs">{label}</Label>
       {children}
       {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  );
+}
+
+type RegisterReturn = ReturnType<ReturnType<typeof useForm<FormValues>>["register"]>;
+
+function PhoneExtField({
+  phoneLabel,
+  phoneRegister,
+  phoneError,
+  extRegister,
+  extError,
+}: {
+  phoneLabel: string;
+  phoneRegister: RegisterReturn;
+  phoneError?: string;
+  extRegister: RegisterReturn;
+  extError?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs">{phoneLabel}</Label>
+      <div className="flex gap-2">
+        <Input
+          inputMode="numeric"
+          maxLength={10}
+          placeholder="10-digit number"
+          className="flex-1"
+          {...phoneRegister}
+        />
+        <Input
+          inputMode="numeric"
+          maxLength={10}
+          placeholder="ext. (optional)"
+          className="w-28"
+          {...extRegister}
+        />
+      </div>
+      {(phoneError || extError) && (
+        <p className="text-xs text-destructive">{phoneError ?? extError}</p>
+      )}
     </div>
   );
 }
