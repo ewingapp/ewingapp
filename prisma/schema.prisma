@@ -151,8 +151,10 @@ model Appointment {
   stateBranch        String
   analystName        String
   analystPhone       String
+  analystExt         String            @default("")
   schedulerName      String
   schedulerPhone     String
+  schedulerExt       String            @default("")
   claimantPhone      String            @default("")
   contractNumber     String            @default("")
   hasInterpreter     String            @default("no")

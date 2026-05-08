@@ -43,9 +43,19 @@ const bodySchema = z.object({
   lastNamePrefix: z.string().min(1).max(5),
   stateBranch: z.string().min(1),
   analystName: z.string().min(1),
-  analystPhone: z.string().regex(/^\d{1,15}$/, "Digits only"),
+  analystPhone: z.string().regex(/^\d{10}$/, "10 digits required"),
+  analystExt: z
+    .string()
+    .regex(/^\d{0,10}$/, "Digits only")
+    .optional()
+    .or(z.literal("")),
   schedulerName: z.string().min(1),
-  schedulerPhone: z.string().regex(/^\d{1,15}$/, "Digits only"),
+  schedulerPhone: z.string().regex(/^\d{10}$/, "10 digits required"),
+  schedulerExt: z
+    .string()
+    .regex(/^\d{0,10}$/, "Digits only")
+    .optional()
+    .or(z.literal("")),
   claimantPhone: z.string().regex(/^\d{1,15}$/).optional().or(z.literal("")),
   contractNumber: z.string().optional(),
   hasInterpreter: z.enum(["yes", "no"]).default("no"),
@@ -163,8 +173,10 @@ export async function POST(request: Request) {
           stateBranch: data.stateBranch,
           analystName: data.analystName,
           analystPhone: data.analystPhone,
+          analystExt: data.analystExt ?? "",
           schedulerName: data.schedulerName,
           schedulerPhone: data.schedulerPhone,
+          schedulerExt: data.schedulerExt ?? "",
           claimantPhone: data.claimantPhone ?? "",
           contractNumber: data.contractNumber ?? "",
           hasInterpreter: data.hasInterpreter,
