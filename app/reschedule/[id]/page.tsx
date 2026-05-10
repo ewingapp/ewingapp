@@ -461,9 +461,9 @@ function ConfirmationDialog({
         <DialogFooter className="print:hidden">
           <Button
             type="button"
-            variant="outline"
             onClick={() => window.print()}
-            className="sm:mr-auto"
+            className="sm:mr-auto text-white font-medium hover:brightness-95"
+            style={{ background: "#DC2626", border: "2px solid #C9A55C" }}
           >
             <Printer className="size-4" />
             Print
