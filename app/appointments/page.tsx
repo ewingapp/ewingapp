@@ -10,12 +10,9 @@ import {
   ArrowUp,
   ArrowDown,
   Download,
-  Eye,
   Loader2,
-  Pencil,
   Search,
   X,
-  Move as MoveIcon,
 } from "lucide-react";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
@@ -737,27 +734,15 @@ function ActionGroup({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex flex-wrap gap-1">
-        <ActionLink href={`/appointments/${appt.id}`} icon={<Eye className="size-3.5" />}>
-          View
-        </ActionLink>
-        <ActionLink
-          href={`/appointments/${appt.id}/edit`}
-          icon={<Pencil className="size-3.5" />}
-        >
-          Edit
-        </ActionLink>
+        <ActionLink href={`/appointments/${appt.id}`}>View</ActionLink>
+        <ActionLink href={`/appointments/${appt.id}/edit`}>Edit</ActionLink>
         <ActionButton
           disabled={cancelDisabled}
           onClick={() => onCancelClick(appt)}
-          icon={<X className="size-3.5" />}
         >
           Cancel
         </ActionButton>
-        <ActionLink
-          href={`/reschedule/${appt.id}`}
-          icon={<MoveIcon className="size-3.5" />}
-          disabled={moveDisabled}
-        >
+        <ActionLink href={`/reschedule/${appt.id}`} disabled={moveDisabled}>
           Move
         </ActionLink>
       </div>
@@ -776,19 +761,19 @@ function ActionGroup({
 
 function ActionLink({
   href,
-  icon,
   disabled,
   children,
 }: {
   href: string;
-  icon: React.ReactNode;
   disabled?: boolean;
   children: React.ReactNode;
 }) {
   if (disabled) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 text-xs text-slate-400 bg-slate-50 cursor-not-allowed">
-        {icon}
+      <span
+        className="inline-flex items-center px-2 py-1 rounded text-xs text-slate-400 bg-slate-50 cursor-not-allowed"
+        style={{ border: "1.5px solid #C9A55C", opacity: 0.5 }}
+      >
         {children}
       </span>
     );
@@ -796,9 +781,9 @@ function ActionLink({
   return (
     <Link
       href={href}
-      className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 text-xs text-slate-700 hover:bg-slate-50 hover:text-[#0085CA] hover:border-[#0085CA]"
+      className="inline-flex items-center px-2 py-1 rounded text-xs text-slate-700 hover:bg-slate-50 hover:text-[#0085CA]"
+      style={{ border: "1.5px solid #C9A55C" }}
     >
-      {icon}
       {children}
     </Link>
   );
@@ -806,12 +791,10 @@ function ActionLink({
 
 function ActionButton({
   onClick,
-  icon,
   disabled,
   children,
 }: {
   onClick: () => void;
-  icon: React.ReactNode;
   disabled?: boolean;
   children: React.ReactNode;
 }) {
@@ -820,9 +803,9 @@ function ActionButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 text-xs text-slate-700 hover:bg-slate-50 hover:text-[#0085CA] hover:border-[#0085CA] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400 disabled:hover:border-slate-200"
+      className="inline-flex items-center px-2 py-1 rounded text-xs text-slate-700 hover:bg-slate-50 hover:text-[#0085CA] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400"
+      style={{ border: "1.5px solid #C9A55C" }}
     >
-      {icon}
       {children}
     </button>
   );
