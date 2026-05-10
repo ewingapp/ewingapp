@@ -120,6 +120,11 @@ function SearchView() {
       from: isoDate(range.from),
       to: isoDate(range.to),
     });
+    // Stamp the current /schedule history entry with the search params so the
+    // browser back button from /schedule/results restores the populated form.
+    if (typeof window !== "undefined") {
+      window.history.replaceState({}, "", `/schedule?${qs.toString()}`);
+    }
     router.push(`/schedule/results?${qs.toString()}`);
   }
 
