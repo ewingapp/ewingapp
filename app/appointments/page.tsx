@@ -2,7 +2,8 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { addWeeks, startOfDay } from "date-fns";
+import { useRouter, useSearchParams } from "next/navigation";
+import { addWeeks, parseISO, startOfDay } from "date-fns";
 import { DayPicker, type DateRange } from "react-day-picker";
 import "react-day-picker/style.css";
 import {
@@ -181,22 +182,52 @@ export default function AppointmentsPage() {
 }
 
 function ScheduledAppointmentsView() {
-  const [chooseBy, setChooseBy] = useState<"office" | "doctor">("office");
-  const [locationId, setLocationId] = useState<string>("");
-  const [doctorId, setDoctorId] = useState<string>("");
-  const [specialtyId, setSpecialtyId] = useState<string>("");
-  const [lastName, setLastName] = useState("");
-  const [firstInitial, setFirstInitial] = useState("");
-  const [caseNumber, setCaseNumber] = useState("");
-  const [includeBranch, setIncludeBranch] = useState(false);
-  const [noShowOnly, setNoShowOnly] = useState(false);
-  const [showBranchInResults, setShowBranchInResults] = useState(false);
+  const router = useRouter();
+  const urlParams = useSearchParams();
+
+  const [chooseBy, setChooseBy] = useState<"office" | "doctor">(
+    () => (urlParams.get("by") === "doctor" ? "doctor" : "office"),
+  );
+  const [locationId, setLocationId] = useState<string>(
+    () => urlParams.get("locationId") ?? "",
+  );
+  const [doctorId, setDoctorId] = useState<string>(
+    () => urlParams.get("doctorId") ?? "",
+  );
+  const [specialtyId, setSpecialtyId] = useState<string>(
+    () => urlParams.get("specialtyId") ?? "",
+  );
+  const [lastName, setLastName] = useState(() => urlParams.get("lastName") ?? "");
+  const [firstInitial, setFirstInitial] = useState(
+    () => urlParams.get("firstInitial") ?? "",
+  );
+  const [caseNumber, setCaseNumber] = useState(
+    () => urlParams.get("caseNumber") ?? "",
+  );
+  const [includeBranch, setIncludeBranch] = useState(
+    () => urlParams.get("includeBranch") === "1",
+  );
+  const [noShowOnly, setNoShowOnly] = useState(
+    () => urlParams.get("noShowOnly") === "1",
+  );
+  const [showBranchInResults, setShowBranchInResults] = useState(
+    () => urlParams.get("includeBranch") === "1",
+  );
 
   const [locations, setLocations] = useState<Location[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
 
   const [range, setRange] = useState<DateRange | undefined>(() => {
+    const fromParam = urlParams.get("from");
+    const toParam = urlParams.get("to");
+    if (fromParam && toParam) {
+      try {
+        return { from: parseISO(fromParam), to: parseISO(toParam) };
+      } catch {
+        // fall through to default
+      }
+    }
     const today = startOfDay(new Date());
     return { from: today, to: addWeeks(today, 6) };
   });
@@ -244,8 +275,9 @@ function ScheduledAppointmentsView() {
       return;
     }
     setError(null);
-    setLoading(true);
+
     const qs = new URLSearchParams();
+    qs.set("by", chooseBy);
     if (chooseBy === "office" && locationId) qs.set("locationId", locationId);
     if (chooseBy === "doctor" && doctorId) qs.set("doctorId", doctorId);
     if (specialtyId) qs.set("specialtyId", specialtyId);
@@ -255,15 +287,75 @@ function ScheduledAppointmentsView() {
     if (firstInitial.trim()) qs.set("firstInitial", firstInitial.trim().charAt(0));
     if (caseNumber.trim()) qs.set("caseNumber", caseNumber.trim());
     if (noShowOnly) qs.set("noShowOnly", "1");
+    if (includeBranch) qs.set("includeBranch", "1");
 
-    setShowBranchInResults(includeBranch);
+    router.push(`/appointments?${qs.toString()}`);
+  }
 
-    fetch(`/api/appointments?${qs.toString()}`)
+  function onChangeSearch() {
+    router.push("/appointments");
+  }
+
+  useEffect(() => {
+    const by = urlParams.get("by");
+    if (by === "office" || by === "doctor") setChooseBy(by);
+    setLocationId(urlParams.get("locationId") ?? "");
+    setDoctorId(urlParams.get("doctorId") ?? "");
+    setSpecialtyId(urlParams.get("specialtyId") ?? "");
+    setLastName(urlParams.get("lastName") ?? "");
+    setFirstInitial(urlParams.get("firstInitial") ?? "");
+    setCaseNumber(urlParams.get("caseNumber") ?? "");
+    setNoShowOnly(urlParams.get("noShowOnly") === "1");
+    setIncludeBranch(urlParams.get("includeBranch") === "1");
+    setShowBranchInResults(urlParams.get("includeBranch") === "1");
+
+    const fromParam = urlParams.get("from");
+    const toParam = urlParams.get("to");
+    if (fromParam && toParam) {
+      try {
+        setRange({ from: parseISO(fromParam), to: parseISO(toParam) });
+      } catch {
+        // ignore — keep existing range
+      }
+    }
+
+    if (!fromParam || !toParam) {
+      setResults(null);
+      return;
+    }
+
+    const apiQs = new URLSearchParams();
+    if (by === "doctor") {
+      const did = urlParams.get("doctorId");
+      if (did) apiQs.set("doctorId", did);
+    } else {
+      const lid = urlParams.get("locationId");
+      if (lid) apiQs.set("locationId", lid);
+    }
+    const sid = urlParams.get("specialtyId");
+    if (sid) apiQs.set("specialtyId", sid);
+    apiQs.set("from", fromParam);
+    apiQs.set("to", toParam);
+    const ln = urlParams.get("lastName");
+    if (ln) apiQs.set("lastName", ln);
+    const fi = urlParams.get("firstInitial");
+    if (fi) apiQs.set("firstInitial", fi);
+    const cn = urlParams.get("caseNumber");
+    if (cn) apiQs.set("caseNumber", cn);
+    if (urlParams.get("noShowOnly") === "1") apiQs.set("noShowOnly", "1");
+
+    const ctrl = new AbortController();
+    setLoading(true);
+    setError(null);
+    fetch(`/api/appointments?${apiQs.toString()}`, { signal: ctrl.signal })
       .then((r) => r.json())
       .then((data: Appt[]) => setResults(data))
-      .catch(() => setError("Search failed."))
+      .catch((e) => {
+        if (e?.name !== "AbortError") setError("Search failed.");
+      })
       .finally(() => setLoading(false));
-  }
+    return () => ctrl.abort();
+  }, [urlParams]);
 
   const sorted = useMemo(() => {
     if (!results) return null;
@@ -310,7 +402,7 @@ function ScheduledAppointmentsView() {
             hasResults ? (
               <button
                 type="button"
-                onClick={() => setResults(null)}
+                onClick={onChangeSearch}
                 className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-[#0085CA]"
               >
                 <ArrowLeft className="size-4" />
