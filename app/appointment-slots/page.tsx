@@ -20,7 +20,7 @@ import {
   type Template,
 } from "./template-admin-dialog";
 import { BookSlotDialog, type SlotInfo } from "./book-slot-dialog";
-import { ptDateTime, ptFmtTime } from "@/lib/pt";
+import { ptDateTime, ptFmtTime, ptFmtDateMed } from "@/lib/pt";
 import { getCaHolidaysRange } from "@/lib/ca-holidays";
 import {
   gapToNextBookingMinutes,
@@ -810,11 +810,7 @@ export default function AppointmentSlotsPage() {
             >
               Appointment slots for{" "}
               {selectedDoctor?.name ?? "—"} on{" "}
-              {date.toLocaleDateString(undefined, {
-                month: "numeric",
-                day: "numeric",
-                year: "numeric",
-              })}
+              {ptFmtDateMed(date)}
             </h2>
 
             {slotRows.length === 0 ? (
