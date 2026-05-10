@@ -153,6 +153,8 @@ export async function POST(
           data: {
             status: "MOVED",
             statusNote: movedNote,
+            movedBy: "VENDOR",
+            movedAt: new Date(),
           },
         });
 

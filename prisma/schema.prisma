@@ -140,6 +140,11 @@ enum ScheduledBy {
   VENDOR
 }
 
+enum MovedBy {
+  BRANCH
+  VENDOR
+}
+
 model Appointment {
   id                 String            @id @default(cuid())
   doctor             Doctor            @relation(fields: [doctorId], references: [id])
@@ -171,6 +176,8 @@ model Appointment {
   scheduledBy        ScheduledBy       @default(VENDOR)
   cancelledBy        CancelledBy?
   cancelledAt        DateTime?
+  movedBy            MovedBy?
+  movedAt            DateTime?
   isLateCancellation Boolean           @default(false)
   createdAt          DateTime          @default(now())
 

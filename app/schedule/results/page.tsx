@@ -23,7 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { ptFmtTime, ptFmtDateShort, ptFmtDateLong } from "@/lib/pt";
+import { ptFmtTime, ptFmtDateShort, ptFmtDateLong, ptFmtDateMed } from "@/lib/pt";
 
 type Location = { id: string; name: string };
 type Specialty = { id: string; name: string };
@@ -474,7 +474,7 @@ function ResultsView() {
                       Appointment Confirmation
                     </h2>
                     <div className="text-xs text-slate-500 mt-0.5">
-                      Issued {format(new Date(), "MMM d, yyyy 'at' h:mm a")}
+                      Issued {ptFmtDateMed(new Date())} at {ptFmtTime(new Date())}
                     </div>
                   </div>
                 </div>

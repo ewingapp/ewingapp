@@ -68,6 +68,8 @@ type Appt = {
   scheduledBy: "BRANCH" | "VENDOR";
   cancelledBy: "BRANCH" | "VENDOR" | null;
   cancelledAt: string | null;
+  movedBy: "BRANCH" | "VENDOR" | null;
+  movedAt: string | null;
   statusNote: string;
   stateBranch: string;
   doctor: { id: string; name: string; firstName: string; lastName: string };
@@ -844,6 +846,15 @@ function ActionGroup({
           {ptFmtDateShort(appt.cancelledAt)} {ptFmtTime(appt.cancelledAt)}
           {appt.statusNote && (
             <div className="text-slate-500">Reason: {appt.statusNote}</div>
+          )}
+        </div>
+      )}
+      {appt.status === "MOVED" && appt.movedAt && (
+        <div className="text-[11px] leading-tight text-slate-600 max-w-[14rem]">
+          Moved by {appt.movedBy === "BRANCH" ? "Branch" : "Vendor"} on{" "}
+          {ptFmtDateShort(appt.movedAt)} {ptFmtTime(appt.movedAt)}
+          {appt.statusNote && (
+            <div className="text-slate-500">{appt.statusNote}</div>
           )}
         </div>
       )}

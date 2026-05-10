@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
+import { ptFmtTime } from "@/lib/pt";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -218,7 +219,7 @@ export default function DoctorSetupPage({
                 {examIds.size} exam{examIds.size === 1 ? "" : "s"} assigned
                 {savedAt && !dirty && (
                   <span className="ml-3 text-emerald-700">
-                    Saved at {savedAt.toLocaleTimeString()}
+                    Saved at {ptFmtTime(savedAt)}
                   </span>
                 )}
                 {dirty && (
