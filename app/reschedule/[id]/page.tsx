@@ -1,11 +1,9 @@
 "use client";
 
-import { use, useEffect, useMemo, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { addWeeks, format, parseISO, startOfDay } from "date-fns";
-import { DayPicker, type DateRange } from "react-day-picker";
-import "react-day-picker/style.css";
+import { addWeeks, startOfDay } from "date-fns";
 import { ArrowLeft, Loader2, Printer } from "lucide-react";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
@@ -21,7 +19,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ptFmtDateLong, ptFmtDateShort, ptFmtTime } from "@/lib/pt";
-import { getCaHolidaysRange } from "@/lib/ca-holidays";
 
 type Slot = {
   id: string;
@@ -84,12 +81,12 @@ export default function ReschedulePage({
   const [appt, setAppt] = useState<Appt | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const [range, setRange] = useState<DateRange | undefined>(() => {
-    const today = startOfDay(new Date());
-    return { from: today, to: addWeeks(today, 6) };
-  });
-  const fromDate = range?.from ? isoDate(range.from) : "";
-  const toDate = range?.to ? isoDate(range.to) : "";
+  const [fromDate, setFromDate] = useState<string>(() =>
+    isoDate(startOfDay(new Date())),
+  );
+  const [toDate, setToDate] = useState<string>(() =>
+    isoDate(addWeeks(startOfDay(new Date()), 6)),
+  );
 
   const [slots, setSlots] = useState<Slot[] | null>(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -101,8 +98,6 @@ export default function ReschedulePage({
     | { newAppointment: NewAppointmentSummary; original: Appt }
     | null
   >(null);
-
-  const caHolidays = useMemo(() => getCaHolidaysRange(2), []);
 
   // Load original appointment
   useEffect(() => {
@@ -237,41 +232,38 @@ export default function ReschedulePage({
 
             {!terminal && (
               <>
-                {/* Date range readouts */}
+                {/* Date range filters */}
                 <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end mb-4">
                   <div className="md:col-span-2 space-y-1.5">
-                    <Label className="text-xs uppercase tracking-wide text-slate-500">
+                    <Label
+                      htmlFor="resched-from"
+                      className="text-xs uppercase tracking-wide text-slate-500"
+                    >
                       From Date
                     </Label>
                     <Input
-                      value={range?.from ? format(range.from, "MM/dd/yyyy") : ""}
-                      readOnly
-                      placeholder="––/––/––––"
+                      id="resched-from"
+                      type="date"
+                      value={fromDate}
+                      onChange={(e) => setFromDate(e.target.value)}
                       className="h-10 bg-white"
                     />
                   </div>
                   <div className="md:col-span-2 space-y-1.5">
-                    <Label className="text-xs uppercase tracking-wide text-slate-500">
+                    <Label
+                      htmlFor="resched-to"
+                      className="text-xs uppercase tracking-wide text-slate-500"
+                    >
                       To Date
                     </Label>
                     <Input
-                      value={range?.to ? format(range.to, "MM/dd/yyyy") : ""}
-                      readOnly
-                      placeholder="––/––/––––"
+                      id="resched-to"
+                      type="date"
+                      value={toDate}
+                      onChange={(e) => setToDate(e.target.value)}
                       className="h-10 bg-white"
                     />
                   </div>
-                </div>
-
-                <div className="bg-white rounded-lg border shadow-sm p-4 mb-6 ewing-calendar">
-                  <DayPicker
-                    mode="range"
-                    numberOfMonths={2}
-                    selected={range}
-                    onSelect={setRange}
-                    modifiers={{ holiday: caHolidays }}
-                    modifiersClassNames={{ holiday: "rdp-day-holiday" }}
-                  />
                 </div>
 
                 {moveError && (
