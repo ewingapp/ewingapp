@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { addWeeks, startOfDay } from "date-fns";
 import { ArrowLeft, Loader2, Printer } from "lucide-react";
@@ -13,12 +14,13 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
-import { ptFmtDateLong, ptFmtDateShort, ptFmtTime } from "@/lib/pt";
+import {
+  ptFmtDateLong,
+  ptFmtDateMed,
+  ptFmtDateShort,
+  ptFmtTime,
+} from "@/lib/pt";
 
 type Slot = {
   id: string;
@@ -64,6 +66,22 @@ function isoDate(d: Date) {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
+}
+
+// Must match the key used by /schedule/results so the carry-over flows the
+// same way regardless of which confirmation dialog the user clicked from.
+const CLAIMANT_STORAGE_KEY = "ewing-claimant-info";
+
+function formatPhoneDisplay(s: string | undefined, ext?: string): string {
+  let base = "—";
+  if (s) {
+    const d = s.replace(/\D/g, "");
+    if (d.length === 10) base = `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+    else if (d.length === 7) base = `${d.slice(0, 3)}-${d.slice(3)}`;
+    else base = s;
+  }
+  if (ext && ext.trim()) return `${base} ext. ${ext.trim()}`;
+  return base;
 }
 
 function doctorDisplay(d: { firstName: string; lastName: string }): string {
@@ -180,6 +198,59 @@ export default function ReschedulePage({
   const terminal =
     appt?.status === "CANCELLED" || appt?.status === "MOVED";
 
+  function handleScheduleSameClaimant() {
+    if (confirmation) {
+      const na = confirmation.newAppointment;
+      const carry = {
+        caseNumber: na.caseNumber,
+        firstInitial: na.firstInitial,
+        lastNamePrefix: na.lastNamePrefix,
+        stateBranch: na.stateBranch,
+        analystName: na.analystName,
+        analystPhone: na.analystPhone,
+        analystExt: na.analystExt,
+        schedulerName: na.schedulerName,
+        schedulerPhone: na.schedulerPhone,
+        schedulerExt: na.schedulerExt,
+        claimantPhone: na.claimantPhone,
+        contractNumber: na.contractNumber,
+        hasInterpreter: na.hasInterpreter === "yes" ? "yes" : "no",
+        isOdarCase: na.isOdarCase === "yes" ? "yes" : "no",
+        notes: na.notes,
+      };
+      window.sessionStorage.setItem(CLAIMANT_STORAGE_KEY, JSON.stringify(carry));
+    }
+    setConfirmation(null);
+    router.push("/schedule");
+  }
+
+  function handleSaveAnalystInfo() {
+    if (confirmation) {
+      const na = confirmation.newAppointment;
+      const analystOnly = {
+        stateBranch: na.stateBranch,
+        analystName: na.analystName,
+        analystPhone: na.analystPhone,
+        analystExt: na.analystExt,
+        schedulerName: na.schedulerName,
+        schedulerPhone: na.schedulerPhone,
+        schedulerExt: na.schedulerExt,
+      };
+      window.sessionStorage.setItem(
+        CLAIMANT_STORAGE_KEY,
+        JSON.stringify(analystOnly),
+      );
+    }
+    setConfirmation(null);
+    router.push("/schedule");
+  }
+
+  function handleScheduleNewAppointment() {
+    window.sessionStorage.removeItem(CLAIMANT_STORAGE_KEY);
+    setConfirmation(null);
+    router.push("/schedule");
+  }
+
   return (
     <AppShell>
       <div className="max-w-7xl mx-auto px-6 py-8">
@@ -291,6 +362,9 @@ export default function ReschedulePage({
             setConfirmation(null);
             router.push(`/appointments/${confirmation?.newAppointment.id ?? id}`);
           }}
+          onScheduleSameClaimant={handleScheduleSameClaimant}
+          onSaveAnalystInfo={handleSaveAnalystInfo}
+          onScheduleNewAppointment={handleScheduleNewAppointment}
         />
       </div>
     </AppShell>
@@ -305,7 +379,21 @@ type NewAppointmentSummary = {
   firstInitial: string;
   lastNamePrefix: string;
   stateBranch: string;
+  analystName: string;
+  analystPhone: string;
+  analystExt: string;
+  schedulerName: string;
+  schedulerPhone: string;
+  schedulerExt: string;
+  claimantPhone: string;
+  contractNumber: string;
+  hasInterpreter: string;
+  isOdarCase: string;
+  notes: string;
   scheduledBy: "BRANCH" | "VENDOR";
+  doctor: { id: string; name: string; firstName: string; lastName: string };
+  specialty: { id: string; name: string };
+  location: { id: string; name: string };
 };
 
 function SlotsTable({
@@ -398,77 +486,180 @@ function ConfirmationDialog({
   open,
   confirmation,
   onClose,
+  onScheduleSameClaimant,
+  onSaveAnalystInfo,
+  onScheduleNewAppointment,
 }: {
   open: boolean;
   confirmation:
     | { newAppointment: NewAppointmentSummary; original: Appt }
     | null;
   onClose: () => void;
+  onScheduleSameClaimant: () => void;
+  onSaveAnalystInfo: () => void;
+  onScheduleNewAppointment: () => void;
 }) {
   if (!confirmation) return null;
   const { newAppointment: na, original } = confirmation;
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-2xl print:shadow-none print:max-w-full">
-        <DialogHeader>
-          <DialogTitle>Appointment moved</DialogTitle>
-          <DialogDescription>
-            The original appointment has been marked <strong>Moved</strong> and a
-            new appointment is now scheduled.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div
-          id="move-confirmation"
-          className="rounded-lg p-4 bg-emerald-50/40 text-sm space-y-3"
-          style={{ border: "2px solid #C9A55C" }}
-        >
-          <div className="font-semibold text-slate-900 text-base">
-            Appointment Confirmation
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto print:shadow-none print:max-w-full">
+        <div className="ewing-print-area">
+          {/* Vendor header */}
+          <div className="text-center pb-4 border-b border-slate-200 mb-5">
+            <Image
+              src="/ewing-logo.png"
+              alt="Ewing Diagnostics & Psychological Services"
+              width={1181}
+              height={335}
+              className="h-20 w-auto mx-auto"
+            />
+            <div className="mt-3">
+              <h2 className="text-lg font-semibold text-slate-900">
+                Appointment Confirmation
+              </h2>
+              <div className="text-xs text-slate-500 mt-0.5">
+                Issued {ptFmtDateMed(new Date())} at {ptFmtTime(new Date())}
+              </div>
+              <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 ring-1 ring-amber-200">
+                Moved from{" "}
+                {ptFmtDateLong(original.startTime)} at {ptFmtTime(original.startTime)}
+              </div>
+            </div>
           </div>
 
-          <Section title="New Appointment">
-            <Row label="Date" value={ptFmtDateLong(na.startTime)} />
-            <Row label="Time" value={ptFmtTime(na.startTime)} />
-            <Row label="Office" value={original.location.name} />
-            <Row label="Doctor" value={doctorDisplay(original.doctor)} />
-            <Row label="Exam" value={original.specialty.name} />
-            <Row label="Scheduled By" value={na.scheduledBy} />
-          </Section>
+          <SectionHdr title="Appointment">
+            <DetailRow label="Date" value={ptFmtDateLong(na.startTime)} />
+            <DetailRow label="Time" value={ptFmtTime(na.startTime)} />
+            <DetailRow label="Doctor" value={doctorDisplay(na.doctor)} />
+            <DetailRow label="Office" value={na.location.name} />
+            <DetailRow label="Specialty" value={na.specialty.name} />
+          </SectionHdr>
 
-          <Section title="Claimant">
-            <Row label="Name" value={`${na.lastNamePrefix}, ${na.firstInitial}`} />
-            <Row label="Case Number" value={na.caseNumber} />
-            <Row label="Branch" value={na.stateBranch} />
-          </Section>
-
-          <Section title="Moved From">
-            <Row
-              label="Previous"
-              value={`${ptFmtDateLong(original.startTime)} at ${ptFmtTime(original.startTime)}`}
+          <SectionHdr title="Claimant">
+            <DetailRow label="Case number" value={na.caseNumber} />
+            <DetailRow
+              label="Identifier"
+              value={`${na.firstInitial.toUpperCase()}. ${na.lastNamePrefix.toUpperCase()}`}
             />
-          </Section>
+            <DetailRow
+              label="Claimant phone"
+              value={formatPhoneDisplay(na.claimantPhone)}
+            />
+            <DetailRow
+              label="Contract number"
+              value={na.contractNumber || "—"}
+            />
+            <DetailRow
+              label="Interpreter"
+              value={na.hasInterpreter === "yes" ? "Yes" : "No"}
+            />
+            <DetailRow
+              label="ODAR case"
+              value={na.isOdarCase === "yes" ? "Yes" : "No"}
+            />
+          </SectionHdr>
+
+          <SectionHdr title="State">
+            <DetailRow label="Branch" value={na.stateBranch} />
+            <DetailRow label="Analyst" value={na.analystName} />
+            <DetailRow
+              label="Analyst phone"
+              value={formatPhoneDisplay(na.analystPhone, na.analystExt)}
+            />
+          </SectionHdr>
+
+          <SectionHdr title="Scheduler">
+            <DetailRow label="Name" value={na.schedulerName} />
+            <DetailRow
+              label="Phone"
+              value={formatPhoneDisplay(na.schedulerPhone, na.schedulerExt)}
+            />
+          </SectionHdr>
+
+          {na.notes && (
+            <div className="mb-4">
+              <h3 className="font-semibold text-xs text-slate-700 uppercase tracking-wide border-b border-slate-200 pb-1 mb-2">
+                Notes
+              </h3>
+              <p className="text-sm whitespace-pre-wrap text-slate-800">
+                {na.notes}
+              </p>
+            </div>
+          )}
         </div>
 
-        <DialogFooter className="print:hidden">
-          <Button
-            type="button"
-            onClick={() => window.print()}
-            className="sm:mr-auto text-white font-medium hover:brightness-95"
-            style={{ background: "#DC2626", border: "2px solid #C9A55C" }}
-          >
-            <Printer className="size-4" />
-            Print
-          </Button>
-          <Button
-            type="button"
-            onClick={onClose}
-            className="text-white font-medium"
-            style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
-          >
-            Done
-          </Button>
-        </DialogFooter>
+        <div className="ewing-print-hide pt-2 border-t border-slate-200">
+          {/* Print at the top */}
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              onClick={() => window.print()}
+              autoFocus
+              className="text-white font-medium hover:brightness-95"
+              style={{ background: "#C9A55C", border: "2px solid #8C7232" }}
+            >
+              <Printer className="size-4" />
+              Print
+            </Button>
+          </div>
+
+          {/* Divider + Scheduling Options */}
+          <div className="mt-4 pt-4 border-t border-slate-200">
+            <h3 className="font-semibold text-xs text-slate-700 uppercase tracking-wide mb-3">
+              Scheduling Options:
+            </h3>
+            <div className="flex flex-col gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onScheduleSameClaimant}
+                style={{
+                  borderColor: "#C9A55C",
+                  borderWidth: "2px",
+                  background: "#FAF6EB",
+                }}
+                className="self-start font-normal hover:brightness-95"
+              >
+                Schedule another appointment for the same claimant{" "}
+                <span className="text-slate-500">(will save claimant info)</span>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onSaveAnalystInfo}
+                style={{
+                  borderColor: "#C9A55C",
+                  borderWidth: "2px",
+                  background: "#F1F5F9",
+                }}
+                className="self-start font-normal hover:brightness-95"
+              >
+                Save analyst information{" "}
+                <span className="text-slate-500">
+                  (will save analyst/scheduler information)
+                </span>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onScheduleNewAppointment}
+                style={{
+                  borderColor: "#C9A55C",
+                  borderWidth: "2px",
+                  background: "#EFF6FF",
+                }}
+                className="self-start font-normal hover:brightness-95"
+              >
+                Schedule New Appointment
+              </Button>
+            </div>
+            <p className="text-[11px] text-slate-500 mt-3">
+              Carry-over is saved to this browser tab only — it doesn&apos;t
+              follow the shared login to anyone else.
+            </p>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -483,7 +674,7 @@ function Read({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Section({
+function SectionHdr({
   title,
   children,
 }: {
@@ -491,22 +682,22 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div>
-      <div className="text-[11px] uppercase tracking-wide text-slate-500 mb-1">
+    <div className="mb-4">
+      <h3 className="font-semibold text-xs text-slate-700 uppercase tracking-wide border-b border-slate-200 pb-1 mb-2">
         {title}
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
-        {children}
-      </div>
+      </h3>
+      <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">{children}</div>
     </div>
   );
 }
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex gap-2">
-      <span className="text-slate-500">{label}:</span>
-      <span className="font-medium text-slate-900">{value}</span>
+    <div>
+      <div className="text-[11px] uppercase tracking-wide text-slate-500">
+        {label}
+      </div>
+      <div className="font-medium text-slate-900">{value}</div>
     </div>
   );
 }
