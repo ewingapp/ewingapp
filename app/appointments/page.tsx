@@ -67,8 +67,10 @@ type Appt = {
     | "OTHER";
   scheduledBy: "BRANCH" | "VENDOR";
   cancelledBy: "BRANCH" | "VENDOR" | null;
+  cancelledByName: string;
   cancelledAt: string | null;
   movedBy: "BRANCH" | "VENDOR" | null;
+  movedByName: string;
   movedAt: string | null;
   statusNote: string;
   stateBranch: string;
@@ -842,7 +844,8 @@ function ActionGroup({
       </div>
       {appt.status === "CANCELLED" && appt.cancelledAt && (
         <div className="text-[11px] leading-tight text-slate-600 max-w-[14rem]">
-          Cancelled by {appt.cancelledBy === "BRANCH" ? "Branch" : "Vendor"} on{" "}
+          Cancelled by {appt.cancelledBy === "BRANCH" ? "Branch" : "Vendor"}
+          {appt.cancelledByName && ` (${appt.cancelledByName})`} on{" "}
           {ptFmtDateShort(appt.cancelledAt)} {ptFmtTime(appt.cancelledAt)}
           {appt.statusNote && (
             <div className="text-slate-500">Reason: {appt.statusNote}</div>
@@ -851,7 +854,8 @@ function ActionGroup({
       )}
       {appt.status === "MOVED" && appt.movedAt && (
         <div className="text-[11px] leading-tight text-slate-600 max-w-[14rem]">
-          Moved by {appt.movedBy === "BRANCH" ? "Branch" : "Vendor"} on{" "}
+          Moved by {appt.movedBy === "BRANCH" ? "Branch" : "Vendor"}
+          {appt.movedByName && ` (${appt.movedByName})`} on{" "}
           {ptFmtDateShort(appt.movedAt)} {ptFmtTime(appt.movedAt)}
           {appt.statusNote && (
             <div className="text-slate-500">{appt.statusNote}</div>
@@ -924,18 +928,24 @@ function CancelDialog({
   onCancelled: (updated: Appt) => void;
 }) {
   const [reason, setReason] = useState("");
+  const [cancelledByName, setCancelledByName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     if (target) {
       setReason("");
+      setCancelledByName("");
       setErr(null);
     }
   }, [target]);
 
   async function submit() {
     if (!target) return;
+    if (!cancelledByName.trim()) {
+      setErr("Cancelled by is required.");
+      return;
+    }
     if (!reason.trim()) {
       setErr("Reason is required.");
       return;
@@ -946,7 +956,10 @@ function CancelDialog({
       const res = await fetch(`/api/appointments/${target.id}/cancel`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: reason.trim() }),
+        body: JSON.stringify({
+          reason: reason.trim(),
+          cancelledByName: cancelledByName.trim(),
+        }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -977,20 +990,36 @@ function CancelDialog({
             )}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-2">
-          <Label htmlFor="cancel-reason" className="text-sm">
-            Reason for cancellation <span className="text-rose-600">*</span>
-          </Label>
-          <Textarea
-            id="cancel-reason"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            rows={4}
-            placeholder="e.g. Branch requested cancellation; claimant unavailable; …"
-          />
-          <p className="text-xs text-slate-500">
-            This note is visible to the State branch.
-          </p>
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <Label htmlFor="cancelled-by" className="text-sm">
+              Cancelled by <span className="text-rose-600">*</span>
+            </Label>
+            <Input
+              id="cancelled-by"
+              value={cancelledByName}
+              onChange={(e) => setCancelledByName(e.target.value)}
+              placeholder="Your name"
+              disabled={submitting}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="cancel-reason" className="text-sm">
+              Reason for cancellation <span className="text-rose-600">*</span>
+            </Label>
+            <Textarea
+              id="cancel-reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={4}
+              placeholder="e.g. Branch requested cancellation; claimant unavailable; …"
+            />
+            <p className="text-xs text-slate-500">
+              This note is visible to the State branch.
+            </p>
+          </div>
+
           {err && <p className="text-sm text-destructive">{err}</p>}
         </div>
         <DialogFooter>

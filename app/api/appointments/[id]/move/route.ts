@@ -9,6 +9,7 @@ import { ptFmtDateShort, ptFmtTime } from "@/lib/pt";
 const bodySchema = z.object({
   slotId: z.string().min(1),
   reason: z.string().min(1, "Reason is required").max(500),
+  movedByName: z.string().min(1, "Moved by is required").max(100),
 });
 
 export async function POST(
@@ -155,6 +156,7 @@ export async function POST(
             status: "MOVED",
             statusNote: movedNote,
             movedBy: "VENDOR",
+            movedByName: parsed.data.movedByName,
             movedAt: new Date(),
           },
         });

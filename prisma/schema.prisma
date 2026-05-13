@@ -175,8 +175,10 @@ model Appointment {
   statusNote         String            @default("")
   scheduledBy        ScheduledBy       @default(VENDOR)
   cancelledBy        CancelledBy?
+  cancelledByName    String            @default("")
   cancelledAt        DateTime?
   movedBy            MovedBy?
+  movedByName        String            @default("")
   movedAt            DateTime?
   isLateCancellation Boolean           @default(false)
   createdAt          DateTime          @default(now())
