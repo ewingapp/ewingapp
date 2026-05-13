@@ -239,6 +239,30 @@ function ResultsView() {
     router.push("/schedule");
   }
 
+  function handleSaveAnalystInfo() {
+    if (confirmation) {
+      // Carry only the analyst, scheduler, and branch fields. Clear claimant
+      // and case-specific values so the next appointment starts fresh on
+      // those. Scoped to this browser tab via sessionStorage so it doesn't
+      // bleed into other staff using the shared login on another tab/device.
+      const analystOnly = {
+        stateBranch: confirmation.values.stateBranch,
+        analystName: confirmation.values.analystName,
+        analystPhone: confirmation.values.analystPhone,
+        analystExt: confirmation.values.analystExt,
+        schedulerName: confirmation.values.schedulerName,
+        schedulerPhone: confirmation.values.schedulerPhone,
+        schedulerExt: confirmation.values.schedulerExt,
+      };
+      window.sessionStorage.setItem(
+        CLAIMANT_STORAGE_KEY,
+        JSON.stringify(analystOnly),
+      );
+    }
+    setConfirmation(null);
+    router.push("/schedule");
+  }
+
   function handleScheduleNewAppointment() {
     window.sessionStorage.removeItem(CLAIMANT_STORAGE_KEY);
     form.reset(EMPTY_FORM);
@@ -552,34 +576,61 @@ function ResultsView() {
                 )}
               </div>
 
-              <DialogFooter className="ewing-print-hide flex flex-col-reverse sm:flex-row gap-2 sm:justify-end sm:items-center pt-2 border-t border-slate-200">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleScheduleSameClaimant}
-                  style={{ borderColor: "#C9A55C", borderWidth: "2px" }}
-                >
-                  Schedule for same claimant
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleScheduleNewAppointment}
-                  style={{ borderColor: "#C9A55C", borderWidth: "2px" }}
-                >
-                  New appointment
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => window.print()}
-                  autoFocus
-                  className="text-white hover:brightness-95"
-                  style={{ background: "#DC2626", border: "2px solid #C9A55C" }}
-                >
-                  <Printer className="size-4" />
-                  Print
-                </Button>
-              </DialogFooter>
+              <div className="ewing-print-hide pt-2 border-t border-slate-200">
+                {/* Print at the top */}
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    onClick={() => window.print()}
+                    autoFocus
+                    className="text-white hover:brightness-95"
+                    style={{ background: "#DC2626", border: "2px solid #C9A55C" }}
+                  >
+                    <Printer className="size-4" />
+                    Print
+                  </Button>
+                </div>
+
+                {/* Divider + Scheduling Options */}
+                <div className="mt-4 pt-4 border-t border-slate-200">
+                  <h3 className="font-semibold text-xs text-slate-700 uppercase tracking-wide mb-3">
+                    Scheduling Options:
+                  </h3>
+                  <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleScheduleSameClaimant}
+                      style={{ borderColor: "#C9A55C", borderWidth: "2px" }}
+                      className="sm:flex-1 sm:min-w-[14rem]"
+                    >
+                      Schedule another appointment for the same claimant
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleSaveAnalystInfo}
+                      style={{ borderColor: "#C9A55C", borderWidth: "2px" }}
+                      className="sm:flex-1 sm:min-w-[12rem]"
+                    >
+                      Save analyst information
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleScheduleNewAppointment}
+                      style={{ borderColor: "#C9A55C", borderWidth: "2px" }}
+                      className="sm:flex-1 sm:min-w-[10rem]"
+                    >
+                      New appointment
+                    </Button>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-3">
+                    Carry-over is saved to this browser tab only — it doesn&apos;t
+                    follow the shared login to anyone else.
+                  </p>
+                </div>
+              </div>
             </>
           )}
         </DialogContent>
