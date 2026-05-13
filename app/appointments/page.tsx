@@ -417,7 +417,7 @@ function ScheduledAppointmentsView() {
         {!hasResults && (
         <div
           className="rounded-lg p-5 mb-6 bg-slate-50"
-          style={{ border: "2px solid #C9A55C" }}
+          style={{ border: "2px solid #0085CA" }}
         >
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
             {/* Office / Doctor toggle */}
@@ -546,7 +546,7 @@ function ScheduledAppointmentsView() {
                 onClick={onSearch}
                 disabled={loading}
                 className="w-full h-10 text-white font-medium shadow-sm hover:brightness-95"
-                style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+                style={{ background: "#0085CA", border: "2px solid #0085CA" }}
               >
                 {loading ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -696,7 +696,7 @@ function ResultsTable({
           type="button"
           onClick={() => downloadCsv(rows, showBranch)}
           className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-medium text-white shadow-sm hover:brightness-95"
-          style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+          style={{ background: "#0085CA", border: "2px solid #0085CA" }}
         >
           <Download className="size-3.5" />
           Download CSV
@@ -875,7 +875,7 @@ function ActionLink({
     return (
       <span
         className="inline-flex items-center px-2 py-1 rounded text-xs text-slate-400 bg-slate-50 cursor-not-allowed"
-        style={{ border: "1.5px solid #C9A55C", opacity: 0.5 }}
+        style={{ border: "1.5px solid #0085CA", opacity: 0.5 }}
       >
         {children}
       </span>
@@ -885,7 +885,7 @@ function ActionLink({
     <Link
       href={href}
       className="inline-flex items-center px-2 py-1 rounded text-xs text-slate-700 hover:bg-slate-50 hover:text-[#0085CA]"
-      style={{ border: "1.5px solid #C9A55C" }}
+      style={{ border: "1.5px solid #0085CA" }}
     >
       {children}
     </Link>
@@ -907,7 +907,7 @@ function ActionButton({
       onClick={onClick}
       disabled={disabled}
       className="inline-flex items-center px-2 py-1 rounded text-xs text-slate-700 hover:bg-slate-50 hover:text-[#0085CA] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400"
-      style={{ border: "1.5px solid #C9A55C" }}
+      style={{ border: "1.5px solid #0085CA" }}
     >
       {children}
     </button>
@@ -1007,7 +1007,7 @@ function CancelDialog({
             onClick={submit}
             disabled={submitting}
             className="text-white font-medium"
-            style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+            style={{ background: "#0085CA", border: "2px solid #0085CA" }}
           >
             {submitting ? (
               <Loader2 className="size-4 animate-spin" />
@@ -1116,7 +1116,7 @@ function StatusCell({
           onClick={save}
           disabled={!dirty || saving}
           className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+          style={{ background: "#0085CA", border: "2px solid #0085CA" }}
         >
           {saving ? <Loader2 className="size-3 animate-spin" /> : null}
           Save

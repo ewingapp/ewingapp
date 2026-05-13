@@ -301,7 +301,7 @@ export default function DoctorsPage() {
             <Button
               onClick={openAdd}
               className="text-white hover:brightness-95"
-              style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+              style={{ background: "#0085CA", border: "2px solid #0085CA" }}
             >
               <Plus className="size-4" />
               Add Doctor
@@ -546,7 +546,7 @@ export default function DoctorsPage() {
                 type="submit"
                 disabled={submitting}
                 className="text-white hover:brightness-95"
-                style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+                style={{ background: "#0085CA", border: "2px solid #0085CA" }}
               >
                 {submitting && <Loader2 className="size-4 animate-spin" />}
                 {editing ? "Save changes" : "Add doctor"}

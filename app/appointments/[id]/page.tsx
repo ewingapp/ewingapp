@@ -34,7 +34,7 @@ export default async function AppointmentDetailPage({ params }: { params: Params
 
         <div
           className="rounded-lg p-5 mb-6 bg-emerald-50/40"
-          style={{ border: "2px solid #C9A55C" }}
+          style={{ border: "2px solid #0085CA" }}
         >
           <div className="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-2 text-sm text-slate-700">
             <Field label="Date" value={ptFmtDateLong(a.startTime)} />

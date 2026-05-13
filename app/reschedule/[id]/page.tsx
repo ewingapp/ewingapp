@@ -281,7 +281,7 @@ export default function ReschedulePage({
             {/* Current appointment summary — compact horizontal bar */}
             <div
               className="rounded-lg p-4 mb-6 bg-slate-50 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm"
-              style={{ border: "2px solid #C9A55C" }}
+              style={{ border: "2px solid #0085CA" }}
             >
               <SummaryItem
                 label="Claimant"
@@ -491,7 +491,7 @@ function SlotsTable({
                         variant="outline"
                         onClick={() => onMove(s)}
                         disabled={moving || movingSlotId !== null}
-                        style={{ borderColor: "#C9A55C", borderWidth: "1.5px" }}
+                        style={{ borderColor: "#0085CA", borderWidth: "1.5px" }}
                       >
                         {moving && <Loader2 className="size-3 animate-spin mr-1" />}
                         Move Appointment Here
@@ -623,7 +623,7 @@ function ConfirmationDialog({
               onClick={() => window.print()}
               autoFocus
               className="text-white font-medium hover:brightness-95"
-              style={{ background: "#DC2626", border: "2px solid #C9A55C" }}
+              style={{ background: "#DC2626", border: "2px solid #0085CA" }}
             >
               <Printer className="size-4" />
               Print
@@ -641,7 +641,7 @@ function ConfirmationDialog({
                 variant="outline"
                 onClick={onScheduleSameClaimant}
                 style={{
-                  borderColor: "#C9A55C",
+                  borderColor: "#0085CA",
                   borderWidth: "2px",
                   background: "#FAF6EB",
                 }}
@@ -655,7 +655,7 @@ function ConfirmationDialog({
                 variant="outline"
                 onClick={onSaveAnalystInfo}
                 style={{
-                  borderColor: "#C9A55C",
+                  borderColor: "#0085CA",
                   borderWidth: "2px",
                   background: "#FAF6EB",
                 }}
@@ -671,7 +671,7 @@ function ConfirmationDialog({
                 variant="outline"
                 onClick={onScheduleNewAppointment}
                 style={{
-                  borderColor: "#C9A55C",
+                  borderColor: "#0085CA",
                   borderWidth: "2px",
                   background: "#FAF6EB",
                 }}
@@ -684,7 +684,7 @@ function ConfirmationDialog({
                 variant="outline"
                 onClick={onClose}
                 style={{
-                  borderColor: "#C9A55C",
+                  borderColor: "#0085CA",
                   borderWidth: "2px",
                   background: "#FAF6EB",
                 }}

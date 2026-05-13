@@ -542,7 +542,7 @@ export default function AppointmentSlotsPage() {
           <>
             <div
               className="border-2 bg-white mb-3 text-sm w-fit max-w-full overflow-hidden"
-              style={{ borderColor: "#0085CA", boxShadow: "inset 0 -3px 0 #C9A55C" }}
+              style={{ borderColor: "#0085CA", boxShadow: "inset 0 -3px 0 #0085CA" }}
             >
               <Row label="Office:">
                 <Select
@@ -793,7 +793,7 @@ export default function AppointmentSlotsPage() {
                   (mode === "TEMPLATE" && !templateId)
                 }
                 className="text-white hover:brightness-95 h-9"
-                style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+                style={{ background: "#0085CA", border: "2px solid #0085CA" }}
               >
                 {saving ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -806,7 +806,7 @@ export default function AppointmentSlotsPage() {
 
             <h2
               className="font-semibold mb-2 px-3 py-1.5 inline-block rounded-sm text-white"
-              style={{ background: "#0085CA", borderBottom: "3px solid #C9A55C" }}
+              style={{ background: "#0085CA", borderBottom: "3px solid #0085CA" }}
             >
               Appointment slots for{" "}
               {selectedDoctor?.name ?? "—"} on{" "}
@@ -816,14 +816,14 @@ export default function AppointmentSlotsPage() {
             {slotRows.length === 0 ? (
               <div
                 className="bg-white border-2 px-4 py-4 text-sm text-slate-600"
-                style={{ borderColor: "#0085CA", boxShadow: "inset 0 -3px 0 #C9A55C" }}
+                style={{ borderColor: "#0085CA", boxShadow: "inset 0 -3px 0 #0085CA" }}
               >
                 There are no Appointment Slots for this doctor on this day.
               </div>
             ) : (
               <div
                 className="bg-white border-2 overflow-hidden text-sm"
-                style={{ borderColor: "#0085CA", boxShadow: "inset 0 -3px 0 #C9A55C" }}
+                style={{ borderColor: "#0085CA", boxShadow: "inset 0 -3px 0 #0085CA" }}
               >
                 <table className="w-full">
                   <thead
@@ -904,7 +904,7 @@ export default function AppointmentSlotsPage() {
                               onClick={() => onMakeAppointment(row)}
                               disabled={row.status === "BOOKED"}
                               className="h-7 text-xs"
-                              style={{ borderColor: "#C9A55C", borderWidth: "1.5px" }}
+                              style={{ borderColor: "#0085CA", borderWidth: "1.5px" }}
                             >
                               Make Appointment
                             </Button>

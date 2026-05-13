@@ -305,7 +305,7 @@ export function BookSlotDialog({
                 onClick={() => window.print()}
                 autoFocus
                 className="text-white hover:brightness-95"
-                style={{ background: "#DC2626", border: "2px solid #C9A55C" }}
+                style={{ background: "#DC2626", border: "2px solid #0085CA" }}
               >
                 <Printer className="size-4" />
                 Print
@@ -448,7 +448,7 @@ export function BookSlotDialog({
                   onClick={() => reset(EMPTY_FORM)}
                   disabled={isSubmitting}
                   className="sm:mr-auto text-white hover:brightness-95"
-                  style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+                  style={{ background: "#0085CA", border: "2px solid #0085CA" }}
                 >
                   Clear
                 </Button>
@@ -464,7 +464,7 @@ export function BookSlotDialog({
                   type="submit"
                   disabled={isSubmitting}
                   className="text-white hover:brightness-95"
-                  style={{ background: "#DC2626", border: "2px solid #C9A55C" }}
+                  style={{ background: "#DC2626", border: "2px solid #0085CA" }}
                 >
                   {isSubmitting && <Loader2 className="size-4 animate-spin" />}
                   Book Appointment

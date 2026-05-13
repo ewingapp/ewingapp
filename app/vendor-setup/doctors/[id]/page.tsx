@@ -230,7 +230,7 @@ export default function DoctorSetupPage({
                 onClick={onSave}
                 disabled={saving || !dirty}
                 className="text-white hover:brightness-95"
-                style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+                style={{ background: "#0085CA", border: "2px solid #0085CA" }}
               >
                 {saving ? (
                   <Loader2 className="size-4 animate-spin" />

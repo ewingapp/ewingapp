@@ -289,7 +289,7 @@ function ResultsView() {
         {/* Search summary */}
         <div
           className="rounded-lg p-4 mb-6 bg-slate-50 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm"
-          style={{ border: "2px solid #C9A55C" }}
+          style={{ border: "2px solid #0085CA" }}
         >
           <SummaryItem label="Office" value={location?.name ?? "—"} />
           <SummaryItem label="Specialty" value={specialty?.name ?? "—"} />
@@ -447,7 +447,7 @@ function ResultsView() {
                 onClick={() => form.reset(EMPTY_FORM)}
                 disabled={submitting}
                 className="sm:mr-auto text-white hover:brightness-95"
-                style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+                style={{ background: "#0085CA", border: "2px solid #0085CA" }}
               >
                 Clear
               </Button>
@@ -463,7 +463,7 @@ function ResultsView() {
                 type="submit"
                 disabled={submitting}
                 className="text-white hover:brightness-95"
-                style={{ background: "#DC2626", border: "2px solid #C9A55C" }}
+                style={{ background: "#DC2626", border: "2px solid #0085CA" }}
               >
                 {submitting && <Loader2 className="size-4 animate-spin" />}
                 Book Appointment
@@ -584,7 +584,7 @@ function ResultsView() {
                     onClick={() => window.print()}
                     autoFocus
                     className="text-white font-medium hover:brightness-95"
-                    style={{ background: "#DC2626", border: "2px solid #C9A55C" }}
+                    style={{ background: "#DC2626", border: "2px solid #0085CA" }}
                   >
                     <Printer className="size-4" />
                     Print
@@ -602,7 +602,7 @@ function ResultsView() {
                       variant="outline"
                       onClick={handleScheduleSameClaimant}
                       style={{
-                        borderColor: "#C9A55C",
+                        borderColor: "#0085CA",
                         borderWidth: "2px",
                         background: "#FAF6EB",
                       }}
@@ -616,7 +616,7 @@ function ResultsView() {
                       variant="outline"
                       onClick={handleSaveAnalystInfo}
                       style={{
-                        borderColor: "#C9A55C",
+                        borderColor: "#0085CA",
                         borderWidth: "2px",
                         background: "#FAF6EB",
                       }}
@@ -632,7 +632,7 @@ function ResultsView() {
                       variant="outline"
                       onClick={handleScheduleNewAppointment}
                       style={{
-                        borderColor: "#C9A55C",
+                        borderColor: "#0085CA",
                         borderWidth: "2px",
                         background: "#FAF6EB",
                       }}
@@ -645,7 +645,7 @@ function ResultsView() {
                       variant="outline"
                       onClick={() => setConfirmation(null)}
                       style={{
-                        borderColor: "#C9A55C",
+                        borderColor: "#0085CA",
                         borderWidth: "2px",
                         background: "#FAF6EB",
                       }}
@@ -733,7 +733,7 @@ function ResultsTable({ slots, onPick }: { slots: Slot[]; onPick: (s: Slot) => v
                     size="sm"
                     variant="outline"
                     onClick={() => onPick(s)}
-                    style={{ borderColor: "#C9A55C", borderWidth: "1.5px" }}
+                    style={{ borderColor: "#0085CA", borderWidth: "1.5px" }}
                   >
                     Make appointment
                   </Button>
