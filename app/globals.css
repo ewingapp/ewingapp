@@ -236,15 +236,15 @@
 }
 
 .ewing-calendar .rdp-day-available .rdp-day_button {
-  background: #F1F5F9;
+  background: #ffffff;
   color: #334155;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #F1F5F9;
   font-weight: 500;
 }
 
 .ewing-calendar .rdp-day-available:hover .rdp-day_button {
-  background: #E2E8F0;
-  border-color: #CBD5E1;
+  background: #F1F5F9;
+  border-color: #E2E8F0;
 }
 
 .ewing-calendar .rdp-today .rdp-day_button {
