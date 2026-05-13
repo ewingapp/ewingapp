@@ -8,6 +8,7 @@ import { ptFmtDateShort, ptFmtTime } from "@/lib/pt";
 
 const bodySchema = z.object({
   slotId: z.string().min(1),
+  reason: z.string().min(1, "Reason is required").max(500),
 });
 
 export async function POST(
@@ -147,7 +148,7 @@ export async function POST(
           },
         });
 
-        const movedNote = `Moved to ${ptFmtDateShort(startTime)} ${ptFmtTime(startTime)}`;
+        const movedNote = `Moved to ${ptFmtDateShort(startTime)} ${ptFmtTime(startTime)}. Reason: ${parsed.data.reason}`;
         await tx.appointment.update({
           where: { id: originalId },
           data: {

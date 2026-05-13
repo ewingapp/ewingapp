@@ -14,7 +14,12 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import {
   ptFmtDateLong,
   ptFmtDateMed,
@@ -112,6 +117,7 @@ export default function ReschedulePage({
 
   const [movingSlotId, setMovingSlotId] = useState<string | null>(null);
   const [moveError, setMoveError] = useState<string | null>(null);
+  const [pendingSlot, setPendingSlot] = useState<Slot | null>(null);
   const [confirmation, setConfirmation] = useState<
     | { newAppointment: NewAppointmentSummary; original: Appt }
     | null
@@ -170,7 +176,7 @@ export default function ReschedulePage({
     return () => ctrl.abort();
   }, [appt, fromDate, toDate]);
 
-  async function moveTo(slot: Slot) {
+  async function moveTo(slot: Slot, reason: string) {
     if (!appt) return;
     setMovingSlotId(slot.id);
     setMoveError(null);
@@ -178,7 +184,7 @@ export default function ReschedulePage({
       const res = await fetch(`/api/appointments/${id}/move`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slotId: slot.id }),
+        body: JSON.stringify({ slotId: slot.id, reason }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -188,8 +194,10 @@ export default function ReschedulePage({
       setConfirmation({ newAppointment: data.newAppointment, original: appt });
       // Remove the booked slot from the local list so it can't be picked again.
       setSlots((curr) => (curr ? curr.filter((s) => s.id !== slot.id) : curr));
+      setPendingSlot(null);
     } catch (e) {
       setMoveError(e instanceof Error ? e.message : "Failed to move");
+      throw e;
     } finally {
       setMovingSlotId(null);
     }
@@ -351,7 +359,10 @@ export default function ReschedulePage({
                   loading={slotsLoading}
                   error={slotsError}
                   movingSlotId={movingSlotId}
-                  onMove={moveTo}
+                  onPickSlot={(slot) => {
+                    setMoveError(null);
+                    setPendingSlot(slot);
+                  }}
                   office={appt.location.name}
                   specialty={appt.specialty.name}
                 />
@@ -359,6 +370,26 @@ export default function ReschedulePage({
             )}
           </>
         )}
+
+        <MoveConfirmDialog
+          slot={pendingSlot}
+          original={appt}
+          submitting={movingSlotId !== null}
+          error={moveError}
+          onConfirm={async (reason) => {
+            if (!pendingSlot) return;
+            try {
+              await moveTo(pendingSlot, reason);
+            } catch {
+              // moveTo already surfaces moveError; keep the dialog open so
+              // the user can correct and retry.
+            }
+          }}
+          onCancel={() => {
+            setPendingSlot(null);
+            setMoveError(null);
+          }}
+        />
 
         <ConfirmationDialog
           open={confirmation !== null}
@@ -403,7 +434,7 @@ function SlotsTable({
   loading,
   error,
   movingSlotId,
-  onMove,
+  onPickSlot,
   office,
   specialty,
 }: {
@@ -411,7 +442,7 @@ function SlotsTable({
   loading: boolean;
   error: string | null;
   movingSlotId: string | null;
-  onMove: (slot: Slot) => void;
+  onPickSlot: (slot: Slot) => void;
   office: string;
   specialty: string;
 }) {
@@ -489,7 +520,7 @@ function SlotsTable({
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => onMove(s)}
+                        onClick={() => onPickSlot(s)}
                         disabled={moving || movingSlotId !== null}
                         style={{ borderColor: "#0085CA", borderWidth: "1.5px" }}
                       >
@@ -504,6 +535,142 @@ function SlotsTable({
           </table>
         </div>
       )}
+    </div>
+  );
+}
+
+function MoveConfirmDialog({
+  slot,
+  original,
+  submitting,
+  error,
+  onConfirm,
+  onCancel,
+}: {
+  slot: Slot | null;
+  original: Appt | null;
+  submitting: boolean;
+  error: string | null;
+  onConfirm: (reason: string) => void | Promise<void>;
+  onCancel: () => void;
+}) {
+  const [reason, setReason] = useState("");
+  const [localErr, setLocalErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (slot) {
+      setReason("");
+      setLocalErr(null);
+    }
+  }, [slot]);
+
+  const open = slot !== null && original !== null;
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && !submitting && onCancel()}>
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Confirm Appointment Move</DialogTitle>
+          <DialogDescription>
+            Review the old and new appointment, enter a reason for the move, then
+            click <strong>Move Appointment</strong>.
+          </DialogDescription>
+        </DialogHeader>
+
+        {original && slot && (
+          <div
+            className="rounded-lg p-4 text-sm space-y-4 bg-slate-50"
+            style={{ border: "2px solid #0085CA" }}
+          >
+            <div>
+              <h3 className="font-semibold text-xs text-slate-700 uppercase tracking-wide border-b border-slate-200 pb-1 mb-2">
+                Old Appointment
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1.5">
+                <Row label="Office" value={original.location.name} />
+                <Row label="Doctor" value={doctorDisplay(original.doctor)} />
+                <Row label="Date" value={ptFmtDateLong(original.startTime)} />
+                <Row label="Time" value={ptFmtTime(original.startTime)} />
+                <Row
+                  label="Claimant"
+                  value={`${original.lastNamePrefix}, ${original.firstInitial}`}
+                />
+                <Row label="Case #" value={original.caseNumber} />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-xs text-slate-700 uppercase tracking-wide border-b border-slate-200 pb-1 mb-2">
+                New Appointment
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1.5">
+                <Row label="Office" value={original.location.name} />
+                <Row label="Doctor" value={doctorDisplay(slot.doctor)} />
+                <Row label="Date" value={ptFmtDateLong(slot.startTime)} />
+                <Row label="Time" value={ptFmtTime(slot.startTime)} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="move-reason" className="text-sm">
+            Reason for rescheduling <span className="text-rose-600">*</span>
+          </Label>
+          <Textarea
+            id="move-reason"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            rows={3}
+            placeholder="e.g. claimant called to reschedule, doctor unavailable, branch request, …"
+            disabled={submitting}
+          />
+          <p className="text-xs text-slate-500">
+            This note is saved with the moved appointment and visible to the
+            State branch.
+          </p>
+          {(localErr || error) && (
+            <p className="text-sm text-destructive">{localErr ?? error}</p>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={submitting}
+          >
+            Back to View Appointments
+          </Button>
+          <Button
+            type="button"
+            onClick={async () => {
+              if (!reason.trim()) {
+                setLocalErr("Reason is required.");
+                return;
+              }
+              setLocalErr(null);
+              await onConfirm(reason.trim());
+            }}
+            disabled={submitting}
+            className="text-white font-medium hover:brightness-95"
+            style={{ background: "#0085CA", border: "none" }}
+          >
+            {submitting ? <Loader2 className="size-4 animate-spin" /> : null}
+            Move Appointment
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex gap-2">
+      <span className="text-slate-500">{label}:</span>
+      <span className="font-medium text-slate-900">{value}</span>
     </div>
   );
 }
