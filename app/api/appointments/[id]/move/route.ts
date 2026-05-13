@@ -158,7 +158,18 @@ export async function POST(
           },
         });
 
-        return { newAppointment: created, originalId };
+        const newAppointmentWithRelations = await tx.appointment.findUnique({
+          where: { id: created.id },
+          include: {
+            doctor: {
+              select: { id: true, name: true, firstName: true, lastName: true },
+            },
+            specialty: { select: { id: true, name: true } },
+            location: { select: { id: true, name: true } },
+          },
+        });
+
+        return { newAppointment: newAppointmentWithRelations, originalId };
       },
     );
 
