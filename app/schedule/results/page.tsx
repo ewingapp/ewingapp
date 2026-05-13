@@ -596,13 +596,13 @@ function ResultsView() {
                   <h3 className="font-semibold text-xs text-slate-700 uppercase tracking-wide mb-3">
                     Scheduling Options:
                   </h3>
-                  <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">
+                  <div className="flex flex-col gap-2">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={handleScheduleSameClaimant}
                       style={{ borderColor: "#C9A55C", borderWidth: "2px" }}
-                      className="sm:flex-1 sm:min-w-[14rem]"
+                      className="w-full justify-start font-normal"
                     >
                       Schedule another appointment for the same claimant
                     </Button>
@@ -611,7 +611,7 @@ function ResultsView() {
                       variant="outline"
                       onClick={handleSaveAnalystInfo}
                       style={{ borderColor: "#C9A55C", borderWidth: "2px" }}
-                      className="sm:flex-1 sm:min-w-[12rem]"
+                      className="w-full justify-start font-normal"
                     >
                       Save analyst information
                     </Button>
@@ -620,7 +620,7 @@ function ResultsView() {
                       variant="outline"
                       onClick={handleScheduleNewAppointment}
                       style={{ borderColor: "#C9A55C", borderWidth: "2px" }}
-                      className="sm:flex-1 sm:min-w-[10rem]"
+                      className="w-full justify-start font-normal"
                     >
                       New appointment
                     </Button>
