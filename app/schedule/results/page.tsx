@@ -609,7 +609,7 @@ function ResultsView() {
                       className="self-start font-normal hover:brightness-95"
                     >
                       Schedule another appointment for the same claimant{" "}
-                      <span style={{ color: "#DC2626" }}>(will save claimant info)</span>
+                      <span style={{ color: "#DC2626" }}>(will save claimant and all info)</span>
                     </Button>
                     <Button
                       type="button"
