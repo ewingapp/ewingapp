@@ -623,7 +623,7 @@ function ConfirmationDialog({
               onClick={() => window.print()}
               autoFocus
               className="text-white font-medium hover:brightness-95"
-              style={{ background: "#DC2626", border: "2px solid #0085CA" }}
+              style={{ background: "#DC2626", border: "none" }}
             >
               <Printer className="size-4" />
               Print
