@@ -604,7 +604,8 @@ function ResultsView() {
                       style={{ borderColor: "#C9A55C", borderWidth: "2px" }}
                       className="self-start font-normal"
                     >
-                      Schedule another appointment for the same claimant
+                      Schedule another appointment for the same claimant{" "}
+                      <span className="text-slate-500">(will save claimant info)</span>
                     </Button>
                     <Button
                       type="button"
@@ -613,7 +614,10 @@ function ResultsView() {
                       style={{ borderColor: "#C9A55C", borderWidth: "2px" }}
                       className="self-start font-normal"
                     >
-                      Save analyst information
+                      Save analyst information{" "}
+                      <span className="text-slate-500">
+                        (will save analyst/scheduler information)
+                      </span>
                     </Button>
                     <Button
                       type="button"
@@ -622,7 +626,7 @@ function ResultsView() {
                       style={{ borderColor: "#C9A55C", borderWidth: "2px" }}
                       className="self-start font-normal"
                     >
-                      New appointment
+                      Schedule New Appointment
                     </Button>
                   </div>
                   <p className="text-[11px] text-slate-500 mt-3">
