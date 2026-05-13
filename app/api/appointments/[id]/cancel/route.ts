@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 
 const bodySchema = z.object({
   reason: z.string().min(1, "Reason is required").max(500),
+  cancelledByName: z.string().min(1, "Cancelled by is required").max(100),
 });
 
 export async function POST(
@@ -39,6 +40,7 @@ export async function POST(
     data: {
       status: "CANCELLED",
       cancelledBy: "VENDOR",
+      cancelledByName: parsed.data.cancelledByName,
       cancelledAt: new Date(),
       statusNote: parsed.data.reason,
     },

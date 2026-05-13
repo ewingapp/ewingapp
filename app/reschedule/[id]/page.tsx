@@ -176,7 +176,7 @@ export default function ReschedulePage({
     return () => ctrl.abort();
   }, [appt, fromDate, toDate]);
 
-  async function moveTo(slot: Slot, reason: string) {
+  async function moveTo(slot: Slot, reason: string, movedByName: string) {
     if (!appt) return;
     setMovingSlotId(slot.id);
     setMoveError(null);
@@ -184,7 +184,7 @@ export default function ReschedulePage({
       const res = await fetch(`/api/appointments/${id}/move`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slotId: slot.id, reason }),
+        body: JSON.stringify({ slotId: slot.id, reason, movedByName }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -376,10 +376,10 @@ export default function ReschedulePage({
           original={appt}
           submitting={movingSlotId !== null}
           error={moveError}
-          onConfirm={async (reason) => {
+          onConfirm={async (reason, movedByName) => {
             if (!pendingSlot) return;
             try {
-              await moveTo(pendingSlot, reason);
+              await moveTo(pendingSlot, reason, movedByName);
             } catch {
               // moveTo already surfaces moveError; keep the dialog open so
               // the user can correct and retry.
@@ -551,15 +551,17 @@ function MoveConfirmDialog({
   original: Appt | null;
   submitting: boolean;
   error: string | null;
-  onConfirm: (reason: string) => void | Promise<void>;
+  onConfirm: (reason: string, movedByName: string) => void | Promise<void>;
   onCancel: () => void;
 }) {
   const [reason, setReason] = useState("");
+  const [movedByName, setMovedByName] = useState("");
   const [localErr, setLocalErr] = useState<string | null>(null);
 
   useEffect(() => {
     if (slot) {
       setReason("");
+      setMovedByName("");
       setLocalErr(null);
     }
   }, [slot]);
@@ -613,22 +615,38 @@ function MoveConfirmDialog({
           </div>
         )}
 
-        <div className="space-y-2">
-          <Label htmlFor="move-reason" className="text-sm">
-            Reason for rescheduling <span className="text-rose-600">*</span>
-          </Label>
-          <Textarea
-            id="move-reason"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            rows={3}
-            placeholder="e.g. claimant called to reschedule, doctor unavailable, branch request, …"
-            disabled={submitting}
-          />
-          <p className="text-xs text-slate-500">
-            This note is saved with the moved appointment and visible to the
-            State branch.
-          </p>
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <Label htmlFor="moved-by" className="text-sm">
+              Moved by <span className="text-rose-600">*</span>
+            </Label>
+            <Input
+              id="moved-by"
+              value={movedByName}
+              onChange={(e) => setMovedByName(e.target.value)}
+              placeholder="Your name"
+              disabled={submitting}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="move-reason" className="text-sm">
+              Reason for rescheduling <span className="text-rose-600">*</span>
+            </Label>
+            <Textarea
+              id="move-reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={3}
+              placeholder="e.g. claimant called to reschedule, doctor unavailable, branch request, …"
+              disabled={submitting}
+            />
+            <p className="text-xs text-slate-500">
+              This note is saved with the moved appointment and visible to the
+              State branch.
+            </p>
+          </div>
+
           {(localErr || error) && (
             <p className="text-sm text-destructive">{localErr ?? error}</p>
           )}
@@ -646,12 +664,16 @@ function MoveConfirmDialog({
           <Button
             type="button"
             onClick={async () => {
+              if (!movedByName.trim()) {
+                setLocalErr("Moved by is required.");
+                return;
+              }
               if (!reason.trim()) {
                 setLocalErr("Reason is required.");
                 return;
               }
               setLocalErr(null);
-              await onConfirm(reason.trim());
+              await onConfirm(reason.trim(), movedByName.trim());
             }}
             disabled={submitting}
             className="text-white font-medium hover:brightness-95"
