@@ -584,7 +584,7 @@ function ResultsView() {
                     onClick={() => window.print()}
                     autoFocus
                     className="text-white font-medium hover:brightness-95"
-                    style={{ background: "#C9A55C", border: "2px solid #8C7232" }}
+                    style={{ background: "#DC2626", border: "2px solid #C9A55C" }}
                   >
                     <Printer className="size-4" />
                     Print
@@ -609,7 +609,7 @@ function ResultsView() {
                       className="self-start font-normal hover:brightness-95"
                     >
                       Schedule another appointment for the same claimant{" "}
-                      <span className="text-slate-500">(will save claimant info)</span>
+                      <span style={{ color: "#DC2626" }}>(will save claimant info)</span>
                     </Button>
                     <Button
                       type="button"
@@ -618,12 +618,12 @@ function ResultsView() {
                       style={{
                         borderColor: "#C9A55C",
                         borderWidth: "2px",
-                        background: "#F1F5F9",
+                        background: "#FAF6EB",
                       }}
                       className="self-start font-normal hover:brightness-95"
                     >
                       Save analyst information{" "}
-                      <span className="text-slate-500">
+                      <span style={{ color: "#DC2626" }}>
                         (will save analyst/scheduler information)
                       </span>
                     </Button>
@@ -634,11 +634,24 @@ function ResultsView() {
                       style={{
                         borderColor: "#C9A55C",
                         borderWidth: "2px",
-                        background: "#EFF6FF",
+                        background: "#FAF6EB",
                       }}
                       className="self-start font-normal hover:brightness-95"
                     >
                       Schedule New Appointment
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setConfirmation(null)}
+                      style={{
+                        borderColor: "#C9A55C",
+                        borderWidth: "2px",
+                        background: "#FAF6EB",
+                      }}
+                      className="self-start font-normal hover:brightness-95"
+                    >
+                      Close page
                     </Button>
                   </div>
                   <p className="text-[11px] text-slate-500 mt-3">
