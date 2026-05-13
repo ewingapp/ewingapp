@@ -278,21 +278,24 @@ export default function ReschedulePage({
 
         {appt && (
           <>
-            {/* Current appointment summary */}
+            {/* Current appointment summary — compact horizontal bar */}
             <div
-              className="rounded-lg p-4 mb-4 bg-slate-50 text-sm"
+              className="rounded-lg p-4 mb-6 bg-slate-50 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm"
               style={{ border: "2px solid #C9A55C" }}
             >
-              <div className="grid grid-cols-1 md:grid-cols-6 gap-x-6 gap-y-2">
-                <Read label="Claimant" value={`${appt.lastNamePrefix}, ${appt.firstInitial}`} />
-                <Read label="Case #" value={appt.caseNumber} />
-                <Read label="Current date" value={ptFmtDateShort(appt.startTime)} />
-                <Read label="Current time" value={ptFmtTime(appt.startTime)} />
-                <Read label="Office" value={appt.location.name} />
-                <Read label="Doctor" value={doctorDisplay(appt.doctor)} />
-                <Read label="Exam" value={appt.specialty.name} />
-                <Read label="Branch" value={appt.stateBranch} />
-              </div>
+              <SummaryItem
+                label="Claimant"
+                value={`${appt.lastNamePrefix}, ${appt.firstInitial}`}
+              />
+              <SummaryItem label="Case #" value={appt.caseNumber} />
+              <SummaryItem
+                label="Current"
+                value={`${ptFmtDateShort(appt.startTime)} · ${ptFmtTime(appt.startTime)}`}
+              />
+              <SummaryItem label="Office" value={appt.location.name} />
+              <SummaryItem label="Doctor" value={doctorDisplay(appt.doctor)} />
+              <SummaryItem label="Exam" value={appt.specialty.name} />
+              <SummaryItem label="Branch" value={appt.stateBranch} />
             </div>
 
             {terminal && (
@@ -349,6 +352,8 @@ export default function ReschedulePage({
                   error={slotsError}
                   movingSlotId={movingSlotId}
                   onMove={moveTo}
+                  office={appt.location.name}
+                  specialty={appt.specialty.name}
                 />
               </>
             )}
@@ -358,10 +363,7 @@ export default function ReschedulePage({
         <ConfirmationDialog
           open={confirmation !== null}
           confirmation={confirmation}
-          onClose={() => {
-            setConfirmation(null);
-            router.push(`/appointments/${confirmation?.newAppointment.id ?? id}`);
-          }}
+          onClose={() => setConfirmation(null)}
           onScheduleSameClaimant={handleScheduleSameClaimant}
           onSaveAnalystInfo={handleSaveAnalystInfo}
           onScheduleNewAppointment={handleScheduleNewAppointment}
@@ -402,21 +404,17 @@ function SlotsTable({
   error,
   movingSlotId,
   onMove,
+  office,
+  specialty,
 }: {
   slots: Slot[] | null;
   loading: boolean;
   error: string | null;
   movingSlotId: string | null;
   onMove: (slot: Slot) => void;
+  office: string;
+  specialty: string;
 }) {
-  if (loading) {
-    return (
-      <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 flex items-center justify-center gap-2">
-        <Loader2 className="size-4 animate-spin" />
-        Loading available appointments…
-      </div>
-    );
-  }
   if (error) {
     return (
       <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
@@ -424,60 +422,88 @@ function SlotsTable({
       </div>
     );
   }
-  if (!slots || slots.length === 0) {
-    return (
-      <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
-        No available appointments in this date range.
-      </div>
-    );
-  }
   return (
-    <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
-      <div className="px-4 py-2 border-b border-slate-200 bg-slate-50 text-sm text-slate-600">
-        <strong>{slots.length}</strong> available slot{slots.length === 1 ? "" : "s"}
+    <div className="bg-white rounded-lg border shadow-sm">
+      <div className="px-4 py-3 border-b flex items-center justify-between">
+        <h2 className="font-medium text-slate-900">
+          {loading
+            ? "Loading…"
+            : `${slots?.length ?? 0} available slot${slots?.length === 1 ? "" : "s"}`}
+          <span className="ml-2 text-sm font-normal text-slate-500">
+            · {office} · {specialty}
+          </span>
+        </h2>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-100 text-slate-700">
-            <tr>
-              <th className="px-3 py-2 text-left font-semibold">Date</th>
-              <th className="px-3 py-2 text-left font-semibold">Time</th>
-              <th className="px-3 py-2 text-left font-semibold">Doctor</th>
-              <th className="px-3 py-2 text-left font-semibold">&nbsp;</th>
-            </tr>
-          </thead>
-          <tbody>
-            {slots.map((s) => {
-              const moving = movingSlotId === s.id;
-              return (
-                <tr key={s.id} className="border-t border-slate-100">
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    {ptFmtDateShort(s.startTime)}
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    {ptFmtTime(s.startTime)}
-                  </td>
-                  <td className="px-3 py-2">{doctorDisplay(s.doctor)}</td>
-                  <td className="px-3 py-2">
-                    <button
-                      type="button"
-                      onClick={() => onMove(s)}
-                      disabled={moving || movingSlotId !== null}
-                      className="inline-flex items-center px-3 py-1 rounded text-xs text-white font-medium hover:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                      style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
-                    >
-                      {moving && (
-                        <Loader2 className="size-3 animate-spin mr-1" />
-                      )}
-                      Move Appointment Here
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-12 text-slate-500">
+          <Loader2 className="size-5 animate-spin mr-2" />
+          Loading slots…
+        </div>
+      ) : !slots || slots.length === 0 ? (
+        <div className="flex flex-col items-center justify-center text-center py-12 text-slate-500">
+          <p>No available slots in this date range.</p>
+          <p className="text-xs mt-2">Try widening the From / To range above.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="text-sm w-full">
+            <thead className="text-left text-xs uppercase tracking-wide text-slate-500 bg-slate-50">
+              <tr className="border-b">
+                <th className="px-3 py-2 font-medium whitespace-nowrap">Date</th>
+                <th className="px-3 py-2 font-medium whitespace-nowrap">Time</th>
+                <th className="px-3 py-2 font-medium whitespace-nowrap">Doctor</th>
+                <th className="px-3 py-2 font-medium whitespace-nowrap text-center">
+                  Claimant Ages
+                </th>
+                <th className="px-3 py-2 font-medium whitespace-nowrap">Remarks</th>
+                <th className="px-3 py-2 font-medium text-right whitespace-nowrap">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {slots.map((s) => {
+                const moving = movingSlotId === s.id;
+                return (
+                  <tr
+                    key={s.id}
+                    className="border-b last:border-0 even:bg-slate-50/50"
+                  >
+                    <td className="px-3 py-2 font-medium text-slate-900 whitespace-nowrap tabular-nums">
+                      {ptFmtDateShort(s.startTime)}
+                    </td>
+                    <td className="px-3 py-2 tabular-nums text-slate-700 whitespace-nowrap">
+                      {ptFmtTime(s.startTime)}
+                    </td>
+                    <td className="px-3 py-2 text-slate-700 whitespace-nowrap">
+                      {doctorDisplay(s.doctor)}
+                    </td>
+                    <td className="px-3 py-2 text-slate-700 whitespace-nowrap text-center">
+                      {s.doctor.claimantAges?.trim() || "—"}
+                    </td>
+                    <td className="px-3 py-2 text-slate-700">
+                      {s.doctor.remarks?.trim() ?? ""}
+                    </td>
+                    <td className="px-3 py-2 text-right whitespace-nowrap">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onMove(s)}
+                        disabled={moving || movingSlotId !== null}
+                        style={{ borderColor: "#C9A55C", borderWidth: "1.5px" }}
+                      >
+                        {moving && <Loader2 className="size-3 animate-spin mr-1" />}
+                        Move Appointment Here
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
@@ -597,7 +623,7 @@ function ConfirmationDialog({
               onClick={() => window.print()}
               autoFocus
               className="text-white font-medium hover:brightness-95"
-              style={{ background: "#C9A55C", border: "2px solid #8C7232" }}
+              style={{ background: "#DC2626", border: "2px solid #C9A55C" }}
             >
               <Printer className="size-4" />
               Print
@@ -622,7 +648,7 @@ function ConfirmationDialog({
                 className="self-start font-normal hover:brightness-95"
               >
                 Schedule another appointment for the same claimant{" "}
-                <span className="text-slate-500">(will save claimant info)</span>
+                <span style={{ color: "#DC2626" }}>(will save claimant info)</span>
               </Button>
               <Button
                 type="button"
@@ -631,12 +657,12 @@ function ConfirmationDialog({
                 style={{
                   borderColor: "#C9A55C",
                   borderWidth: "2px",
-                  background: "#F1F5F9",
+                  background: "#FAF6EB",
                 }}
                 className="self-start font-normal hover:brightness-95"
               >
                 Save analyst information{" "}
-                <span className="text-slate-500">
+                <span style={{ color: "#DC2626" }}>
                   (will save analyst/scheduler information)
                 </span>
               </Button>
@@ -647,11 +673,24 @@ function ConfirmationDialog({
                 style={{
                   borderColor: "#C9A55C",
                   borderWidth: "2px",
-                  background: "#EFF6FF",
+                  background: "#FAF6EB",
                 }}
                 className="self-start font-normal hover:brightness-95"
               >
                 Schedule New Appointment
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                style={{
+                  borderColor: "#C9A55C",
+                  borderWidth: "2px",
+                  background: "#FAF6EB",
+                }}
+                className="self-start font-normal hover:brightness-95"
+              >
+                Close page
               </Button>
             </div>
             <p className="text-[11px] text-slate-500 mt-3">
@@ -670,6 +709,15 @@ function Read({ label, value }: { label: string; value: string }) {
     <div>
       <div className="text-[11px] uppercase tracking-wide text-slate-500">{label}</div>
       <div className="font-medium text-slate-900">{value}</div>
+    </div>
+  );
+}
+
+function SummaryItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline gap-1.5">
+      <span className="text-xs uppercase tracking-wide text-slate-500">{label}</span>
+      <span className="font-medium text-slate-900">{value}</span>
     </div>
   );
 }
