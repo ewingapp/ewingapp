@@ -604,7 +604,7 @@ function ResultsView() {
                       style={{
                         borderColor: "#0085CA",
                         borderWidth: "2px",
-                        background: "#FAF6EB",
+                        background: "#F1F5F9",
                       }}
                       className="self-start font-normal hover:brightness-95"
                     >
@@ -618,7 +618,7 @@ function ResultsView() {
                       style={{
                         borderColor: "#0085CA",
                         borderWidth: "2px",
-                        background: "#FAF6EB",
+                        background: "#F1F5F9",
                       }}
                       className="self-start font-normal hover:brightness-95"
                     >
@@ -634,7 +634,7 @@ function ResultsView() {
                       style={{
                         borderColor: "#0085CA",
                         borderWidth: "2px",
-                        background: "#FAF6EB",
+                        background: "#F1F5F9",
                       }}
                       className="self-start font-normal hover:brightness-95"
                     >
@@ -647,7 +647,7 @@ function ResultsView() {
                       style={{
                         borderColor: "#0085CA",
                         borderWidth: "2px",
-                        background: "#FAF6EB",
+                        background: "#F1F5F9",
                       }}
                       className="self-start font-normal hover:brightness-95"
                     >
