@@ -22,7 +22,7 @@ export default function GlobalError({
           type="button"
           onClick={reset}
           className="mt-4 inline-flex items-center gap-2 h-9 px-3.5 rounded-md text-sm font-medium text-white"
-          style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+          style={{ background: "#0085CA", border: "2px solid #0085CA" }}
         >
           Try again
         </button>

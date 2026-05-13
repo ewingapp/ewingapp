@@ -343,7 +343,7 @@ export function TemplateAdminDialog({
                   onClick={onAddTime}
                   disabled={adding}
                   className="text-white hover:brightness-95 h-9"
-                  style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+                  style={{ background: "#0085CA", border: "2px solid #0085CA" }}
                 >
                   {adding ? (
                     <Loader2 className="size-4 animate-spin" />
@@ -425,7 +425,7 @@ export function TemplateAdminDialog({
                   onClick={onCreate}
                   disabled={creating || !newName.trim()}
                   className="text-white hover:brightness-95 h-9"
-                  style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+                  style={{ background: "#0085CA", border: "2px solid #0085CA" }}
                 >
                   {creating && <Loader2 className="size-4 animate-spin" />}
                   Create Template

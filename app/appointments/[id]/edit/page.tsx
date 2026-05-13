@@ -202,7 +202,7 @@ export default function EditAppointmentPage({
           <>
             <div
               className="rounded-lg p-4 mb-6 bg-slate-50 text-sm"
-              style={{ border: "2px solid #C9A55C" }}
+              style={{ border: "2px solid #0085CA" }}
             >
               <div className="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-2">
                 <Read label="Date" value={ptFmtDateLong(appt.startTime)} />
@@ -338,7 +338,7 @@ export default function EditAppointmentPage({
                   type="submit"
                   disabled={submitting || terminal}
                   className="text-white font-medium"
-                  style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+                  style={{ background: "#0085CA", border: "2px solid #0085CA" }}
                 >
                   {submitting ? <Loader2 className="size-4 animate-spin" /> : null}
                   Save changes

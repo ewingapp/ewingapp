@@ -145,11 +145,11 @@ function SearchView() {
 
         <div
           className="rounded-lg p-5 flex gap-4 mb-6 bg-slate-50"
-          style={{ border: "2px solid #C9A55C" }}
+          style={{ border: "2px solid #0085CA" }}
         >
           <div
             className="grid place-items-center size-9 rounded-full shrink-0"
-            style={{ background: "#C9A55C" }}
+            style={{ background: "#0085CA" }}
           >
             <Info className="size-5 text-white" />
           </div>
@@ -235,7 +235,7 @@ function SearchView() {
               onClick={onSearch}
               disabled={submitting}
               className="w-full h-10 text-white font-medium shadow-sm hover:brightness-95"
-              style={{ background: "#0085CA", border: "2px solid #C9A55C" }}
+              style={{ background: "#0085CA", border: "2px solid #0085CA" }}
             >
               {submitting ? (
                 <Loader2 className="size-4 animate-spin" />
