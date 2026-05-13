@@ -602,7 +602,7 @@ function ResultsView() {
                       variant="outline"
                       onClick={handleScheduleSameClaimant}
                       style={{ borderColor: "#C9A55C", borderWidth: "2px" }}
-                      className="w-full justify-start font-normal"
+                      className="self-start font-normal"
                     >
                       Schedule another appointment for the same claimant
                     </Button>
@@ -611,7 +611,7 @@ function ResultsView() {
                       variant="outline"
                       onClick={handleSaveAnalystInfo}
                       style={{ borderColor: "#C9A55C", borderWidth: "2px" }}
-                      className="w-full justify-start font-normal"
+                      className="self-start font-normal"
                     >
                       Save analyst information
                     </Button>
@@ -620,7 +620,7 @@ function ResultsView() {
                       variant="outline"
                       onClick={handleScheduleNewAppointment}
                       style={{ borderColor: "#C9A55C", borderWidth: "2px" }}
-                      className="w-full justify-start font-normal"
+                      className="self-start font-normal"
                     >
                       New appointment
                     </Button>
