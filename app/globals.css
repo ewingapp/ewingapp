@@ -236,15 +236,15 @@
 }
 
 .ewing-calendar .rdp-day_button {
-  background: #DBEAFE;
+  background: #ffffff;
   color: #1E3A8A;
-  border: 1px solid #93C5FD;
+  border: 1px solid #E2E8F0;
   font-weight: 500;
 }
 
 .ewing-calendar .rdp-day_button:hover {
-  background: #BFDBFE;
-  border-color: #60A5FA;
+  background: #F0F9FF;
+  border-color: #BFDBFE;
 }
 
 .ewing-calendar .rdp-day_outside .rdp-day_button {
@@ -277,8 +277,9 @@
 }
 
 .ewing-calendar .rdp-range_middle .rdp-day_button {
-  background: #DBEAFE !important;
+  background: #F1F5F9 !important;
   color: #1E3A8A !important;
+  border-color: #CBD5E1 !important;
 }
 
 .ewing-calendar .rdp-day-holiday .rdp-day_button {
