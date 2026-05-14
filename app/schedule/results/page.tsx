@@ -356,6 +356,7 @@ function ResultsView() {
                 {ptFmtDateLong(bookingSlot.startTime)} at {ptFmtTime(bookingSlot.startTime)} ·{" "}
                 {doctorDisplay(bookingSlot.doctor)}
                 {location && <> · {location.name}</>}
+                {specialty && <> · {specialty.name}</>}
               </DialogDescription>
             )}
           </DialogHeader>
@@ -435,7 +436,7 @@ function ResultsView() {
               </Field>
             </div>
 
-            <Field label="Notes" error={form.formState.errors.notes?.message}>
+            <Field label="Comments" error={form.formState.errors.notes?.message}>
               <Textarea rows={3} {...form.register("notes")} />
             </Field>
 

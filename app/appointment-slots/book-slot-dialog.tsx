@@ -434,7 +434,7 @@ export function BookSlotDialog({
                 </Field>
               </div>
 
-              <Field label="Notes" error={errors.notes?.message}>
+              <Field label="Comments" error={errors.notes?.message}>
                 <Textarea rows={3} {...register("notes")} />
               </Field>
 
