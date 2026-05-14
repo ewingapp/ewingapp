@@ -214,7 +214,7 @@
 }
 
 .ewing-calendar .rdp-weekdays {
-  background: #F1F5F9;
+  background: #E2E2E2;
   color: #334155;
   font-size: 0.75rem;
   font-weight: 600;
@@ -222,29 +222,29 @@
 }
 
 .ewing-calendar .rdp-weekday {
-  background: #F1F5F9;
+  background: #E2E2E2;
 }
 
 .ewing-calendar .rdp-day {
   color: #cbd5e1;
 }
 
-/* Sunday and Saturday columns get a soft slate background */
+/* Sunday and Saturday columns share the weekday-header gray */
 .ewing-calendar .rdp-week .rdp-day:first-child,
 .ewing-calendar .rdp-week .rdp-day:last-child {
-  background: #F1F5F9;
+  background: #E2E2E2;
 }
 
 .ewing-calendar .rdp-day-available .rdp-day_button {
-  background: #ffffff;
-  color: #334155;
-  border: 1px solid #F1F5F9;
+  background: #DBEAFE;
+  color: #1E3A8A;
+  border: 1px solid #93C5FD;
   font-weight: 500;
 }
 
 .ewing-calendar .rdp-day-available:hover .rdp-day_button {
-  background: #F1F5F9;
-  border-color: #E2E8F0;
+  background: #BFDBFE;
+  border-color: #60A5FA;
 }
 
 .ewing-calendar .rdp-today .rdp-day_button {
@@ -381,16 +381,29 @@
   right: 0.25rem;
 }
 .rdp-custom .rdp-weekdays {
-  background: #F1F5F9;
+  background: #E2E2E2;
 }
 .rdp-custom .rdp-weekday {
-  background: #F1F5F9;
+  background: #E2E2E2;
   font-weight: 600;
   color: #334155;
 }
 .rdp-custom .rdp-week .rdp-day:first-child,
 .rdp-custom .rdp-week .rdp-day:last-child {
-  background: #F1F5F9;
+  background: #E2E2E2;
+}
+.rdp-custom .rdp-day_button {
+  background: #DBEAFE;
+  color: #1E3A8A;
+  border: 1px solid #93C5FD;
+}
+.rdp-custom .rdp-day_button:hover {
+  background: #BFDBFE;
+  border-color: #60A5FA;
+}
+.rdp-custom .rdp-day_outside .rdp-day_button {
+  background: transparent;
+  border-color: transparent;
 }
 .rdp-custom .rdp-day-holiday .rdp-day_button {
   color: #dc2626;
