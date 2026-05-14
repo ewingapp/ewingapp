@@ -319,17 +319,20 @@
 .rdp-custom {
   --rdp-accent-color: #0085ca;
   --rdp-accent-background-color: #0085ca;
-  --rdp-day-width: 1.65rem;
-  --rdp-day-height: 1.65rem;
-  --rdp-month-caption-font: 600 0.875rem/1.25rem ui-sans-serif, system-ui, sans-serif;
+  --rdp-day-width: 1.75rem;
+  --rdp-day-height: 1.75rem;
+  --rdp-day_button-width: 1.5rem;
+  --rdp-day_button-height: 1.5rem;
+  --rdp-month-caption-font: 600 0.8125rem/1.125rem ui-sans-serif, system-ui, sans-serif;
   --rdp-weekday-text-transform: none;
-  --rdp-weekday-padding: 0.25rem 0.125rem;
+  --rdp-weekday-padding: 0.125rem 0.0625rem;
   --rdp-day_button-border-radius: 999px;
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
 }
 .rdp-custom .rdp-day_button {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
+  padding: 0;
 }
 .rdp-custom .rdp-day_outside .rdp-day_button {
   color: #94a3b8;
@@ -342,14 +345,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 2.25rem;
+  height: 1.75rem;
   background: #0085CA;
   color: #fff;
   border: 2px solid #0085CA;
   border-radius: 0.25rem;
   font-weight: 600;
   padding: 0;
-  margin: 0 0 0.25rem;
+  margin: 0 0 0.125rem;
   text-align: center;
 }
 .rdp-custom .rdp-caption_label {
@@ -362,7 +365,7 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 2.25rem;
+  height: 1.75rem;
   pointer-events: none;
   z-index: 1;
 }
@@ -370,8 +373,8 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  height: 1.5rem;
-  width: 1.5rem;
+  height: 1.25rem;
+  width: 1.25rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
