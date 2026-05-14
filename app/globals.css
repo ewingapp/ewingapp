@@ -318,7 +318,7 @@
   --rdp-month-caption-font: 600 0.875rem/1.25rem ui-sans-serif, system-ui, sans-serif;
   --rdp-weekday-text-transform: none;
   --rdp-weekday-padding: 0.25rem 0.125rem;
-  --rdp-day_button-border-radius: 999px;
+  --rdp-day_button-border-radius: 0.25rem;
   margin: 0;
   font-size: 0.75rem;
 }
@@ -391,6 +391,19 @@
 .rdp-custom .rdp-week .rdp-day:first-child,
 .rdp-custom .rdp-week .rdp-day:last-child {
   background: #E2E2E2;
+}
+.rdp-custom .rdp-day_button {
+  background: #F1F5F9;
+  color: #334155;
+  border: 1px solid #CBD5E1;
+}
+.rdp-custom .rdp-day_button:hover {
+  background: #E2E8F0;
+  border-color: #94A3B8;
+}
+.rdp-custom .rdp-day_outside .rdp-day_button {
+  background: transparent;
+  border-color: transparent;
 }
 .rdp-custom .rdp-day-holiday .rdp-day_button {
   color: #dc2626;
