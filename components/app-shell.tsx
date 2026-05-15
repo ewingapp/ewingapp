@@ -105,8 +105,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <nav
           style={{
             background: "#F1F5F9",
-            borderTop: "2px solid #0085CA",
-            borderBottom: "2px solid #0085CA",
+            borderTop: "2px solid #CBD5E1",
+            borderBottom: "2px solid #CBD5E1",
           }}
         >
           <div className="max-w-7xl mx-auto px-6 flex items-center gap-2 sm:gap-4 overflow-x-auto">
