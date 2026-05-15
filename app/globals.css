@@ -243,14 +243,14 @@
 
 .ewing-calendar .rdp-day_button {
   background: #ffffff;
-  color: #1E3A8A;
+  color: #475569; /* slate-600 — was dark blue, toned down */
   border: 1px solid #E2E8F0;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .ewing-calendar .rdp-day_button:hover {
-  background: #F0F9FF;
-  border-color: #BFDBFE;
+  background: #F8FAFC;
+  border-color: #CBD5E1;
 }
 
 .ewing-calendar .rdp-day_outside .rdp-day_button {
@@ -259,33 +259,34 @@
 }
 
 .ewing-calendar .rdp-today .rdp-day_button {
-  font-weight: 700;
-  color: #0085CA;
-  outline: 1.5px solid #0085CA;
+  font-weight: 600;
+  color: #334155; /* slate-700 */
+  outline: 1.5px solid #94A3B8; /* slate-400 — was bright blue */
   outline-offset: -1.5px;
 }
 
 .ewing-calendar .rdp-selected .rdp-day_button {
   background: white !important;
-  color: #0085CA !important;
-  outline: 2px solid #0085CA !important;
+  color: #334155 !important; /* slate-700 */
+  outline: 2px solid #64748B !important; /* slate-500 — was bright blue */
   outline-offset: -2px !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
 }
 
 .ewing-calendar .rdp-range_start .rdp-day_button,
 .ewing-calendar .rdp-range_end .rdp-day_button {
   background: white !important;
-  color: #0085CA !important;
-  outline: 2px solid #0085CA !important;
+  color: #334155 !important;
+  outline: 2px solid #64748B !important;
   outline-offset: -2px !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
 }
 
 .ewing-calendar .rdp-range_middle .rdp-day_button {
-  background: #F1F5F9 !important;
-  color: #1E3A8A !important;
-  border-color: #CBD5E1 !important;
+  background: #F1F5F9 !important; /* slate-100 */
+  color: #64748B !important; /* slate-500 — was dark blue */
+  border-color: #E2E8F0 !important;
+  font-weight: 400 !important;
 }
 
 .ewing-calendar .rdp-day-holiday .rdp-day_button {
