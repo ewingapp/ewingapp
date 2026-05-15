@@ -272,7 +272,10 @@ export default function DoctorReportPage() {
       });
       lines.push(cols.join(","));
     }
-    const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+    // UTF-8 BOM + CRLF so Excel on Windows parses delimiters and accents
+    // correctly instead of dropping the row into a single cell.
+    const csv = "﻿" + lines.join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -456,7 +459,6 @@ export default function DoctorReportPage() {
                       <Th sortKey="firstName" current={sortKey} dir={sortDir} onSort={onSort}>
                         First Name
                       </Th>
-                      <th className="px-3 py-2 text-left font-semibold">DOB</th>
                       <Th sortKey="phone" current={sortKey} dir={sortDir} onSort={onSort}>
                         Phone
                       </Th>
@@ -474,7 +476,7 @@ export default function DoctorReportPage() {
                   <tbody>
                     {sorted.length === 0 && (
                       <tr>
-                        <td colSpan={13} className="px-3 py-6 text-center text-slate-500">
+                        <td colSpan={12} className="px-3 py-6 text-center text-slate-500">
                           No appointments match these filters.
                         </td>
                       </tr>
@@ -533,7 +535,6 @@ export default function DoctorReportPage() {
                           <td className="px-3 py-2 font-mono text-xs">{a.caseNumber}</td>
                           <td className="px-3 py-2">{a.lastNamePrefix}</td>
                           <td className="px-3 py-2">{a.firstInitial}</td>
-                          <td className="px-3 py-2 text-slate-400">—</td>
                           <td className="px-3 py-2 whitespace-nowrap">
                             {a.claimantPhone || (
                               <span className="text-slate-400">—</span>
