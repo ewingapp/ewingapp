@@ -202,7 +202,7 @@ export default function EditAppointmentPage({
           <>
             <div
               className="rounded-lg p-4 mb-6 bg-slate-50 text-sm"
-              style={{ border: "2px solid #0085CA" }}
+              style={{ border: "2px solid #CBD5E1" }}
             >
               <div className="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-2">
                 <Read label="Date" value={ptFmtDateLong(appt.startTime)} />

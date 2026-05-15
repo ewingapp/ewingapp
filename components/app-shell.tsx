@@ -52,7 +52,7 @@ function TodayCounter() {
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium text-slate-700 bg-white shadow-sm"
-      style={{ border: "1.5px solid #0085CA" }}
+      style={{ border: "1.5px solid #CBD5E1" }}
       title="Appointments scheduled for today"
       aria-live="polite"
     >

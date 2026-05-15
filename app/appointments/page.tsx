@@ -419,7 +419,7 @@ function ScheduledAppointmentsView() {
         {!hasResults && (
         <div
           className="rounded-lg p-5 mb-6 bg-slate-50"
-          style={{ border: "2px solid #0085CA" }}
+          style={{ border: "2px solid #CBD5E1" }}
         >
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
             {/* Office / Doctor toggle */}

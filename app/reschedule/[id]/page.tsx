@@ -289,7 +289,7 @@ export default function ReschedulePage({
             {/* Current appointment summary — compact horizontal bar */}
             <div
               className="rounded-lg p-4 mb-6 bg-slate-50 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm"
-              style={{ border: "2px solid #0085CA" }}
+              style={{ border: "2px solid #CBD5E1" }}
             >
               <SummaryItem
                 label="Claimant"
@@ -582,7 +582,7 @@ function MoveConfirmDialog({
         {original && slot && (
           <div
             className="rounded-lg p-4 text-sm space-y-4 bg-slate-50"
-            style={{ border: "2px solid #0085CA" }}
+            style={{ border: "2px solid #CBD5E1" }}
           >
             <div>
               <h3 className="font-semibold text-xs text-slate-700 uppercase tracking-wide border-b border-slate-200 pb-1 mb-2">

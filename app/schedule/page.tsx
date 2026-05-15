@@ -149,7 +149,7 @@ function SearchView() {
 
         <details
           className="rounded-lg mb-4 bg-slate-50 text-sm group"
-          style={{ border: "2px solid #0085CA" }}
+          style={{ border: "2px solid #CBD5E1" }}
         >
           <summary className="cursor-pointer list-none flex items-center gap-2 px-3 py-2 select-none">
             <Info className="size-4" style={{ color: "#0085CA" }} />

@@ -542,7 +542,7 @@ export default function AppointmentSlotsPage() {
           <>
             <div
               className="border-2 bg-white mb-3 text-sm w-fit max-w-full overflow-hidden"
-              style={{ borderColor: "#0085CA", boxShadow: "inset 0 -3px 0 #0085CA" }}
+              style={{ borderColor: "#CBD5E1", boxShadow: "inset 0 -3px 0 #CBD5E1" }}
             >
               <Row label="Office:">
                 <Select
@@ -816,14 +816,14 @@ export default function AppointmentSlotsPage() {
             {slotRows.length === 0 ? (
               <div
                 className="bg-white border-2 px-4 py-4 text-sm text-slate-600"
-                style={{ borderColor: "#0085CA", boxShadow: "inset 0 -3px 0 #0085CA" }}
+                style={{ borderColor: "#CBD5E1", boxShadow: "inset 0 -3px 0 #CBD5E1" }}
               >
                 There are no Appointment Slots for this doctor on this day.
               </div>
             ) : (
               <div
                 className="bg-white border-2 overflow-hidden text-sm"
-                style={{ borderColor: "#0085CA", boxShadow: "inset 0 -3px 0 #0085CA" }}
+                style={{ borderColor: "#CBD5E1", boxShadow: "inset 0 -3px 0 #CBD5E1" }}
               >
                 <table className="w-full">
                   <thead
@@ -975,11 +975,11 @@ function Row({
   return (
     <div
       className="flex border-b last:border-b-0"
-      style={{ borderColor: "#0085CA" }}
+      style={{ borderColor: "#CBD5E1" }}
     >
       <div
         className="w-28 shrink-0 border-r px-2 py-1.5 font-bold text-slate-900 flex items-center"
-        style={{ borderColor: "#0085CA", background: "#E2E2E2" }}
+        style={{ borderColor: "#CBD5E1", background: "#E2E2E2" }}
       >
         {label}
       </div>

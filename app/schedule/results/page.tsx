@@ -275,7 +275,7 @@ function ResultsView() {
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div
           className="rounded-lg px-4 py-2.5 mb-4 bg-slate-50 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm"
-          style={{ border: "2px solid #0085CA" }}
+          style={{ border: "2px solid #CBD5E1" }}
         >
           <h1 className="text-lg font-semibold text-slate-900 mr-2">
             Available Appointments
