@@ -30,6 +30,7 @@ const patchSchema = z.object({
   hasInterpreter: z.enum(["yes", "no"]),
   isOdarCase: z.enum(["yes", "no"]),
   notes: z.string().optional().or(z.literal("")),
+  doctorId: z.string().min(1).optional(),
 });
 
 export async function GET(
@@ -68,7 +69,7 @@ export async function PATCH(
 
   const existing = await prisma.appointment.findUnique({
     where: { id },
-    select: { id: true, status: true },
+    select: { id: true, status: true, doctorId: true, specialtyId: true, locationId: true },
   });
   if (!existing) {
     return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
@@ -78,6 +79,43 @@ export async function PATCH(
       { error: "Cannot edit a cancelled or moved appointment" },
       { status: 409 },
     );
+  }
+
+  // Doctor reassignment: validate eligibility against the appointment's
+  // specialty + location, and require the new doctor to be active.
+  let nextDoctorId: string | undefined;
+  if (data.doctorId && data.doctorId !== existing.doctorId) {
+    const candidate = await prisma.doctor.findUnique({
+      where: { id: data.doctorId },
+      select: {
+        id: true,
+        active: true,
+        locations: { select: { id: true } },
+        specialties: { select: { id: true } },
+      },
+    });
+    if (!candidate) {
+      return NextResponse.json({ error: "Doctor not found" }, { status: 400 });
+    }
+    if (!candidate.active) {
+      return NextResponse.json(
+        { error: "Cannot reassign to an inactive doctor" },
+        { status: 400 },
+      );
+    }
+    if (!candidate.specialties.some((s) => s.id === existing.specialtyId)) {
+      return NextResponse.json(
+        { error: "Doctor does not handle this exam type" },
+        { status: 400 },
+      );
+    }
+    if (!candidate.locations.some((l) => l.id === existing.locationId)) {
+      return NextResponse.json(
+        { error: "Doctor is not assigned to this office" },
+        { status: 400 },
+      );
+    }
+    nextDoctorId = candidate.id;
   }
 
   const updated = await prisma.appointment.update({
@@ -98,6 +136,7 @@ export async function PATCH(
       hasInterpreter: data.hasInterpreter,
       isOdarCase: data.isOdarCase,
       notes: data.notes ?? "",
+      ...(nextDoctorId ? { doctorId: nextDoctorId } : {}),
     },
   });
 

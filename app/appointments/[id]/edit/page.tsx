@@ -43,10 +43,20 @@ const formSchema = z.object({
   hasInterpreter: z.enum(["yes", "no"]),
   isOdarCase: z.enum(["yes", "no"]),
   notes: z.string().optional().or(z.literal("")),
+  doctorId: z.string().min(1, "Required"),
 });
 type FormValues = z.infer<typeof formSchema>;
 
 type Branch = { id: string; name: string };
+type Doctor = {
+  id: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  active: boolean;
+  locations: { id: string; name: string }[];
+  specialties: { id: string; name: string }[];
+};
 type Appt = {
   id: string;
   startTime: string;
@@ -66,9 +76,9 @@ type Appt = {
   isOdarCase: string;
   notes: string;
   status: string;
-  doctor: { name: string; firstName: string; lastName: string };
-  specialty: { name: string };
-  location: { name: string };
+  doctor: { id: string; name: string; firstName: string; lastName: string };
+  specialty: { id: string; name: string };
+  location: { id: string; name: string };
 };
 
 export default function EditAppointmentPage({
@@ -80,6 +90,7 @@ export default function EditAppointmentPage({
   const router = useRouter();
   const [appt, setAppt] = useState<Appt | null>(null);
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -102,6 +113,7 @@ export default function EditAppointmentPage({
       hasInterpreter: "no",
       isOdarCase: "no",
       notes: "",
+      doctorId: "",
     },
   });
 
@@ -117,11 +129,13 @@ export default function EditAppointmentPage({
         return r.json() as Promise<Appt>;
       }),
       fetch("/api/branches").then((r) => r.json() as Promise<Branch[]>),
+      fetch("/api/doctors").then((r) => r.json() as Promise<Doctor[]>),
     ])
-      .then(([a, bs]) => {
+      .then(([a, bs, ds]) => {
         if (cancelled) return;
         setAppt(a);
         setBranches(bs);
+        setDoctors(ds);
         form.reset({
           caseNumber: a.caseNumber,
           contractNumber: a.contractNumber ?? "",
@@ -138,6 +152,7 @@ export default function EditAppointmentPage({
           hasInterpreter: (a.hasInterpreter === "yes" ? "yes" : "no"),
           isOdarCase: (a.isOdarCase === "yes" ? "yes" : "no"),
           notes: a.notes ?? "",
+          doctorId: a.doctor.id,
         });
       })
       .catch((e) => {
@@ -148,6 +163,22 @@ export default function EditAppointmentPage({
       cancelled = true;
     };
   }, [id, form]);
+
+  const eligibleDoctors = (() => {
+    if (!appt) return [];
+    const specId = appt.specialty.id;
+    const locId = appt.location.id;
+    const others = doctors.filter(
+      (d) =>
+        d.id !== appt.doctor.id &&
+        d.active &&
+        d.specialties.some((s) => s.id === specId) &&
+        d.locations.some((l) => l.id === locId),
+    );
+    others.sort((a, b) => a.name.localeCompare(b.name));
+    const current = doctors.find((d) => d.id === appt.doctor.id);
+    return current ? [current, ...others] : others;
+  })();
 
   async function onSubmit(values: FormValues) {
     setSubmitting(true);
@@ -207,20 +238,37 @@ export default function EditAppointmentPage({
               <div className="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-2">
                 <Read label="Date" value={ptFmtDateLong(appt.startTime)} />
                 <Read label="Time" value={ptFmtTime(appt.startTime)} />
-                <Read label="Doctor" value={`${appt.doctor.firstName} ${appt.doctor.lastName}`.trim()} />
                 <Read label="Office" value={appt.location.name} />
                 <Read label="Exam" value={appt.specialty.name} />
               </div>
-              <p className="text-xs text-slate-500 mt-2">
-                To change date, time, doctor, office, or exam type, use{" "}
-                <Link
-                  href={`/reschedule/${id}`}
-                  className="text-[#0085CA] hover:underline"
-                >
-                  Reschedule
-                </Link>
-                .
-              </p>
+              <div className="mt-3">
+                <Field label="Doctor" error={form.formState.errors.doctorId?.message}>
+                  <select
+                    disabled={terminal}
+                    {...form.register("doctorId")}
+                    className="flex h-9 w-full max-w-md rounded-lg border border-input bg-white px-2.5 text-sm focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 outline-none disabled:opacity-60"
+                  >
+                    {eligibleDoctors.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                        {d.id === appt.doctor.id ? " (current)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <p className="text-xs text-slate-500 mt-1.5">
+                  Only active doctors with the same exam type at the same
+                  office are listed. To change date, time, office, or exam
+                  type, use{" "}
+                  <Link
+                    href={`/reschedule/${id}`}
+                    className="text-[#0085CA] hover:underline"
+                  >
+                    Reschedule
+                  </Link>
+                  .
+                </p>
+              </div>
             </div>
 
             {terminal && (

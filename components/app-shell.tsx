@@ -16,6 +16,7 @@ const NAV: NavItem[] = [
   { href: "/calendar", label: "Calendar" },
   { href: "/appointments", label: "Scheduled Appointments" },
   { href: "/schedule", label: "New Appointment" },
+  { href: "/reports", label: "Reports" },
   { href: "/faq", label: "FAQ" },
 ];
 
