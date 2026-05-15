@@ -124,6 +124,7 @@ npm run db:seed      # seeds — idempotent, skips if Locations exist
 | `/appointments` (list + filters + status/cancel) | TODO |
 | `/reschedule/[id]` | TODO |
 | `/reports` | TODO |
+| Per-appointment Tests field (data model + UI; Appointments Made report shows a placeholder column today) | TODO |
 | Custom domain ewingapp.com attached | TODO |
 
 ## Notes on Prisma 7

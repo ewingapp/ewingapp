@@ -213,6 +213,12 @@
   right: 0.5rem;
 }
 
+/* react-day-picker v9 fills chevrons with --rdp-accent-color (blue), which is
+   invisible against the blue caption bar — force them to white. */
+.ewing-calendar .rdp-chevron {
+  fill: #ffffff;
+}
+
 .ewing-calendar .rdp-weekdays {
   background: #E2E2E2;
   color: #334155;
@@ -391,6 +397,9 @@
 }
 .rdp-custom .rdp-button_next {
   right: 0.25rem;
+}
+.rdp-custom .rdp-chevron {
+  fill: #ffffff;
 }
 .rdp-custom .rdp-weekdays {
   background: #F1F5F9;
