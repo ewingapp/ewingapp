@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { LATE_CANCEL_WINDOW_MS } from "@/lib/late-cancel";
 
 const bodySchema = z.object({
   reason: z.string().min(1, "Reason is required").max(500),
@@ -23,7 +24,7 @@ export async function POST(
 
   const existing = await prisma.appointment.findUnique({
     where: { id },
-    select: { id: true, status: true },
+    select: { id: true, status: true, startTime: true },
   });
   if (!existing) {
     return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
@@ -35,14 +36,19 @@ export async function POST(
     );
   }
 
+  const cancelledAt = new Date();
+  const isLate =
+    existing.startTime.getTime() - cancelledAt.getTime() < LATE_CANCEL_WINDOW_MS;
+
   const updated = await prisma.appointment.update({
     where: { id },
     data: {
       status: "CANCELLED",
       cancelledBy: "VENDOR",
       cancelledByName: parsed.data.cancelledByName,
-      cancelledAt: new Date(),
+      cancelledAt,
       statusNote: parsed.data.reason,
+      isLateCancellation: isLate,
     },
   });
 

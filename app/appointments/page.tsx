@@ -45,6 +45,7 @@ import {
   ptTodayIso,
 } from "@/lib/pt";
 import { getCaHolidaysRange } from "@/lib/ca-holidays";
+import { isLateCancel } from "@/lib/late-cancel";
 
 type Location = { id: string; name: string };
 type Specialty = { id: string; name: string };
@@ -69,6 +70,7 @@ type Appt = {
   cancelledBy: "BRANCH" | "VENDOR" | null;
   cancelledByName: string;
   cancelledAt: string | null;
+  isLateCancellation: boolean;
   movedBy: "BRANCH" | "VENDOR" | null;
   movedByName: string;
   movedAt: string | null;
@@ -1108,7 +1110,7 @@ function StatusCell({
   if (!editable) {
     return (
       <div className="flex flex-col gap-1">
-        <StatusBadge status={appt.status} />
+        <StatusBadge status={appt.status} late={isLateCancel(appt)} />
         {appt.statusNote && appt.status !== "CANCELLED" && (
           <span className="text-[11px] text-slate-500 max-w-[14rem] leading-tight">
             {appt.statusNote}
@@ -1161,7 +1163,13 @@ function StatusCell({
   );
 }
 
-function StatusBadge({ status }: { status: Appt["status"] }) {
+function StatusBadge({
+  status,
+  late = false,
+}: {
+  status: Appt["status"];
+  late?: boolean;
+}) {
   const color: Record<Appt["status"], string> = {
     SCHEDULED: "bg-blue-50 text-blue-700 ring-blue-200",
     KEPT: "bg-emerald-50 text-emerald-700 ring-emerald-200",
@@ -1170,11 +1178,19 @@ function StatusBadge({ status }: { status: Appt["status"] }) {
     MOVED: "bg-amber-50 text-amber-700 ring-amber-200",
     OTHER: "bg-slate-50 text-slate-600 ring-slate-200",
   };
+  const className =
+    status === "CANCELLED" && late
+      ? "bg-rose-100 text-rose-800 ring-rose-300"
+      : color[status];
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset ${color[status]}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset ${className}`}
+      title={status === "CANCELLED" && late ? "Cancelled < 24 hours before appointment" : undefined}
     >
       {STATUS_LABEL[status]}
+      {status === "CANCELLED" && late && (
+        <span className="ml-1 font-semibold">• &lt; 24h</span>
+      )}
     </span>
   );
 }
