@@ -12,7 +12,7 @@ import {
   Calendar as CalendarIcon,
 } from "lucide-react";
 
-import { AppShell, PageHeader } from "@/components/app-shell";
+import { AppShell } from "@/components/app-shell";
 import { getCaHolidaysRange } from "@/lib/ca-holidays";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -140,20 +140,28 @@ function SearchView() {
 
   return (
     <AppShell>
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <PageHeader title="Create a New Appointment" />
+      <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="text-xl font-semibold text-slate-900">
+            Create a New Appointment
+          </h1>
+        </div>
 
-        <div
-          className="rounded-lg p-5 flex gap-4 mb-6 bg-slate-50"
+        <details
+          className="rounded-lg mb-4 bg-slate-50 text-sm group"
           style={{ border: "2px solid #0085CA" }}
         >
-          <div
-            className="grid place-items-center size-9 rounded-full shrink-0"
-            style={{ background: "#0085CA" }}
-          >
-            <Info className="size-5 text-white" />
-          </div>
-          <ul className="text-sm text-slate-700 space-y-1.5 leading-relaxed list-disc pl-4">
+          <summary className="cursor-pointer list-none flex items-center gap-2 px-3 py-2 select-none">
+            <Info className="size-4" style={{ color: "#0085CA" }} />
+            <span className="font-medium text-slate-700">How to search</span>
+            <span className="ml-auto text-xs text-slate-500 group-open:hidden">
+              Show
+            </span>
+            <span className="ml-auto text-xs text-slate-500 hidden group-open:inline">
+              Hide
+            </span>
+          </summary>
+          <ul className="px-4 pb-3 pt-1 text-slate-700 space-y-1 leading-relaxed list-disc pl-10">
             <li>
               Choose the desired <strong>Office</strong>.
             </li>
@@ -167,7 +175,7 @@ function SearchView() {
               Click the <strong>Search</strong> button.
             </li>
           </ul>
-        </div>
+        </details>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end mb-6">
           <div className="md:col-span-3 space-y-1.5">

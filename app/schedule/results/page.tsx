@@ -10,7 +10,7 @@ import { z } from "zod";
 import { format, parseISO } from "date-fns";
 import { ArrowLeft, Calendar as CalendarIcon, Loader2, Printer } from "lucide-react";
 
-import { AppShell, PageHeader } from "@/components/app-shell";
+import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -272,29 +272,25 @@ function ResultsView() {
 
   return (
     <AppShell>
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <PageHeader
-          title="Available Appointments"
-          trailing={
-            <Link
-              href={`/schedule?locationId=${locationId}&specialtyId=${specialtyId}&from=${from}&to=${to}`}
-              className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"
-            >
-              <ArrowLeft className="size-4" />
-              Change search
-            </Link>
-          }
-        />
-
-        {/* Search summary */}
+      <div className="max-w-7xl mx-auto px-6 py-4">
         <div
-          className="rounded-lg p-4 mb-6 bg-slate-50 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm"
+          className="rounded-lg px-4 py-2.5 mb-4 bg-slate-50 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm"
           style={{ border: "2px solid #0085CA" }}
         >
+          <h1 className="text-lg font-semibold text-slate-900 mr-2">
+            Available Appointments
+          </h1>
           <SummaryItem label="Office" value={location?.name ?? "—"} />
           <SummaryItem label="Specialty" value={specialty?.name ?? "—"} />
           <SummaryItem label="From" value={fromLabel} />
           <SummaryItem label="To" value={toLabel} />
+          <Link
+            href={`/schedule?locationId=${locationId}&specialtyId=${specialtyId}&from=${from}&to=${to}`}
+            className="ml-auto inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"
+          >
+            <ArrowLeft className="size-4" />
+            Change search
+          </Link>
         </div>
 
         {loadError && (

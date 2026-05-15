@@ -50,22 +50,18 @@ function TodayCounter() {
   }, [pathname]);
 
   return (
-    <div
-      className="max-w-7xl mx-auto px-6 py-2 flex justify-end"
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium text-slate-700 bg-white shadow-sm"
+      style={{ border: "1.5px solid #0085CA" }}
+      title="Appointments scheduled for today"
       aria-live="polite"
     >
-      <span
-        className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium text-slate-700 bg-white shadow-sm"
-        style={{ border: "1.5px solid #0085CA" }}
-        title="Appointments scheduled for today"
-      >
-        <CalendarCheck2 className="size-3.5" style={{ color: "#0085CA" }} />
-        <span className="text-slate-500">Today:</span>
-        <span className="font-semibold text-slate-900 tabular-nums">
-          {count ?? "—"}
-        </span>
+      <CalendarCheck2 className="size-3.5" style={{ color: "#0085CA" }} />
+      <span className="text-slate-500">Today:</span>
+      <span className="font-semibold text-slate-900 tabular-nums">
+        {count ?? "—"}
       </span>
-    </div>
+    </span>
   );
 }
 
@@ -81,6 +77,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <BrandMark />
           </Link>
           <div className="flex items-center gap-3">
+            <TodayCounter />
             <Link
               href="/schedule"
               className="hidden md:inline-flex items-center gap-2 h-9 px-3.5 rounded-md text-sm font-medium text-white shadow-sm transition"
@@ -136,8 +133,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </nav>
       </header>
-
-      <TodayCounter />
 
       <main className="flex-1 min-w-0 bg-white">{children}</main>
 
