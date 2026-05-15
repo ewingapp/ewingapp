@@ -19,7 +19,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { ptFmtDateShort, ptFmtTime, ptTodayIso } from "@/lib/pt";
 
@@ -82,6 +81,11 @@ export default function AppointmentSlotsReportPage() {
   const [error, setError] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  const selectedDoctorLabel = useMemo(() => {
+    const d = doctors.find((x) => x.id === doctorId);
+    return d ? doctorLabel(d) : "";
+  }, [doctors, doctorId]);
 
   useEffect(() => {
     fetch("/api/doctors")
@@ -216,7 +220,12 @@ export default function AppointmentSlotsReportPage() {
                 onValueChange={(v) => setDoctorId(v ?? "")}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a doctor…" />
+                  <span
+                    data-slot="select-value"
+                    className={selectedDoctorLabel ? "" : "text-muted-foreground"}
+                  >
+                    {selectedDoctorLabel || "Select a doctor…"}
+                  </span>
                 </SelectTrigger>
                 <SelectContent>
                   {doctors.map((d) => (
