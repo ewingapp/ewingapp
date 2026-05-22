@@ -378,25 +378,37 @@ function EditView({
         <Field label="Address 2">
           <Input value={draft.address2} onChange={(e) => update("address2", e.target.value)} placeholder="Suite, unit, etc. (optional)" />
         </Field>
-        <div className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr] gap-3">
-          <Field label="City">
-            <Input value={draft.city} onChange={(e) => update("city", e.target.value)} />
-          </Field>
-          <Field label="State">
-            <Input value={draft.state} onChange={(e) => update("state", e.target.value)} />
-          </Field>
-          <Field label="Zipcode">
-            <Input value={draft.zip} onChange={(e) => update("zip", e.target.value)} />
-          </Field>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Field label="Phone">
-            <Input value={draft.phone} onChange={(e) => update("phone", e.target.value)} />
-          </Field>
-          <Field label="Fax">
-            <Input value={draft.fax} onChange={(e) => update("fax", e.target.value)} />
-          </Field>
-        </div>
+        <Field label="City">
+          <Input value={draft.city} onChange={(e) => update("city", e.target.value)} />
+        </Field>
+        <Field label="State">
+          <Input
+            value={draft.state}
+            onChange={(e) => update("state", e.target.value)}
+            className="w-24"
+          />
+        </Field>
+        <Field label="Zipcode">
+          <Input
+            value={draft.zip}
+            onChange={(e) => update("zip", e.target.value)}
+            className="w-40"
+          />
+        </Field>
+        <Field label="Phone">
+          <Input
+            value={draft.phone}
+            onChange={(e) => update("phone", e.target.value)}
+            className="w-56"
+          />
+        </Field>
+        <Field label="Fax">
+          <Input
+            value={draft.fax}
+            onChange={(e) => update("fax", e.target.value)}
+            className="w-56"
+          />
+        </Field>
         <Field
           label="Email"
           hint="Where appointment notifications are sent."
@@ -410,18 +422,21 @@ function EditView({
         <Field label="Contact Name">
           <Input value={draft.contactName} onChange={(e) => update("contactName", e.target.value)} />
         </Field>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Field label="LoginID">
-            <Input value={draft.loginId} onChange={(e) => update("loginId", e.target.value)} />
-          </Field>
-          <Field label="Password">
-            <Input
-              type="text"
-              value={draft.password}
-              onChange={(e) => update("password", e.target.value)}
-            />
-          </Field>
-        </div>
+        <Field label="LoginID">
+          <Input
+            value={draft.loginId}
+            onChange={(e) => update("loginId", e.target.value)}
+            className="w-56"
+          />
+        </Field>
+        <Field label="Password">
+          <Input
+            type="text"
+            value={draft.password}
+            onChange={(e) => update("password", e.target.value)}
+            className="w-56"
+          />
+        </Field>
         <Field
           label="Appointment Notification"
           hint="Always = email on every new, rescheduled, and cancelled appointment. Limited = rescheduled and cancelled only."
