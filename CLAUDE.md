@@ -123,8 +123,7 @@ npm run db:seed      # seeds — idempotent, skips if Locations exist
 | `/schedule` (the core screen) | TODO |
 | `/appointments` (list + filters + status/cancel) | TODO |
 | `/reschedule/[id]` | TODO |
-| `/reports` index + 9/12 individual reports (Doctor, Appointments Made, Appointment Slots, Cancellation, Holes, Empty Slots, Kept and No-Show, Total Slots, Doctor Scheduling) | done |
-| Remaining 3 reports as `[slug]` stubs: Office Appointment Slots, Double Book, Kept Appointments | TODO |
+| `/reports` index + all 9 individual reports (Doctor, Appointments Made, Appointment Slots, Cancellation, Holes, Empty Slots, Kept and No-Show, Total Slots, Doctor Scheduling) | done |
 | Per-appointment Tests field (data model + UI; Appointments Made report shows a placeholder column today) | TODO |
 | Custom domain ewingapp.com attached | TODO |
 

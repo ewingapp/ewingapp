@@ -24,12 +24,6 @@ export const REPORTS: ReportMeta[] = [
       "All empty appointment slots for a specific doctor for a range of days.",
   },
   {
-    slug: "office-appointment-slots",
-    name: "Office Appointment Slots Report",
-    description:
-      "All empty and filled appointment slots for a specified office on a specified day.",
-  },
-  {
     slug: "cancellations",
     name: "Cancellation Report",
     description:
@@ -40,12 +34,6 @@ export const REPORTS: ReportMeta[] = [
     name: "Holes Report",
     description:
       "All doctors that have holes in their schedule for a specified day.",
-  },
-  {
-    slug: "double-book",
-    name: "Double Book Report",
-    description:
-      "All Psych doctors that do No-testing exams that are double-booked for a specified day.",
   },
   {
     slug: "empty-slots",
@@ -66,19 +54,9 @@ export const REPORTS: ReportMeta[] = [
       "Count of total slots created and total scheduled appointments per doctor for a specific range of days.",
   },
   {
-    slug: "kept-appointments",
-    name: "Kept Appointments Report",
-    description:
-      "All kept appointments for a specific range of days. Tracks when the Doctor Report has been received and when it was submitted to the state.",
-  },
-  {
     slug: "doctor-scheduling",
     name: "Doctor Scheduling Report",
     description:
       "For each active doctor: all created empty appointment slots for a specific range of days, with how many were filled.",
   },
 ];
-
-export function findReport(slug: string): ReportMeta | undefined {
-  return REPORTS.find((r) => r.slug === slug);
-}
