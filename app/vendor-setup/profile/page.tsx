@@ -142,12 +142,11 @@ export default function VendorProfilePage() {
         <PageHeader title="Vendor Profile" />
 
         <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-          The <strong>Email</strong> address below is where appointment
-          confirmation notifications are sent. Use{" "}
-          <strong>Appointment Notification</strong> to control which events
-          trigger an email. The <strong>Description</strong> is a single
-          paragraph describing your business — Program Technicians can view
-          this information.
+          Click <strong>Modify</strong> to add or change the data below. The{" "}
+          <strong>Email</strong> address is where appointment confirmation
+          notifications are sent. Under <strong>Description</strong> you can
+          add a single paragraph describing your business — Program
+          Technicians are able to view this information.
         </p>
 
         {loading && (
@@ -201,13 +200,41 @@ export default function VendorProfilePage() {
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function TR({
+  label,
+  children,
+}: {
+  label: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-[12rem_1fr] gap-2 sm:gap-4 py-2 border-b border-slate-100 last:border-b-0">
-      <div className="text-sm text-slate-600 font-medium pt-1.5">{label}</div>
-      <div className="text-sm text-slate-900">{children}</div>
-    </div>
+    <tr>
+      <th
+        scope="row"
+        className="text-left align-top font-semibold text-slate-800 bg-slate-50 px-3 py-2 w-56"
+        style={{ border: "1px solid #CBD5E1" }}
+      >
+        {label}
+      </th>
+      <td
+        className="align-top text-slate-900 px-3 py-2"
+        style={{ border: "1px solid #CBD5E1" }}
+      >
+        {children}
+      </td>
+    </tr>
   );
+}
+
+function NOTIFICATION_SHORT(p: NotificationPref): string {
+  switch (p) {
+    case "ALWAYS":
+      return "Always";
+    case "LIMITED":
+      return "Limited";
+    case "NEVER":
+      return "Never";
+  }
 }
 
 function ReadView({
@@ -221,77 +248,71 @@ function ReadView({
 }) {
   return (
     <>
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold text-slate-900">Current profile</h2>
-        <div className="flex items-center gap-2">
-          {savedAt && (
-            <span className="text-xs text-emerald-600">Saved</span>
-          )}
-          <button
-            type="button"
-            onClick={onEdit}
-            className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md text-sm font-medium text-white shadow-sm hover:brightness-95"
-            style={{ background: "#0085CA", border: "2px solid #0085CA" }}
-          >
-            <Pencil className="size-4" />
-            Modify
-          </button>
-        </div>
+      <table className="w-full text-sm border-collapse">
+        <tbody>
+          <TR label="Name:">{vendor.name || <Empty />}</TR>
+          <TR label="Address:">
+            {vendor.address || <Empty />}
+            {vendor.address2 && (
+              <>
+                <br />
+                {vendor.address2}
+              </>
+            )}
+          </TR>
+          <TR label="City:">{vendor.city || <Empty />}</TR>
+          <TR label="State:">{vendor.state || <Empty />}</TR>
+          <TR label="Zipcode:">{vendor.zip || <Empty />}</TR>
+          <TR label="Phone:">{vendor.phone || <Empty />}</TR>
+          <TR label="Fax:">{vendor.fax || <Empty />}</TR>
+          <TR label="Email:">{vendor.email || <Empty />}</TR>
+          <TR label="LoginID:">{vendor.loginId || <Empty />}</TR>
+          <TR label="Password:">
+            {vendor.password || <Empty />}
+          </TR>
+          <TR label="Contact Name:">{vendor.contactName || <Empty />}</TR>
+          <TR label={<>Appointment Notification<sup>*</sup>:</>}>
+            {NOTIFICATION_SHORT(vendor.appointmentNotification)}
+          </TR>
+          <TR label="Description:">
+            {vendor.description ? (
+              <span className="whitespace-pre-wrap">{vendor.description}</span>
+            ) : (
+              <Empty />
+            )}
+          </TR>
+          <TR label={<>New Appointments<sup>**</sup>:</>}>
+            {vendor.newAppointments ? "True" : "False"}
+          </TR>
+        </tbody>
+      </table>
+
+      <div className="mt-4 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onEdit}
+          className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md text-sm font-medium text-white shadow-sm hover:brightness-95"
+          style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+        >
+          <Pencil className="size-4" />
+          Modify
+        </button>
+        {savedAt && <span className="text-xs text-emerald-600">Saved</span>}
       </div>
 
-      <Row label="Name">{vendor.name || <Empty />}</Row>
-      <Row label="Address">
-        {vendor.address || <Empty />}
-        {vendor.address2 && (
-          <>
-            <br />
-            {vendor.address2}
-          </>
-        )}
-      </Row>
-      <Row label="City">{vendor.city || <Empty />}</Row>
-      <Row label="State">{vendor.state || <Empty />}</Row>
-      <Row label="Zipcode">{vendor.zip || <Empty />}</Row>
-      <Row label="Phone">{vendor.phone || <Empty />}</Row>
-      <Row label="Fax">{vendor.fax || <Empty />}</Row>
-      <Row label="Email">
-        {vendor.email ? (
-          <>
-            {vendor.email}
-            <span className="ml-2 text-xs text-slate-500">
-              (receives appointment notifications)
-            </span>
-          </>
-        ) : (
-          <Empty />
-        )}
-      </Row>
-      <Row label="LoginID">{vendor.loginId || <Empty />}</Row>
-      <Row label="Password">
-        {vendor.password ? "••••••••" : <Empty />}
-      </Row>
-      <Row label="Contact Name">{vendor.contactName || <Empty />}</Row>
-      <Row label="Appointment Notification">
-        {NOTIFICATION_LABEL[vendor.appointmentNotification]}
-      </Row>
-      <Row label="Description">
-        {vendor.description ? (
-          <p className="whitespace-pre-wrap">{vendor.description}</p>
-        ) : (
-          <Empty />
-        )}
-      </Row>
-      <Row label="New Appointments">
-        {vendor.newAppointments ? "Yes" : "No"}
-      </Row>
-
-      <div className="mt-4 pt-4 border-t border-slate-200 text-xs text-slate-500 leading-relaxed">
+      <div className="mt-4 text-xs text-slate-600 leading-relaxed space-y-1">
         <p>
-          <strong>Notification settings:</strong>{" "}
-          <em>Always</em> sends an email on every new, rescheduled, and
-          cancelled appointment. <em>Limited</em> sends only on rescheduled
-          and cancelled appointments. Cancellations made less than 48 hours
-          before the appointment are flagged as late cancels.
+          <sup>*</sup>If <strong>Always</strong>, a message is sent to the email
+          specified above whenever a new appointment is created, an appointment
+          is rescheduled, or an appointment is canceled. If{" "}
+          <strong>Limited</strong>, messages are sent only for rescheduled and
+          cancelled appointments. Cancellations made less than 48 hours before
+          the appointment are flagged as late cancels in the message subject.
+        </p>
+        <p>
+          <sup>**</sup>If <strong>True</strong>, the practice is accepting new
+          appointments. If <strong>False</strong>, no new appointments will be
+          booked.
         </p>
       </div>
     </>
