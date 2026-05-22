@@ -98,6 +98,8 @@ npm run db:seed      # seeds — idempotent, skips if Locations exist
 | Var | Where set | Purpose |
 |-----|-----------|---------|
 | `DATABASE_URL` | `.env` (local) / Vercel project settings | Postgres connection string |
+| `RESEND_API_KEY` | `.env` (local) / Vercel project settings | Resend API key for cancel/reschedule notification emails. If unset, `lib/email.ts` logs and no-ops — nothing else breaks. |
+| `EMAIL_FROM` | `.env` (local) / Vercel project settings | Sender for notification emails, e.g. `Ewing Scheduling <scheduling@ewingdiagnostics.com>`. Sending domain must be verified in Resend. Falls back to `onboarding@resend.dev` if unset. |
 
 ## Conventions
 
@@ -124,6 +126,8 @@ npm run db:seed      # seeds — idempotent, skips if Locations exist
 | `/appointments` (list + filters + status/cancel) | TODO |
 | `/reschedule/[id]` | TODO |
 | `/reports` index + all 9 individual reports (Doctor, Appointments Made, Appointment Slots, Cancellation, Holes, Empty Slots, Kept and No-Show, Total Slots, Doctor Scheduling) | done |
+| Vendor Profile (`/vendor-setup/profile`) — Vendor singleton model, view/edit form | done |
+| Cancel + reschedule email notifications via Resend; honors vendor's Always / Limited / Never preference | done (wired; needs `RESEND_API_KEY` to actually send) |
 | Per-appointment Tests field (data model + UI; Appointments Made report shows a placeholder column today) | TODO |
 | Custom domain ewingapp.com attached | TODO |
 

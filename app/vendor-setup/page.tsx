@@ -49,9 +49,10 @@ const SECTIONS: {
   {
     href: "/vendor-setup/profile",
     title: "Vendor Profile",
-    description: "Company name, address, contact info, and description.",
+    description:
+      "Company name, address, contact info, and the email that receives cancel / reschedule notifications.",
     icon: BadgeCheck,
-    ready: false,
+    ready: true,
   },
   {
     href: "/vendor-setup/roles",

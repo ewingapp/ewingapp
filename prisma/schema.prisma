@@ -194,3 +194,33 @@ model StateBranch {
   name      String   @unique
   createdAt DateTime @default(now())
 }
+
+enum NotificationPref {
+  ALWAYS
+  LIMITED
+  NEVER
+}
+
+// Singleton — only one Vendor row is expected. Tracks the business profile
+// shown on /vendor-setup/profile and the email address that receives
+// cancel/reschedule notifications.
+model Vendor {
+  id                     String           @id @default(cuid())
+  name                   String           @default("")
+  address                String           @default("")
+  address2               String           @default("")
+  city                   String           @default("")
+  state                  String           @default("CA")
+  zip                    String           @default("")
+  phone                  String           @default("")
+  fax                    String           @default("")
+  email                  String           @default("")
+  loginId                String           @default("")
+  password               String           @default("")
+  contactName            String           @default("")
+  appointmentNotification NotificationPref @default(LIMITED)
+  description            String           @default("")
+  newAppointments        Boolean          @default(true)
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+}

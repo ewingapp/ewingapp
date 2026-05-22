@@ -60,7 +60,7 @@ function notesPlain(a: Appt): string {
   if (a.cancelledAt) {
     parts.push(`on ${ptFmtDateShort(a.cancelledAt)} ${ptFmtTime(a.cancelledAt)}`);
   }
-  if (isLateCancel(a)) parts.push("Canceled < 24 hours");
+  if (isLateCancel(a)) parts.push("Canceled < 48 hours");
   return parts.join("; ");
 }
 
@@ -165,7 +165,7 @@ export default function CancellationReportPage() {
         ptFmtDateShort(a.startTime),
         ptFmtTime(a.startTime),
         a.caseNumber,
-        isLateCancel(a) ? "Canceled (< 24h)" : "Canceled",
+        isLateCancel(a) ? "Canceled (< 48h)" : "Canceled",
         notesPlain(a),
       ].map((v) => {
         const s = String(v ?? "");
@@ -201,7 +201,7 @@ export default function CancellationReportPage() {
         </h1>
         <p className="text-sm text-slate-600 mb-6">
           All cancelled appointments within a date range. Rows cancelled less
-          than 24 hours before the appointment are highlighted in red.
+          than 48 hours before the appointment are highlighted in red.
         </p>
 
         <div
@@ -347,11 +347,11 @@ export default function CancellationReportPage() {
                               }
                               title={
                                 late
-                                  ? "Cancelled less than 24 hours before the appointment"
+                                  ? "Cancelled less than 48 hours before the appointment"
                                   : undefined
                               }
                             >
-                              Canceled{late ? " • < 24h" : ""}
+                              Canceled{late ? " • < 48h" : ""}
                             </span>
                           </td>
                           <td className="px-3 py-2 text-xs leading-snug max-w-[28rem]">
@@ -397,7 +397,7 @@ function NotesCell({ appt, late }: { appt: Appt; late: boolean }) {
         <div key={i}>{l}</div>
       ))}
       {late && (
-        <div className="text-rose-700 font-semibold">Canceled &lt; 24 hours</div>
+        <div className="text-rose-700 font-semibold">Canceled &lt; 48 hours</div>
       )}
     </div>
   );

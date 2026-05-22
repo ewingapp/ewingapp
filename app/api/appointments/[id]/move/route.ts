@@ -5,6 +5,7 @@ import type { Prisma } from "@/lib/generated/prisma/client";
 import { parseSyntheticSlotId } from "@/lib/availability";
 import { gapToNextBookingMinutes, dynamicSlotType } from "@/lib/slot-rules";
 import { ptFmtDateShort, ptFmtTime } from "@/lib/pt";
+import { notifyReschedule } from "@/lib/email";
 
 const bodySchema = z.object({
   slotId: z.string().min(1),
@@ -172,11 +173,40 @@ export async function POST(
           },
         });
 
-        return { newAppointment: newAppointmentWithRelations, originalId };
+        const originalWithRelations = await tx.appointment.findUnique({
+          where: { id: originalId },
+          include: {
+            doctor: {
+              select: { name: true, firstName: true, lastName: true },
+            },
+            specialty: { select: { name: true } },
+            location: { select: { name: true } },
+          },
+        });
+
+        return {
+          newAppointment: newAppointmentWithRelations,
+          originalAppointment: originalWithRelations,
+          originalId,
+        };
       },
     );
 
-    return NextResponse.json(result, { status: 201 });
+    // Best-effort notification — never throws, never blocks the response.
+    if (result.originalAppointment && result.newAppointment) {
+      void notifyReschedule({
+        original: result.originalAppointment,
+        next: result.newAppointment,
+      });
+    }
+
+    return NextResponse.json(
+      {
+        newAppointment: result.newAppointment,
+        originalId: result.originalId,
+      },
+      { status: 201 },
+    );
   } catch (err) {
     const msg = err instanceof Error ? err.message : "UNKNOWN";
     if (msg === "ORIGINAL_NOT_FOUND") {

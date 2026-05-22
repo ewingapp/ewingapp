@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { LATE_CANCEL_WINDOW_MS } from "@/lib/late-cancel";
+import { notifyCancellation } from "@/lib/email";
 
 const bodySchema = z.object({
   reason: z.string().min(1, "Reason is required").max(500),
@@ -50,7 +51,16 @@ export async function POST(
       statusNote: parsed.data.reason,
       isLateCancellation: isLate,
     },
+    include: {
+      doctor: { select: { name: true, firstName: true, lastName: true } },
+      location: { select: { name: true } },
+      specialty: { select: { name: true } },
+    },
   });
+
+  // Best-effort notification. Failures are logged inside notifyCancellation
+  // and never thrown, so a flaky mail provider can't block the cancel.
+  void notifyCancellation(updated);
 
   return NextResponse.json(updated);
 }

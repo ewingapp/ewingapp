@@ -1185,11 +1185,11 @@ function StatusBadge({
   return (
     <span
       className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset ${className}`}
-      title={status === "CANCELLED" && late ? "Cancelled < 24 hours before appointment" : undefined}
+      title={status === "CANCELLED" && late ? "Cancelled < 48 hours before appointment" : undefined}
     >
       {STATUS_LABEL[status]}
       {status === "CANCELLED" && late && (
-        <span className="ml-1 font-semibold">• &lt; 24h</span>
+        <span className="ml-1 font-semibold">• &lt; 48h</span>
       )}
     </span>
   );
