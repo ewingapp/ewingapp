@@ -29,9 +29,33 @@ async function getOrCreateVendor() {
   return prisma.vendor.create({ data: {} });
 }
 
+function schemaErrorResponse(err: unknown) {
+  const msg = err instanceof Error ? err.message : "";
+  // Prisma raises P2021 ("table does not exist") before the migration runs.
+  // Surface a clearer hint so the UI can tell the user what to do.
+  if (/does not exist|P2021|relation .* does not exist/i.test(msg)) {
+    return NextResponse.json(
+      {
+        error:
+          "Vendor table is missing — run `npm run db:push` to apply the latest Prisma schema.",
+      },
+      { status: 503 },
+    );
+  }
+  console.error("[api/vendor]", err);
+  return NextResponse.json(
+    { error: msg || "Unexpected error" },
+    { status: 500 },
+  );
+}
+
 export async function GET() {
-  const vendor = await getOrCreateVendor();
-  return NextResponse.json(vendor);
+  try {
+    const vendor = await getOrCreateVendor();
+    return NextResponse.json(vendor);
+  } catch (err) {
+    return schemaErrorResponse(err);
+  }
 }
 
 export async function PUT(request: Request) {
@@ -43,10 +67,14 @@ export async function PUT(request: Request) {
       { status: 400 },
     );
   }
-  const vendor = await getOrCreateVendor();
-  const updated = await prisma.vendor.update({
-    where: { id: vendor.id },
-    data: parsed.data,
-  });
-  return NextResponse.json(updated);
+  try {
+    const vendor = await getOrCreateVendor();
+    const updated = await prisma.vendor.update({
+      where: { id: vendor.id },
+      data: parsed.data,
+    });
+    return NextResponse.json(updated);
+  } catch (err) {
+    return schemaErrorResponse(err);
+  }
 }

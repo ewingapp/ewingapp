@@ -55,7 +55,13 @@ export default function VendorProfilePage() {
   useEffect(() => {
     fetch("/api/vendor")
       .then(async (r) => {
-        if (!r.ok) throw new Error(await r.text());
+        if (!r.ok) {
+          const body = await r.json().catch(() => ({}));
+          throw new Error(
+            (body && typeof body.error === "string" && body.error) ||
+              `Request failed (HTTP ${r.status})`,
+          );
+        }
         return (await r.json()) as Vendor;
       })
       .then((v) => {
@@ -148,6 +154,24 @@ export default function VendorProfilePage() {
           <div className="text-sm text-slate-500 flex items-center gap-2">
             <Loader2 className="size-4 animate-spin" />
             Loading…
+          </div>
+        )}
+
+        {!loading && !draft && error && (
+          <div
+            className="bg-white rounded-lg shadow-sm p-6"
+            style={{ border: "1.5px solid #fca5a5", background: "#fef2f2" }}
+          >
+            <h2 className="text-base font-semibold text-rose-900 mb-2">
+              Couldn&apos;t load vendor profile
+            </h2>
+            <p className="text-sm text-rose-800 mb-3 break-all">{error}</p>
+            <p className="text-xs text-rose-700 leading-relaxed">
+              This usually means the <code>Vendor</code> table doesn&apos;t
+              exist in the database yet. From the project root run{" "}
+              <code className="bg-rose-100 px-1 py-0.5 rounded">npm run db:push</code>{" "}
+              to apply the latest schema, then reload this page.
+            </p>
           </div>
         )}
 
