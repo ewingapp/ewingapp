@@ -286,7 +286,21 @@ export async function computeAvailableSlots(opts: {
   }
 
   out.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
-  return out;
+
+  // Final dedupe: the same (doctor, location, startTime) can be produced by
+  // more than one source — e.g. a normal cadence slot AND a squeeze slot
+  // landing on the same minute, or two overlapping schedules. Prefer the
+  // first one we kept (which is the longer, regular-duration slot since
+  // squeezes are added after the main loop).
+  const seen = new Set<string>();
+  const deduped: AvailableSlot[] = [];
+  for (const s of out) {
+    const key = `${s.doctorId}|${s.locationId}|${s.startTime.toISOString()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(s);
+  }
+  return deduped;
 }
 
 type ScheduleRow = {
