@@ -12,6 +12,8 @@ const createSchema = z.object({
   endTime: z.string().min(1),
   slotType: SLOT_TYPE.optional().default("ANY"),
   bookingDurationMinutes: z.number().int().min(5).max(240).optional(),
+  allowsSqueezes: z.boolean().optional().default(false),
+  squeeze2: z.boolean().optional().default(false),
 });
 
 export async function GET(request: Request) {
@@ -48,8 +50,16 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  const { doctorId, locationId, startTime, endTime, slotType, bookingDurationMinutes } =
-    parsed.data;
+  const {
+    doctorId,
+    locationId,
+    startTime,
+    endTime,
+    slotType,
+    bookingDurationMinutes,
+    allowsSqueezes,
+    squeeze2,
+  } = parsed.data;
   const start = new Date(startTime);
   const end = new Date(endTime);
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
@@ -70,6 +80,8 @@ export async function POST(request: Request) {
       endTime: end,
       slotType,
       bookingDurationMinutes,
+      allowsSqueezes,
+      squeeze2,
     },
     include: {
       doctor: { select: { id: true, name: true } },

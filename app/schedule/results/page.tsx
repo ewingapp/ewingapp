@@ -32,6 +32,7 @@ type Slot = {
   id: string;
   startTime: string;
   endTime: string;
+  isSqueeze?: boolean;
   doctor: {
     id: string;
     name: string;
@@ -444,7 +445,7 @@ function ResultsView() {
                 onClick={() => form.reset(EMPTY_FORM)}
                 disabled={submitting}
                 className="sm:mr-auto text-white hover:brightness-95"
-                style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+                style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
               >
                 Clear
               </Button>
@@ -593,63 +594,27 @@ function ResultsView() {
                   <h3 className="font-semibold text-xs text-slate-700 uppercase tracking-wide mb-3">
                     Scheduling Options:
                   </h3>
-                  <div className="flex flex-col gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
+                  <div className="flex flex-col gap-2.5">
+                    <SchedulingOption
+                      label="Schedule Same Claimant"
+                      description="Keeps claimant + all info filled in on the next booking."
                       onClick={handleScheduleSameClaimant}
-                      style={{
-                        borderColor: "#0085CA",
-                        borderWidth: "2px",
-                        background: "#F1F5F9",
-                      }}
-                      className="self-start font-normal hover:brightness-95"
-                    >
-                      Schedule another appointment for the same claimant{" "}
-                      <span style={{ color: "#DC2626" }}>(will save claimant and all info)</span>
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
+                    />
+                    <SchedulingOption
+                      label="Save Analyst Info"
+                      description="Keeps analyst + scheduler info; clears claimant fields."
                       onClick={handleSaveAnalystInfo}
-                      style={{
-                        borderColor: "#0085CA",
-                        borderWidth: "2px",
-                        background: "#F1F5F9",
-                      }}
-                      className="self-start font-normal hover:brightness-95"
-                    >
-                      Save analyst information{" "}
-                      <span style={{ color: "#DC2626" }}>
-                        (will save analyst/scheduler information)
-                      </span>
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
+                    />
+                    <SchedulingOption
+                      label="New Appointment"
+                      description="Starts a fresh appointment with empty fields."
                       onClick={handleScheduleNewAppointment}
-                      style={{
-                        borderColor: "#0085CA",
-                        borderWidth: "2px",
-                        background: "#F1F5F9",
-                      }}
-                      className="self-start font-normal hover:brightness-95"
-                    >
-                      Schedule New Appointment
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
+                    />
+                    <SchedulingOption
+                      label="Close"
+                      description="Closes this confirmation."
                       onClick={() => setConfirmation(null)}
-                      style={{
-                        borderColor: "#0085CA",
-                        borderWidth: "2px",
-                        background: "#F1F5F9",
-                      }}
-                      className="self-start font-normal hover:brightness-95"
-                    >
-                      Close page
-                    </Button>
+                    />
                   </div>
                   <p className="text-[11px] text-slate-500 mt-3">
                     Carry-over is saved to this browser tab only — it doesn&apos;t
@@ -711,7 +676,10 @@ function ResultsTable({ slots, onPick }: { slots: Slot[]; onPick: (s: Slot) => v
           {slots.map((s) => {
             const start = new Date(s.startTime);
             return (
-              <tr key={s.id} className="border-b last:border-0 even:bg-slate-50/50">
+              <tr
+                key={s.id}
+                className="border-b last:border-0 odd:bg-white even:bg-[#F8F8F8]"
+              >
                 <td className="px-3 py-2 font-medium text-slate-900 whitespace-nowrap tabular-nums">
                   {ptFmtDateShort(start)}
                 </td>
@@ -728,9 +696,9 @@ function ResultsTable({ slots, onPick }: { slots: Slot[]; onPick: (s: Slot) => v
                 <td className="px-3 py-2 text-right whitespace-nowrap">
                   <Button
                     size="sm"
-                    variant="outline"
                     onClick={() => onPick(s)}
-                    style={{ borderColor: "#0085CA", borderWidth: "1.5px" }}
+                    className="text-white font-medium shadow-sm hover:brightness-95"
+                    style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
                   >
                     Make appointment
                   </Button>
@@ -806,6 +774,30 @@ function PhoneExtField({
       {(phoneError || extError) && (
         <p className="text-xs text-destructive">{phoneError ?? extError}</p>
       )}
+    </div>
+  );
+}
+
+function SchedulingOption({
+  label,
+  description,
+  onClick,
+}: {
+  label: string;
+  description: string;
+  onClick: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <Button
+        type="button"
+        onClick={onClick}
+        className="text-white font-medium shadow-sm hover:brightness-95 w-56 justify-center shrink-0"
+        style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
+      >
+        {label}
+      </Button>
+      <span className="text-sm text-slate-600">{description}</span>
     </div>
   );
 }

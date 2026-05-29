@@ -2,9 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
-import { AppShell, PageHeader } from "@/components/app-shell";
+import { SmartShell } from "@/components/smart-shell";
+import { PageHeader } from "@/components/app-shell";
 import { prisma } from "@/lib/db";
 import { ptFmtDateLong, ptFmtTime } from "@/lib/pt";
+import { getActingBranch } from "@/lib/acting-branch";
 
 type Params = Promise<{ id: string }>;
 
@@ -20,15 +22,20 @@ export default async function AppointmentDetailPage({ params }: { params: Params
   });
   if (!a) notFound();
 
+  const actingBranch = await getActingBranch();
+  if (actingBranch && a.stateBranch !== actingBranch) notFound();
+  const backHref = actingBranch ? "/branch/existing-appointments" : "/appointments";
+  const backLabel = actingBranch ? "Back to Existing Appointments" : "Back to Scheduled Appointments";
+
   return (
-    <AppShell>
+    <SmartShell>
       <div className="max-w-5xl mx-auto px-6 py-8">
         <Link
-          href="/appointments"
+          href={backHref}
           className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 mb-3"
         >
           <ArrowLeft className="size-4" />
-          Back to Scheduled Appointments
+          {backLabel}
         </Link>
         <PageHeader title="Appointment Details" />
 
@@ -96,7 +103,7 @@ export default async function AppointmentDetailPage({ params }: { params: Params
           </div>
         )}
       </div>
-    </AppShell>
+    </SmartShell>
   );
 }
 

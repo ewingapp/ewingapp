@@ -152,7 +152,7 @@ function SearchView() {
           style={{ border: "2px solid #CBD5E1" }}
         >
           <summary className="cursor-pointer list-none flex items-center gap-2 px-3 py-2 select-none">
-            <Info className="size-4" style={{ color: "#0085CA" }} />
+            <Info className="size-4" style={{ color: "#06B6D4" }} />
             <span className="font-medium text-slate-700">How to search</span>
             <span className="ml-auto text-xs text-slate-500 group-open:hidden">
               Show
@@ -243,7 +243,7 @@ function SearchView() {
               onClick={onSearch}
               disabled={submitting}
               className="w-full h-10 text-white font-medium shadow-sm hover:brightness-95"
-              style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+              style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
             >
               {submitting ? (
                 <Loader2 className="size-4 animate-spin" />

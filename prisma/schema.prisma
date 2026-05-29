@@ -95,6 +95,14 @@ model DoctorSchedule {
   endTime                DateTime
   slotType               String   @default("ANY")
   bookingDurationMinutes Int?
+  // Psych schedules can opt into up to 1 AM + 1 PM extra MSE squeezes that
+  // fill open gaps left after the normal cadence + dynamic slot rules.
+  allowsSqueezes         Boolean  @default(false)
+  // Squeeze 2: the cadence starts with a 30-min MSE squeeze (and another at
+  // the first slot >= noon when the window spans noon), then resets to
+  // normal MSE/Testing cadence. The last slot may run up to 30 min past
+  // window end. Mutually compatible with `allowsSqueezes`.
+  squeeze2               Boolean  @default(false)
   createdAt              DateTime @default(now())
 
   @@index([locationId, startTime])
@@ -190,9 +198,11 @@ model Appointment {
 }
 
 model StateBranch {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  name         String   @unique
+  loginId      String?  @unique
+  passwordHash String?
+  createdAt    DateTime @default(now())
 }
 
 enum NotificationPref {
@@ -216,7 +226,8 @@ model Vendor {
   fax                    String           @default("")
   email                  String           @default("")
   loginId                String           @default("")
-  password               String           @default("")
+  password               String           @default("") // legacy; superseded by passwordHash
+  passwordHash           String?
   contactName            String           @default("")
   appointmentNotification NotificationPref @default(LIMITED)
   description            String           @default("")

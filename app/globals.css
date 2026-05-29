@@ -131,8 +131,8 @@
 
 /* react-day-picker custom styling — Ewing blue palette */
 .ewing-calendar .rdp-root {
-  --rdp-accent-color: #0085CA;
-  --rdp-accent-background-color: #DBEAFE;
+  --rdp-accent-color: #06B6D4;
+  --rdp-accent-background-color: #CFFAFE;
   --rdp-day-height: 2.5rem;
   --rdp-day-width: 2.5rem;
   --rdp-day_button-height: 2.25rem;
@@ -140,12 +140,12 @@
   --rdp-day_button-border-radius: 0.5rem;
   --rdp-selected-border: none;
   --rdp-range_start-color: white;
-  --rdp-range_start-background: #DBEAFE;
+  --rdp-range_start-background: #CFFAFE;
   --rdp-range_end-color: white;
-  --rdp-range_end-background: #DBEAFE;
-  --rdp-range_middle-background-color: #DBEAFE;
-  --rdp-range_middle-color: #1E3A8A;
-  --rdp-today-color: #0085CA;
+  --rdp-range_end-background: #CFFAFE;
+  --rdp-range_middle-background-color: #CFFAFE;
+  --rdp-range_middle-color: #155E75;
+  --rdp-today-color: #06B6D4;
   font-size: 0.875rem;
 }
 
@@ -164,7 +164,7 @@
   align-items: center;
   justify-content: center;
   height: 2.5rem;
-  background: #0085CA;
+  background: #06B6D4;
   color: #ffffff;
   border-radius: 0.25rem;
   padding: 0;
@@ -324,8 +324,8 @@
 }
 
 .rdp-custom.rdp-root {
-  --rdp-accent-color: #0085ca;
-  --rdp-accent-background-color: #0085ca;
+  --rdp-accent-color: #06b6d4;
+  --rdp-accent-background-color: #06b6d4;
   --rdp-day-width: 1.75rem;
   --rdp-day-height: 1.75rem;
   --rdp-day_button-width: 1.5rem;
@@ -356,9 +356,9 @@
   align-items: center;
   justify-content: center;
   height: 1.75rem;
-  background: #0085CA;
+  background: #06B6D4;
   color: #fff;
-  border: 2px solid #0085CA;
+  border: 2px solid #06B6D4;
   border-radius: 0.25rem;
   font-weight: 600;
   padding: 0;

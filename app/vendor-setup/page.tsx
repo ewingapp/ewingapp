@@ -55,11 +55,12 @@ const SECTIONS: {
     ready: true,
   },
   {
-    href: "/vendor-setup/roles",
-    title: "Roles & Logins",
-    description: "Manage user logins and what each role can access.",
+    href: "/vendor-setup/branch-logins",
+    title: "Branch Logins",
+    description:
+      "Set a login ID and password for each State branch. Analysts at that branch use those credentials at /branch/login.",
     icon: Users,
-    ready: false,
+    ready: true,
   },
 ];
 
@@ -83,7 +84,7 @@ export default function VendorSetupPage() {
                 <CardHeader>
                   <div
                     className="grid place-items-center size-10 rounded-lg mb-3 text-white"
-                    style={{ background: "#0085CA" }}
+                    style={{ background: "#06B6D4" }}
                   >
                     <Icon className="size-5" />
                   </div>

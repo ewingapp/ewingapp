@@ -30,6 +30,7 @@ export async function GET(request: Request) {
       id: s.id,
       startTime: s.startTime,
       endTime: s.endTime,
+      isSqueeze: s.isSqueeze ?? false,
       doctor: {
         id: s.doctorId,
         name: s.doctorName,

@@ -230,7 +230,7 @@ export default function DoctorSetupPage({
                 onClick={onSave}
                 disabled={saving || !dirty}
                 className="text-white hover:brightness-95"
-                style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+                style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
               >
                 {saving ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -338,7 +338,7 @@ function Section({
         <div className="flex items-center gap-2">
           <span
             className="grid place-items-center size-7 rounded text-white"
-            style={{ background: "#0085CA" }}
+            style={{ background: "#06B6D4" }}
           >
             <Icon className="size-4" />
           </span>
@@ -385,7 +385,7 @@ function GroupedSection({
         <div className="flex items-center gap-2">
           <span
             className="grid place-items-center size-7 rounded text-white"
-            style={{ background: "#0085CA" }}
+            style={{ background: "#06B6D4" }}
           >
             <Icon className="size-4" />
           </span>
@@ -480,7 +480,7 @@ function DurationOverridesSection({
         <div className="flex items-center gap-2">
           <span
             className="grid place-items-center size-7 rounded text-white"
-            style={{ background: "#0085CA" }}
+            style={{ background: "#06B6D4" }}
           >
             <Clock className="size-4" />
           </span>

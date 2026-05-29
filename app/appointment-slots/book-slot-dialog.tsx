@@ -448,7 +448,7 @@ export function BookSlotDialog({
                   onClick={() => reset(EMPTY_FORM)}
                   disabled={isSubmitting}
                   className="sm:mr-auto text-white hover:brightness-95"
-                  style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+                  style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
                 >
                   Clear
                 </Button>

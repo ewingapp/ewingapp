@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { getActingBranch } from "@/lib/acting-branch";
 
 const patchSchema = z.object({
   caseNumber: z.string().min(1).max(50),
@@ -49,6 +50,11 @@ export async function GET(
   if (!appt) {
     return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
   }
+  // Branch users only see their own branch's appointments.
+  const actingBranch = await getActingBranch();
+  if (actingBranch && appt.stateBranch !== actingBranch) {
+    return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+  }
   return NextResponse.json(appt);
 }
 
@@ -69,10 +75,31 @@ export async function PATCH(
 
   const existing = await prisma.appointment.findUnique({
     where: { id },
-    select: { id: true, status: true, doctorId: true, specialtyId: true, locationId: true },
+    select: {
+      id: true,
+      status: true,
+      doctorId: true,
+      specialtyId: true,
+      locationId: true,
+      stateBranch: true,
+    },
   });
   if (!existing) {
     return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+  }
+  // Branch users may only edit their own branch's appointments, and they
+  // can't reassign an appointment to a different branch.
+  const actingBranch = await getActingBranch();
+  if (actingBranch) {
+    if (existing.stateBranch !== actingBranch) {
+      return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+    }
+    if (data.stateBranch !== actingBranch) {
+      return NextResponse.json(
+        { error: "Cannot change appointment branch" },
+        { status: 403 },
+      );
+    }
   }
   if (existing.status === "CANCELLED" || existing.status === "MOVED") {
     return NextResponse.json(

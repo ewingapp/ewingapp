@@ -5,6 +5,7 @@ import type { Prisma } from "@/lib/generated/prisma/client";
 import { parseSyntheticSlotId } from "@/lib/availability";
 import { ptStartOfDay, ptEndOfDay } from "@/lib/pt";
 import { gapToNextBookingMinutes, dynamicSlotType } from "@/lib/slot-rules";
+import { getActingBranch } from "@/lib/acting-branch";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -29,6 +30,12 @@ export async function GET(request: Request) {
   if (firstInitial) where.firstInitial = firstInitial.charAt(0).toUpperCase();
   if (caseNumber) where.caseNumber = { contains: caseNumber };
   if (noShowOnly) where.status = "NO_SHOW";
+
+  // Branch users only ever see their own branch's appointments. The
+  // acting-branch cookie wins over any client-supplied filter so a branch
+  // can't peek at another branch by tweaking the URL.
+  const actingBranch = await getActingBranch();
+  if (actingBranch) where.stateBranch = actingBranch;
 
   const appts = await prisma.appointment.findMany({
     where,
@@ -88,6 +95,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid slot id" }, { status: 400 });
   }
 
+  // If a branch is acting, override stateBranch + scheduledBy from the
+  // cookie so a branch can't book under another branch's name.
+  const actingBranch = await getActingBranch();
+  const effectiveStateBranch = actingBranch ?? data.stateBranch;
+  const effectiveScheduledBy: "BRANCH" | "VENDOR" = actingBranch ? "BRANCH" : "VENDOR";
+
   try {
     const appointment = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const specialty = await tx.specialty.findUnique({
@@ -120,14 +133,33 @@ export async function POST(request: Request) {
       });
       if (!window) throw new Error("NO_OPEN_WINDOW");
 
+      const isSqueeze = slotKey.squeezeDurationMin != null;
+      if (isSqueeze) {
+        // Squeezes are MSE-only, on schedules the admin explicitly opted into
+        // (either gap-fill `allowsSqueezes` or `squeeze2` cadence).
+        if (!isMSE) throw new Error("WRONG_SLOT_TYPE");
+        if (!window.allowsSqueezes && !window.squeeze2) {
+          throw new Error("WRONG_SLOT_TYPE");
+        }
+      }
+
       const isTypedSlot =
         window.slotType === "LOOKALIKE" || window.slotType === "PSYCH_TESTING";
-      const duration = isTypedSlot && window.bookingDurationMinutes != null
-        ? window.bookingDurationMinutes
-        : (override?.durationMinutes ?? specialty.durationMinutes);
+      const duration = isSqueeze
+        ? slotKey.squeezeDurationMin!
+        : isTypedSlot && window.bookingDurationMinutes != null
+          ? window.bookingDurationMinutes
+          : (override?.durationMinutes ?? specialty.durationMinutes);
       const endTime = new Date(startTime.getTime() + duration * 60_000);
 
-      if (endTime.getTime() > window.endTime.getTime()) {
+      // Schedules with allowsSqueezes (or the legacy squeeze2 cadence) let
+      // the last slot of the day run up to 30 min past the window end.
+      const OVERFLOW_MS = 30 * 60_000;
+      const maxEndMs =
+        window.allowsSqueezes || window.squeeze2
+          ? window.endTime.getTime() + OVERFLOW_MS
+          : window.endTime.getTime();
+      if (endTime.getTime() > maxEndMs) {
         throw new Error("NO_OPEN_WINDOW");
       }
 
@@ -142,7 +174,15 @@ export async function POST(request: Request) {
       });
       if (conflict) throw new Error("SLOT_TAKEN");
 
-      if (window.slotType === "ANY" && (isMSE || isPsychTesting)) {
+      // The dynamic typing check is the override target for squeezes and the
+      // Squeeze 2 cadence — they intentionally place MSEs where the rule
+      // would otherwise reserve the time for testing.
+      const skipDynamicRule = isSqueeze || window.squeeze2;
+      if (
+        !skipDynamicRule &&
+        window.slotType === "ANY" &&
+        (isMSE || isPsychTesting)
+      ) {
         const otherAppts = await tx.appointment.findMany({
           where: {
             doctorId: slotKey.doctorId,
@@ -179,7 +219,7 @@ export async function POST(request: Request) {
           caseNumber: data.caseNumber,
           firstInitial: data.firstInitial.toUpperCase(),
           lastNamePrefix: data.lastNamePrefix.toUpperCase(),
-          stateBranch: data.stateBranch,
+          stateBranch: effectiveStateBranch,
           analystName: data.analystName,
           analystPhone: data.analystPhone,
           analystExt: data.analystExt ?? "",
@@ -191,7 +231,7 @@ export async function POST(request: Request) {
           hasInterpreter: data.hasInterpreter,
           isOdarCase: data.isOdarCase,
           notes: data.notes ?? "",
-          scheduledBy: "VENDOR",
+          scheduledBy: effectiveScheduledBy,
         },
       });
 

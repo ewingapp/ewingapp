@@ -57,7 +57,7 @@ function TodayCounter() {
       title="Appointments scheduled for today"
       aria-live="polite"
     >
-      <CalendarCheck2 className="size-3.5" style={{ color: "#0085CA" }} />
+      <CalendarCheck2 className="size-3.5" style={{ color: "#06B6D4" }} />
       <span className="text-slate-500">Today:</span>
       <span className="font-semibold text-slate-900 tabular-nums">
         {count ?? "—"}
@@ -81,8 +81,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <TodayCounter />
             <Link
               href="/schedule"
-              className="hidden md:inline-flex items-center gap-2 h-9 px-3.5 rounded-md text-sm font-medium text-white shadow-sm transition"
-              style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+              className="hidden md:inline-flex items-center gap-2 h-9 px-3.5 rounded-md text-sm font-medium text-white shadow-sm transition hover:brightness-95"
+              style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
             >
               <Plus className="size-4" />
               New Appointment
@@ -105,9 +105,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Horizontal nav */}
         <nav
           style={{
-            background: "#F1F5F9",
-            borderTop: "2px solid #CBD5E1",
-            borderBottom: "2px solid #CBD5E1",
+            background: "#F8FAFC",
+            borderTop: "2px solid #D1D5DB",
+            borderBottom: "2px solid #D1D5DB",
           }}
         >
           <div className="max-w-7xl mx-auto px-6 flex items-center gap-2 sm:gap-4 overflow-x-auto">

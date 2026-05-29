@@ -409,7 +409,7 @@ function ScheduledAppointmentsView() {
               <button
                 type="button"
                 onClick={onChangeSearch}
-                className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-[#0085CA]"
+                className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-[#06B6D4]"
               >
                 <ArrowLeft className="size-4" />
                 Change search
@@ -550,7 +550,7 @@ function ScheduledAppointmentsView() {
                 onClick={onSearch}
                 disabled={loading}
                 className="w-full h-10 text-white font-medium shadow-sm hover:brightness-95"
-                style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+                style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
               >
                 {loading ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -700,7 +700,7 @@ function ResultsTable({
           type="button"
           onClick={() => downloadCsv(rows, showBranch)}
           className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-medium text-white shadow-sm hover:brightness-95"
-          style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+          style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
         >
           <Download className="size-3.5" />
           Download CSV
@@ -881,7 +881,7 @@ function ActionLink({
     return (
       <span
         className="inline-flex items-center px-2 py-1 rounded text-xs text-slate-400 bg-slate-50 cursor-not-allowed"
-        style={{ border: "1.5px solid #0085CA", opacity: 0.5 }}
+        style={{ border: "1.5px solid #06B6D4", opacity: 0.5 }}
       >
         {children}
       </span>
@@ -890,8 +890,8 @@ function ActionLink({
   return (
     <Link
       href={href}
-      className="inline-flex items-center px-2 py-1 rounded text-xs text-slate-700 hover:bg-slate-50 hover:text-[#0085CA]"
-      style={{ border: "1.5px solid #0085CA" }}
+      className="inline-flex items-center px-2 py-1 rounded text-xs text-slate-700 hover:bg-slate-50 hover:text-[#06B6D4]"
+      style={{ border: "1.5px solid #06B6D4" }}
     >
       {children}
     </Link>
@@ -912,8 +912,8 @@ function ActionButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex items-center px-2 py-1 rounded text-xs text-slate-700 hover:bg-slate-50 hover:text-[#0085CA] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400"
-      style={{ border: "1.5px solid #0085CA" }}
+      className="inline-flex items-center px-2 py-1 rounded text-xs text-slate-700 hover:bg-slate-50 hover:text-[#06B6D4] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400"
+      style={{ border: "1.5px solid #06B6D4" }}
     >
       {children}
     </button>
@@ -1038,7 +1038,7 @@ function CancelDialog({
             onClick={submit}
             disabled={submitting}
             className="text-white font-medium"
-            style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+            style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
           >
             {submitting ? (
               <Loader2 className="size-4 animate-spin" />
@@ -1128,7 +1128,7 @@ function StatusCell({
           setPendingStatus(e.target.value as "SCHEDULED" | "KEPT" | "NO_SHOW")
         }
         disabled={saving}
-        className="h-8 rounded border border-slate-300 bg-white px-2 text-xs hover:border-[#0085CA] focus:outline-none focus:ring-2 focus:ring-[#0085CA]/30 disabled:opacity-60"
+        className="h-8 rounded border border-slate-300 bg-white px-2 text-xs hover:border-[#06B6D4] focus:outline-none focus:ring-2 focus:ring-[#06B6D4]/30 disabled:opacity-60"
       >
         <option value="SCHEDULED">Scheduled</option>
         <option value="KEPT">Kept</option>
@@ -1147,7 +1147,7 @@ function StatusCell({
           onClick={save}
           disabled={!dirty || saving}
           className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+          style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
         >
           {saving ? <Loader2 className="size-3 animate-spin" /> : null}
           Save
@@ -1171,7 +1171,7 @@ function StatusBadge({
   late?: boolean;
 }) {
   const color: Record<Appt["status"], string> = {
-    SCHEDULED: "bg-blue-50 text-blue-700 ring-blue-200",
+    SCHEDULED: "bg-cyan-50 text-cyan-700 ring-cyan-200",
     KEPT: "bg-emerald-50 text-emerald-700 ring-emerald-200",
     NO_SHOW: "bg-rose-50 text-rose-700 ring-rose-200",
     CANCELLED: "bg-slate-100 text-slate-600 ring-slate-200",

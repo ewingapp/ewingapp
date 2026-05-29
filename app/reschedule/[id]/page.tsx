@@ -7,7 +7,8 @@ import { useRouter } from "next/navigation";
 import { addWeeks, startOfDay } from "date-fns";
 import { ArrowLeft, Loader2, Printer } from "lucide-react";
 
-import { AppShell, PageHeader } from "@/components/app-shell";
+import { SmartShell } from "@/components/smart-shell";
+import { PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -260,7 +261,7 @@ export default function ReschedulePage({
   }
 
   return (
-    <AppShell>
+    <SmartShell>
       <div className="max-w-7xl mx-auto px-6 py-8">
         <Link
           href={`/appointments/${id}`}
@@ -400,7 +401,7 @@ export default function ReschedulePage({
           onScheduleNewAppointment={handleScheduleNewAppointment}
         />
       </div>
-    </AppShell>
+    </SmartShell>
   );
 }
 
@@ -522,7 +523,7 @@ function SlotsTable({
                         variant="outline"
                         onClick={() => onPickSlot(s)}
                         disabled={moving || movingSlotId !== null}
-                        style={{ borderColor: "#0085CA", borderWidth: "1.5px" }}
+                        style={{ borderColor: "#06B6D4", borderWidth: "1.5px" }}
                       >
                         {moving && <Loader2 className="size-3 animate-spin mr-1" />}
                         Move Appointment Here
@@ -677,7 +678,7 @@ function MoveConfirmDialog({
             }}
             disabled={submitting}
             className="text-white font-medium hover:brightness-95"
-            style={{ background: "#0085CA", border: "none" }}
+            style={{ background: "#06B6D4", border: "none" }}
           >
             {submitting ? <Loader2 className="size-4 animate-spin" /> : null}
             Move Appointment
@@ -830,7 +831,7 @@ function ConfirmationDialog({
                 variant="outline"
                 onClick={onScheduleSameClaimant}
                 style={{
-                  borderColor: "#0085CA",
+                  borderColor: "#06B6D4",
                   borderWidth: "2px",
                   background: "#F1F5F9",
                 }}
@@ -844,7 +845,7 @@ function ConfirmationDialog({
                 variant="outline"
                 onClick={onSaveAnalystInfo}
                 style={{
-                  borderColor: "#0085CA",
+                  borderColor: "#06B6D4",
                   borderWidth: "2px",
                   background: "#F1F5F9",
                 }}
@@ -860,7 +861,7 @@ function ConfirmationDialog({
                 variant="outline"
                 onClick={onScheduleNewAppointment}
                 style={{
-                  borderColor: "#0085CA",
+                  borderColor: "#06B6D4",
                   borderWidth: "2px",
                   background: "#F1F5F9",
                 }}
@@ -873,7 +874,7 @@ function ConfirmationDialog({
                 variant="outline"
                 onClick={onClose}
                 style={{
-                  borderColor: "#0085CA",
+                  borderColor: "#06B6D4",
                   borderWidth: "2px",
                   background: "#F1F5F9",
                 }}

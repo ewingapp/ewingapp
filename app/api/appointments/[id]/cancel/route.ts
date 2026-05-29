@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { LATE_CANCEL_WINDOW_MS } from "@/lib/late-cancel";
 import { notifyCancellation } from "@/lib/email";
+import { getActingBranch } from "@/lib/acting-branch";
 
 const bodySchema = z.object({
   reason: z.string().min(1, "Reason is required").max(500),
@@ -25,7 +26,7 @@ export async function POST(
 
   const existing = await prisma.appointment.findUnique({
     where: { id },
-    select: { id: true, status: true, startTime: true },
+    select: { id: true, status: true, startTime: true, stateBranch: true },
   });
   if (!existing) {
     return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
@@ -37,6 +38,13 @@ export async function POST(
     );
   }
 
+  // Branch users can only cancel their own appointments, and cancellations
+  // are attributed to BRANCH (not VENDOR) so the audit trail is honest.
+  const actingBranch = await getActingBranch();
+  if (actingBranch && existing.stateBranch !== actingBranch) {
+    return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+  }
+
   const cancelledAt = new Date();
   const isLate =
     existing.startTime.getTime() - cancelledAt.getTime() < LATE_CANCEL_WINDOW_MS;
@@ -45,7 +53,7 @@ export async function POST(
     where: { id },
     data: {
       status: "CANCELLED",
-      cancelledBy: "VENDOR",
+      cancelledBy: actingBranch ? "BRANCH" : "VENDOR",
       cancelledByName: parsed.data.cancelledByName,
       cancelledAt,
       statusNote: parsed.data.reason,

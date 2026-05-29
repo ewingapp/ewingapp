@@ -292,7 +292,7 @@ function ReadView({
           type="button"
           onClick={onEdit}
           className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md text-sm font-medium text-white shadow-sm hover:brightness-95"
-          style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+          style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
         >
           <Pencil className="size-4" />
           Modify
@@ -360,7 +360,7 @@ function EditView({
             onClick={onSave}
             disabled={saving}
             className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md text-sm font-medium text-white shadow-sm hover:brightness-95 disabled:opacity-50"
-            style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+            style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
           >
             {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
             Save

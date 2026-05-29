@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { ptDateIso } from "@/lib/pt";
+import { getActingBranch } from "@/lib/acting-branch";
 
 const bodySchema = z.object({
   status: z.enum(["SCHEDULED", "KEPT", "NO_SHOW"]),
@@ -13,6 +14,16 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+
+  // Branch users only view show/no-show; the vendor sets it.
+  const actingBranch = await getActingBranch();
+  if (actingBranch) {
+    return NextResponse.json(
+      { error: "Status is set by the vendor" },
+      { status: 403 },
+    );
+  }
+
   const json = await request.json().catch(() => ({}));
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {

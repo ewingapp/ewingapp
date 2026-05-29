@@ -8,7 +8,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
-import { AppShell, PageHeader } from "@/components/app-shell";
+import { SmartShell } from "@/components/smart-shell";
+import { PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -205,7 +206,7 @@ export default function EditAppointmentPage({
     appt?.status === "CANCELLED" || appt?.status === "MOVED";
 
   return (
-    <AppShell>
+    <SmartShell>
       <div className="max-w-4xl mx-auto px-6 py-8">
         <Link
           href={`/appointments/${id}`}
@@ -262,7 +263,7 @@ export default function EditAppointmentPage({
                   type, use{" "}
                   <Link
                     href={`/reschedule/${id}`}
-                    className="text-[#0085CA] hover:underline"
+                    className="text-[#06B6D4] hover:underline"
                   >
                     Reschedule
                   </Link>
@@ -386,7 +387,7 @@ export default function EditAppointmentPage({
                   type="submit"
                   disabled={submitting || terminal}
                   className="text-white font-medium"
-                  style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+                  style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
                 >
                   {submitting ? <Loader2 className="size-4 animate-spin" /> : null}
                   Save changes
@@ -396,7 +397,7 @@ export default function EditAppointmentPage({
           </>
         )}
       </div>
-    </AppShell>
+    </SmartShell>
   );
 }
 

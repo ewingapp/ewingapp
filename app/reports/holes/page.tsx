@@ -183,7 +183,7 @@ export default function HolesReportPage() {
               onClick={runReport}
               disabled={loading}
               className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md text-sm font-medium text-white shadow-sm hover:brightness-95 disabled:opacity-50 w-full justify-center"
-              style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+              style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
             >
               {loading ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -212,7 +212,7 @@ export default function HolesReportPage() {
                     onClick={downloadCsv}
                     disabled={!sorted.length}
                     className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-medium text-white shadow-sm hover:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+                    style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
                   >
                     <Download className="size-3.5" />
                     Download CSV
@@ -266,7 +266,7 @@ export default function HolesReportPage() {
                             <td className="px-3 py-2">
                               <Link
                                 href={`/appointments?by=doctor&doctorId=${encodeURIComponent(r.doctorId)}&from=${dateIso}&to=${dateIso}`}
-                                className="inline-flex items-center gap-1 text-sm text-[#0085CA] hover:underline"
+                                className="inline-flex items-center gap-1 text-sm text-[#06B6D4] hover:underline"
                               >
                                 Go To
                                 <ExternalLink className="size-3" />

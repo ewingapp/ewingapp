@@ -147,6 +147,7 @@ export default function CalendarPage() {
             <Select
               value={locationId}
               onValueChange={(v) => setLocationId(v ?? "")}
+              items={offices.map((o) => ({ value: o.id, label: o.name }))}
             >
               <SelectTrigger className="w-56">
                 <SelectValue placeholder="Choose office" />

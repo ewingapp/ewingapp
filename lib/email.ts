@@ -181,7 +181,7 @@ export async function notifyReschedule(args: {
   await sendEmail({
     to,
     subject: `Appointment rescheduled — Case ${original.caseNumber}`,
-    html: wrap("Rescheduled", "#0085CA", body),
+    html: wrap("Rescheduled", "#06B6D4", body),
   });
 }
 
@@ -192,6 +192,6 @@ export async function notifyNewAppointment(appt: ApptForEmail): Promise<void> {
   await sendEmail({
     to,
     subject: `New appointment — Case ${appt.caseNumber}`,
-    html: wrap("New appointment", "#0085CA", body),
+    html: wrap("New appointment", "#06B6D4", body),
   });
 }

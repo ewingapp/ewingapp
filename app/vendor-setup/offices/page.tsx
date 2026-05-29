@@ -241,7 +241,7 @@ export default function OfficesPage() {
             <Button
               onClick={openAdd}
               className="text-white hover:brightness-95"
-              style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+              style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
             >
               <Plus className="size-4" />
               Add Office
@@ -432,7 +432,7 @@ export default function OfficesPage() {
                 type="submit"
                 disabled={submitting}
                 className="text-white hover:brightness-95"
-                style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+                style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
               >
                 {submitting && <Loader2 className="size-4 animate-spin" />}
                 {editing ? "Save changes" : "Add office"}

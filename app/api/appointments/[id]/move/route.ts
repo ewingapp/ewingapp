@@ -6,6 +6,7 @@ import { parseSyntheticSlotId } from "@/lib/availability";
 import { gapToNextBookingMinutes, dynamicSlotType } from "@/lib/slot-rules";
 import { ptFmtDateShort, ptFmtTime } from "@/lib/pt";
 import { notifyReschedule } from "@/lib/email";
+import { getActingBranch } from "@/lib/acting-branch";
 
 const bodySchema = z.object({
   slotId: z.string().min(1),
@@ -31,6 +32,9 @@ export async function POST(
     return NextResponse.json({ error: "Invalid slot id" }, { status: 400 });
   }
 
+  const actingBranch = await getActingBranch();
+  const movedBy: "BRANCH" | "VENDOR" = actingBranch ? "BRANCH" : "VENDOR";
+
   try {
     const result = await prisma.$transaction(
       async (tx: Prisma.TransactionClient) => {
@@ -40,6 +44,10 @@ export async function POST(
         if (!original) throw new Error("ORIGINAL_NOT_FOUND");
         if (original.status === "CANCELLED" || original.status === "MOVED") {
           throw new Error("ALREADY_TERMINAL");
+        }
+        // Scope check: a branch can only move its own appointments.
+        if (actingBranch && original.stateBranch !== actingBranch) {
+          throw new Error("ORIGINAL_NOT_FOUND");
         }
 
         const specialty = await tx.specialty.findUnique({
@@ -71,15 +79,29 @@ export async function POST(
         });
         if (!window) throw new Error("NO_OPEN_WINDOW");
 
+        const isSqueeze = slotKey.squeezeDurationMin != null;
+        if (isSqueeze) {
+          if (!isMSE) throw new Error("WRONG_SLOT_TYPE");
+          if (!window.allowsSqueezes && !window.squeeze2) {
+            throw new Error("WRONG_SLOT_TYPE");
+          }
+        }
+
         const isTypedSlot =
           window.slotType === "LOOKALIKE" || window.slotType === "PSYCH_TESTING";
-        const duration =
-          isTypedSlot && window.bookingDurationMinutes != null
+        const duration = isSqueeze
+          ? slotKey.squeezeDurationMin!
+          : isTypedSlot && window.bookingDurationMinutes != null
             ? window.bookingDurationMinutes
             : (override?.durationMinutes ?? specialty.durationMinutes);
         const endTime = new Date(startTime.getTime() + duration * 60_000);
 
-        if (endTime.getTime() > window.endTime.getTime()) {
+        const OVERFLOW_MS = 30 * 60_000;
+        const maxEndMs =
+          window.allowsSqueezes || window.squeeze2
+            ? window.endTime.getTime() + OVERFLOW_MS
+            : window.endTime.getTime();
+        if (endTime.getTime() > maxEndMs) {
           throw new Error("NO_OPEN_WINDOW");
         }
 
@@ -96,7 +118,12 @@ export async function POST(
         });
         if (conflict) throw new Error("SLOT_TAKEN");
 
-        if (window.slotType === "ANY" && (isMSE || isPsychTesting)) {
+        const skipDynamicRule = isSqueeze || window.squeeze2;
+        if (
+          !skipDynamicRule &&
+          window.slotType === "ANY" &&
+          (isMSE || isPsychTesting)
+        ) {
           const otherAppts = await tx.appointment.findMany({
             where: {
               id: { not: originalId },
@@ -146,7 +173,7 @@ export async function POST(
             hasInterpreter: original.hasInterpreter,
             isOdarCase: original.isOdarCase,
             notes: original.notes,
-            scheduledBy: "VENDOR",
+            scheduledBy: movedBy,
           },
         });
 
@@ -156,7 +183,7 @@ export async function POST(
           data: {
             status: "MOVED",
             statusNote: movedNote,
-            movedBy: "VENDOR",
+            movedBy,
             movedByName: parsed.data.movedByName,
             movedAt: new Date(),
           },

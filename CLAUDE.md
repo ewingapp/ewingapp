@@ -100,6 +100,7 @@ npm run db:seed      # seeds — idempotent, skips if Locations exist
 | `DATABASE_URL` | `.env` (local) / Vercel project settings | Postgres connection string |
 | `RESEND_API_KEY` | `.env` (local) / Vercel project settings | Resend API key for cancel/reschedule notification emails. If unset, `lib/email.ts` logs and no-ops — nothing else breaks. |
 | `EMAIL_FROM` | `.env` (local) / Vercel project settings | Sender for notification emails, e.g. `Ewing Scheduling <scheduling@ewingdiagnostics.com>`. Sending domain must be verified in Resend. Falls back to `onboarding@resend.dev` if unset. |
+| `AUTH_SECRET` | `.env` (local) / Vercel project settings | 32+ char random string used to sign session cookies. Generate with `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`. If missing, all auth fails closed. |
 
 ## Conventions
 

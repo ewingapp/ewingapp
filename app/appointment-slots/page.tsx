@@ -197,6 +197,7 @@ export default function AppointmentSlotsPage() {
   const [rangeFrom, setRangeFrom] = useState<string>("09:00");
   const [rangeTo, setRangeTo] = useState<string>("17:00");
   const [rangeDuration, setRangeDuration] = useState<number>(30);
+  const [allowsSqueezes, setAllowsSqueezes] = useState<boolean>(false);
   const [slotType, setSlotType] = useState<SlotType>("ANY");
 
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -294,6 +295,7 @@ export default function AppointmentSlotsPage() {
       setDuration(30);
     }
     setRangeDuration(doctorIsPsych ? 60 : 30);
+    if (!doctorIsPsych) setAllowsSqueezes(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doctorIsPsych]);
 
@@ -324,7 +326,12 @@ export default function AppointmentSlotsPage() {
   async function postWindow(
     startIso: string,
     endIso: string,
-    opts?: { slotType?: SlotType; bookingDurationMinutes?: number },
+    opts?: {
+      slotType?: SlotType;
+      bookingDurationMinutes?: number;
+      allowsSqueezes?: boolean;
+      squeeze2?: boolean;
+    },
   ) {
     const res = await fetch("/api/schedules", {
       method: "POST",
@@ -336,6 +343,8 @@ export default function AppointmentSlotsPage() {
         endTime: endIso,
         slotType: opts?.slotType ?? slotType,
         bookingDurationMinutes: opts?.bookingDurationMinutes,
+        allowsSqueezes: opts?.allowsSqueezes ?? false,
+        squeeze2: opts?.squeeze2 ?? false,
       }),
     });
     if (!res.ok) {
@@ -380,9 +389,14 @@ export default function AppointmentSlotsPage() {
         await postWindow(start.toISOString(), end.toISOString(), {
           slotType,
           bookingDurationMinutes: dur,
+          allowsSqueezes: doctorIsPsych ? allowsSqueezes : false,
         });
+        const squeezeNote =
+          doctorIsPsych && allowsSqueezes
+            ? " (squeezes allowed: 1 morning + 1 afternoon MSE)"
+            : "";
         setInfo(
-          `${count} ${slotKindLabel}appointment slot${count === 1 ? "" : "s"} were added.`,
+          `${count} ${slotKindLabel}appointment slot${count === 1 ? "" : "s"} were added.${squeezeNote}`,
         );
       } else if (mode === "TEMPLATE") {
         if (!templateId) throw new Error("Choose a template first.");
@@ -738,6 +752,28 @@ export default function AppointmentSlotsPage() {
                       min
                     </span>
                   )}
+                  <label
+                    className={`ml-3 inline-flex items-center gap-1.5 text-sm select-none ${
+                      doctorIsPsych
+                        ? "cursor-pointer text-slate-700"
+                        : "cursor-not-allowed text-slate-400"
+                    }`}
+                    title={
+                      doctorIsPsych
+                        ? "Allow up to 1 extra MSE squeeze appointment in the morning (before 12 PM) and 1 in the afternoon (12 PM or later), per doctor per day, fitting any open gap."
+                        : "Squeezes are only available for psychologists."
+                    }
+                  >
+                    <Checkbox
+                      checked={allowsSqueezes && doctorIsPsych}
+                      disabled={!doctorIsPsych}
+                      onCheckedChange={(v) => setAllowsSqueezes(v === true)}
+                    />
+                    Allow squeezes
+                    <span className="text-xs text-slate-400">
+                      (1 morning + 1 afternoon)
+                    </span>
+                  </label>
                 </div>
               </Row>
 
@@ -793,7 +829,7 @@ export default function AppointmentSlotsPage() {
                   (mode === "TEMPLATE" && !templateId)
                 }
                 className="text-white hover:brightness-95 h-9"
-                style={{ background: "#0085CA", border: "2px solid #0085CA" }}
+                style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
               >
                 {saving ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -806,7 +842,7 @@ export default function AppointmentSlotsPage() {
 
             <h2
               className="font-semibold mb-2 px-3 py-1.5 inline-block rounded-sm text-white"
-              style={{ background: "#0085CA", borderBottom: "3px solid #0085CA" }}
+              style={{ background: "#06B6D4", borderBottom: "3px solid #06B6D4" }}
             >
               Appointment slots for{" "}
               {selectedDoctor?.name ?? "—"} on{" "}
@@ -828,7 +864,7 @@ export default function AppointmentSlotsPage() {
                 <table className="w-full">
                   <thead
                     className="text-left text-white"
-                    style={{ background: "#0085CA" }}
+                    style={{ background: "#06B6D4" }}
                   >
                     <tr>
                       <th className="px-3 py-2 font-semibold w-20"></th>
@@ -898,20 +934,19 @@ export default function AppointmentSlotsPage() {
                             )}
                           </td>
                           <td className="px-3 py-1.5">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => onMakeAppointment(row)}
-                              disabled={row.status === "BOOKED"}
-                              className="h-7 text-xs"
-                              style={{ borderColor: "#0085CA", borderWidth: "1.5px" }}
-                            >
-                              Make Appointment
-                            </Button>
-                            {row.status === "BOOKED" && row.appointment && (
-                              <span className="ml-2 text-xs text-slate-600 tabular-nums">
+                            {row.status === "BOOKED" && row.appointment ? (
+                              <span className="text-xs text-slate-600 tabular-nums">
                                 #{row.appointment.caseNumber}
                               </span>
+                            ) : (
+                              <Button
+                                size="sm"
+                                onClick={() => onMakeAppointment(row)}
+                                className="h-7 text-xs text-white font-medium shadow-sm hover:brightness-95"
+                                style={{ background: "#06B6D4", border: "2px solid #06B6D4" }}
+                              >
+                                Make Appointment
+                              </Button>
                             )}
                           </td>
                         </tr>
