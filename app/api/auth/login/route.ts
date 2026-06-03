@@ -44,7 +44,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ kind: "vendor" });
   }
 
-  // branch
+  // branch — try the shared "any branch" login on the Vendor row first,
+  // then fall back to per-branch credentials on StateBranch.
+  const vendor = await prisma.vendor.findFirst();
+  if (
+    vendor &&
+    vendor.branchLoginId &&
+    vendor.branchPasswordHash &&
+    vendor.branchLoginId === loginId
+  ) {
+    const ok = await verifyPassword(password, vendor.branchPasswordHash);
+    if (ok) {
+      // No `branch` field → shared mode: user can act for any branch.
+      await setSessionCookie({ kind: "branch", sub: vendor.id });
+      return NextResponse.json({ kind: "branch", branch: null });
+    }
+  }
+
   const branch = await prisma.stateBranch.findUnique({ where: { loginId } });
   if (!branch || !branch.passwordHash) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });

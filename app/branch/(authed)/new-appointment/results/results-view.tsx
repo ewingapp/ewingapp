@@ -67,13 +67,13 @@ type FormValues = z.infer<typeof formSchema>;
 
 const CLAIMANT_STORAGE_KEY = "ewing-branch-claimant-info";
 
-function buildEmptyForm(actingBranch: string): FormValues {
+function buildEmptyForm(actingBranch: string | null): FormValues {
   return {
     caseNumber: "",
     contractNumber: "",
     firstInitial: "",
     lastNamePrefix: "",
-    stateBranch: actingBranch,
+    stateBranch: actingBranch ?? "",
     analystName: "",
     analystPhone: "",
     analystExt: "",
@@ -87,13 +87,20 @@ function buildEmptyForm(actingBranch: string): FormValues {
   };
 }
 
-function loadSavedFormValues(actingBranch: string): FormValues {
+function loadSavedFormValues(actingBranch: string | null): FormValues {
   const empty = buildEmptyForm(actingBranch);
   if (typeof window === "undefined") return empty;
   const saved = window.sessionStorage.getItem(CLAIMANT_STORAGE_KEY);
   if (!saved) return empty;
   try {
-    return { ...empty, ...JSON.parse(saved), stateBranch: actingBranch };
+    const parsed = JSON.parse(saved);
+    // If we have a fixed acting branch, force it; otherwise honor whatever
+    // the user previously picked (shared-login mode).
+    return {
+      ...empty,
+      ...parsed,
+      stateBranch: actingBranch ?? parsed.stateBranch ?? "",
+    };
   } catch {
     return empty;
   }
@@ -111,7 +118,7 @@ function formatPhoneDisplay(s: string | undefined, ext?: string): string {
   return base;
 }
 
-export function BranchResultsView({ actingBranch }: { actingBranch: string }) {
+export function BranchResultsView({ actingBranch }: { actingBranch: string | null }) {
   return (
     <Suspense fallback={null}>
       <Inner actingBranch={actingBranch} />
@@ -119,7 +126,7 @@ export function BranchResultsView({ actingBranch }: { actingBranch: string }) {
   );
 }
 
-function Inner({ actingBranch }: { actingBranch: string }) {
+function Inner({ actingBranch }: { actingBranch: string | null }) {
   const router = useRouter();
   const params = useSearchParams();
   const locationId = params.get("locationId") ?? "";
@@ -133,6 +140,7 @@ function Inner({ actingBranch }: { actingBranch: string }) {
 
   const [location, setLocation] = useState<Location | null>(null);
   const [specialty, setSpecialty] = useState<Specialty | null>(null);
+  const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
 
   const [bookingSlot, setBookingSlot] = useState<Slot | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -156,6 +164,7 @@ function Inner({ actingBranch }: { actingBranch: string }) {
     Promise.all([
       fetch(`/api/locations`, { signal: ctrl.signal }).then((r) => r.json()),
       fetch(`/api/specialties`, { signal: ctrl.signal }).then((r) => r.json()),
+      fetch(`/api/branches`, { signal: ctrl.signal }).then((r) => r.json()),
       fetch(
         `/api/slots?locationId=${locationId}&specialtyId=${specialtyId}&from=${from}&to=${to}`,
         { signal: ctrl.signal },
@@ -164,11 +173,19 @@ function Inner({ actingBranch }: { actingBranch: string }) {
         return r.json();
       }),
     ])
-      .then(([locs, specs, slts]: [Location[], Specialty[], Slot[]]) => {
-        setLocation(locs.find((l) => l.id === locationId) ?? null);
-        setSpecialty(specs.find((s) => s.id === specialtyId) ?? null);
-        setSlots(slts);
-      })
+      .then(
+        ([locs, specs, brs, slts]: [
+          Location[],
+          Specialty[],
+          { id: string; name: string }[],
+          Slot[],
+        ]) => {
+          setLocation(locs.find((l) => l.id === locationId) ?? null);
+          setSpecialty(specs.find((s) => s.id === specialtyId) ?? null);
+          setBranches(brs);
+          setSlots(slts);
+        },
+      )
       .catch((err) => {
         if (err.name === "AbortError") return;
         setLoadError(err instanceof Error ? err.message : "Failed to load");
@@ -191,12 +208,16 @@ function Inner({ actingBranch }: { actingBranch: string }) {
     setSubmitting(true);
     setSubmitError(null);
     try {
+      // When a per-branch session is active, the server overrides
+      // stateBranch with the session branch; when on the shared "any
+      // branch" login, the form's chosen value is what sticks.
+      const stateBranchForBooking = actingBranch ?? values.stateBranch;
       const res = await fetch("/api/appointments", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           ...values,
-          stateBranch: actingBranch,
+          stateBranch: stateBranchForBooking,
           slotId: bookingSlot.id,
           specialtyId,
         }),
@@ -205,7 +226,10 @@ function Inner({ actingBranch }: { actingBranch: string }) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body?.error ?? `Booking failed (${res.status})`);
       }
-      setConfirmation({ slot: bookingSlot, values: { ...values, stateBranch: actingBranch } });
+      setConfirmation({
+        slot: bookingSlot,
+        values: { ...values, stateBranch: stateBranchForBooking },
+      });
       setSlots((curr) => (curr ? curr.filter((s) => s.id !== bookingSlot.id) : curr));
       setBookingSlot(null);
       form.reset(buildEmptyForm(actingBranch));
@@ -234,7 +258,7 @@ function Inner({ actingBranch }: { actingBranch: string }) {
   function handleSaveAnalystInfo() {
     if (confirmation) {
       const analystOnly = {
-        stateBranch: actingBranch,
+        stateBranch: confirmation.values.stateBranch,
         analystName: confirmation.values.analystName,
         analystPhone: confirmation.values.analystPhone,
         analystExt: confirmation.values.analystExt,
@@ -272,7 +296,7 @@ function Inner({ actingBranch }: { actingBranch: string }) {
           <SummaryItem label="Specialty" value={specialty?.name ?? "—"} />
           <SummaryItem label="From" value={fromLabel} />
           <SummaryItem label="To" value={toLabel} />
-          <SummaryItem label="Branch" value={actingBranch} />
+          <SummaryItem label="Branch" value={actingBranch ?? "All branches"} />
           <Link
             href={`/branch/new-appointment?locationId=${locationId}&specialtyId=${specialtyId}&from=${from}&to=${to}`}
             className="ml-auto inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"
@@ -347,20 +371,44 @@ function Inner({ actingBranch }: { actingBranch: string }) {
           </DialogHeader>
 
           <form onSubmit={form.handleSubmit(onBook)} className="space-y-4">
-            <input type="hidden" {...form.register("stateBranch")} value={actingBranch} />
+            {actingBranch && (
+              <input
+                type="hidden"
+                {...form.register("stateBranch")}
+                value={actingBranch}
+              />
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <Field label="Case number" error={form.formState.errors.caseNumber?.message}>
                 <Input {...form.register("caseNumber")} />
               </Field>
-              <Field label="State branch">
-                <div
-                  className="flex h-9 w-full items-center rounded-lg bg-slate-50 px-2.5 text-sm text-slate-700"
-                  style={{ border: "1.5px solid #CBD5E1" }}
-                  title="Set automatically from your branch login"
-                >
-                  {actingBranch}
-                </div>
+              <Field
+                label="State branch"
+                error={form.formState.errors.stateBranch?.message}
+              >
+                {actingBranch ? (
+                  <div
+                    className="flex h-9 w-full items-center rounded-lg bg-slate-50 px-2.5 text-sm text-slate-700"
+                    style={{ border: "1.5px solid #CBD5E1" }}
+                    title="Set automatically from your branch login"
+                  >
+                    {actingBranch}
+                  </div>
+                ) : (
+                  <select
+                    {...form.register("stateBranch")}
+                    className="h-9 w-full rounded-lg bg-white px-2.5 text-sm text-slate-900"
+                    style={{ border: "1.5px solid #CBD5E1" }}
+                  >
+                    <option value="">Choose branch…</option>
+                    {branches.map((b) => (
+                      <option key={b.id} value={b.name}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </Field>
 
               <Field label="First initial" error={form.formState.errors.firstInitial?.message}>
@@ -524,7 +572,10 @@ function Inner({ actingBranch }: { actingBranch: string }) {
                 </Section>
 
                 <Section title="State">
-                  <DetailRow label="Branch" value={actingBranch} />
+                  <DetailRow
+                    label="Branch"
+                    value={confirmation.values.stateBranch}
+                  />
                   <DetailRow label="Analyst" value={confirmation.values.analystName} />
                   <DetailRow
                     label="Analyst phone"

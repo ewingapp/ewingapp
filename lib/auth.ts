@@ -21,7 +21,10 @@ const MAX_AGE_SECONDS = 60 * 60 * 24 * 14; // 2 weeks
 
 export type Session =
   | { kind: "vendor"; sub: string }
-  | { kind: "branch"; sub: string; branch: string };
+  // branch is optional: when present, the session is scoped to that one
+  // State branch (per-branch login). When absent, it's the shared "any
+  // branch" login — the user picks the branch per booking.
+  | { kind: "branch"; sub: string; branch?: string };
 
 function getSecret(): Uint8Array {
   const secret = process.env.AUTH_SECRET;
@@ -54,12 +57,10 @@ export async function verifySessionToken(
     if (payload.kind === "vendor" && typeof payload.sub === "string") {
       return { kind: "vendor", sub: payload.sub };
     }
-    if (
-      payload.kind === "branch" &&
-      typeof payload.sub === "string" &&
-      typeof payload.branch === "string"
-    ) {
-      return { kind: "branch", sub: payload.sub, branch: payload.branch };
+    if (payload.kind === "branch" && typeof payload.sub === "string") {
+      const branch =
+        typeof payload.branch === "string" ? payload.branch : undefined;
+      return { kind: "branch", sub: payload.sub, branch };
     }
     return null;
   } catch {
@@ -86,7 +87,12 @@ export async function setSessionCookie(session: Session): Promise<void> {
     path: "/",
     maxAge: MAX_AGE_SECONDS,
   });
-  const hint = session.kind === "branch" ? `branch:${session.branch}` : "vendor";
+  const hint =
+    session.kind === "branch"
+      ? session.branch
+        ? `branch:${session.branch}`
+        : "branch"
+      : "vendor";
   jar.set({
     name: SESSION_HINT_COOKIE,
     value: hint,

@@ -9,7 +9,7 @@ const AUDIENCE = "ewingapp";
 
 export type Session =
   | { kind: "vendor"; sub: string }
-  | { kind: "branch"; sub: string; branch: string };
+  | { kind: "branch"; sub: string; branch?: string };
 
 export async function verifySessionTokenEdge(
   token: string,
@@ -25,12 +25,10 @@ export async function verifySessionTokenEdge(
     if (payload.kind === "vendor" && typeof payload.sub === "string") {
       return { kind: "vendor", sub: payload.sub };
     }
-    if (
-      payload.kind === "branch" &&
-      typeof payload.sub === "string" &&
-      typeof payload.branch === "string"
-    ) {
-      return { kind: "branch", sub: payload.sub, branch: payload.branch };
+    if (payload.kind === "branch" && typeof payload.sub === "string") {
+      const branch =
+        typeof payload.branch === "string" ? payload.branch : undefined;
+      return { kind: "branch", sub: payload.sub, branch };
     }
     return null;
   } catch {

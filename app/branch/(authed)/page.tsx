@@ -6,10 +6,20 @@ export default async function BranchHomePage() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
       <p className="text-slate-800">
-        Welcome Branch{" "}
-        <strong className="font-semibold">{actingBranch ?? ""}</strong> to the
-        State website for the Ewing Diagnostics &amp; Psychological Services Online
-        Scheduling System.
+        {actingBranch ? (
+          <>
+            Welcome Branch{" "}
+            <strong className="font-semibold">{actingBranch}</strong> to the
+            State website for the Ewing Diagnostics &amp; Psychological Services
+            Online Scheduling System.
+          </>
+        ) : (
+          <>
+            Welcome to the State website for the Ewing Diagnostics &amp;
+            Psychological Services Online Scheduling System. You can schedule
+            and look up appointments for any branch.
+          </>
+        )}
       </p>
       <p className="text-slate-800">
         Below is a description of what you can do within each segment of this

@@ -228,6 +228,12 @@ model Vendor {
   loginId                String           @default("")
   password               String           @default("") // legacy; superseded by passwordHash
   passwordHash           String?
+  // Optional shared "any branch" login: when these are set, a State analyst
+  // can sign in once and book/view appointments for any branch instead of
+  // needing per-branch credentials. Per-branch credentials on StateBranch
+  // still work in parallel for branches that want strict scoping.
+  branchLoginId          String           @default("")
+  branchPasswordHash     String?
   contactName            String           @default("")
   appointmentNotification NotificationPref @default(LIMITED)
   description            String           @default("")

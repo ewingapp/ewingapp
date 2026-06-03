@@ -60,16 +60,16 @@ export function BranchShell({
             />
           </Link>
           <div className="flex items-center gap-3">
-            {actingBranch && (
-              <span
-                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md bg-white text-sm text-slate-700"
-                style={{ border: "1.5px solid #CBD5E1" }}
-              >
-                <Building2 className="size-4" style={{ color: "#06B6D4" }} />
-                <span className="text-slate-500 hidden sm:inline">Branch:</span>
-                <span className="font-medium text-slate-900">{actingBranch}</span>
+            <span
+              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md bg-white text-sm text-slate-700"
+              style={{ border: "1.5px solid #CBD5E1" }}
+            >
+              <Building2 className="size-4" style={{ color: "#06B6D4" }} />
+              <span className="text-slate-500 hidden sm:inline">Branch:</span>
+              <span className="font-medium text-slate-900">
+                {actingBranch ?? "All branches"}
               </span>
-            )}
+            </span>
             <button
               type="button"
               onClick={logout}
