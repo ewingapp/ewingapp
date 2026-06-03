@@ -34,6 +34,7 @@ export async function middleware(req: NextRequest) {
   const session = token ? await verifySessionTokenEdge(token, secret) : null;
 
   const isBranchPath = pathname === "/branch" || pathname.startsWith("/branch/");
+  const isApiPath = pathname.startsWith("/api/");
 
   if (isBranchPath) {
     if (session?.kind === "branch") return NextResponse.next();
@@ -43,7 +44,15 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Vendor area
+  // API routes are reachable by either vendor or branch sessions; each
+  // handler does its own finer-grained authorization (some are vendor-only,
+  // some scope by acting branch).
+  if (isApiPath) {
+    if (session) return NextResponse.next();
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Vendor pages
   if (session?.kind === "vendor") return NextResponse.next();
   const url = req.nextUrl.clone();
   url.pathname = "/login";
