@@ -105,7 +105,7 @@ export function AuthShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-white flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
           <Image
@@ -118,7 +118,7 @@ export function AuthShell({
           />
         </div>
         <div
-          className="bg-white rounded-lg p-6"
+          className="bg-slate-50 rounded-lg p-6"
           style={{ border: "2px solid #CBD5E1" }}
         >
           <h1 className="text-lg font-semibold text-slate-900 mb-4 text-center">
