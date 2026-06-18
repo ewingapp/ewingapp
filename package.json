@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:seed-branch-logins": "tsx prisma/seed-branch-logins.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
