@@ -24,7 +24,9 @@ export default async function AppointmentDetailPage({ params }: { params: Params
 
   const actingBranch = await getActingBranch();
   if (actingBranch && a.stateBranch !== actingBranch) notFound();
-  const backHref = actingBranch ? "/branch/existing-appointments" : "/appointments";
+  const backHref = actingBranch
+    ? `/branch/existing-appointments?case=${encodeURIComponent(a.caseNumber)}`
+    : "/appointments";
   const backLabel = actingBranch ? "Back to Existing Appointments" : "Back to Scheduled Appointments";
 
   return (

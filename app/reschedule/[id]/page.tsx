@@ -264,15 +264,20 @@ export default function ReschedulePage({
     router.push(newApptHref);
   }
 
+  const backHref = actingBranch
+    ? `/branch/existing-appointments${appt?.caseNumber ? `?case=${encodeURIComponent(appt.caseNumber)}` : ""}`
+    : `/appointments/${id}`;
+  const backLabel = actingBranch ? "Back to Existing Appointments" : "Back to appointment";
+
   return (
     <SmartShell>
       <div className="max-w-7xl mx-auto px-6 py-8">
         <Link
-          href={`/appointments/${id}`}
+          href={backHref}
           className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 mb-3"
         >
           <ArrowLeft className="size-4" />
-          Back to appointment
+          {backLabel}
         </Link>
         <PageHeader title="Reschedule Appointment" />
 

@@ -10,6 +10,7 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 
 import { SmartShell } from "@/components/smart-shell";
 import { PageHeader } from "@/components/app-shell";
+import { useActingBranch } from "@/lib/use-acting-branch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -89,6 +90,7 @@ export default function EditAppointmentPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const actingBranch = useActingBranch();
   const [appt, setAppt] = useState<Appt | null>(null);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -204,16 +206,20 @@ export default function EditAppointmentPage({
 
   const terminal =
     appt?.status === "CANCELLED" || appt?.status === "MOVED";
+  const backHref = actingBranch
+    ? `/branch/existing-appointments${appt?.caseNumber ? `?case=${encodeURIComponent(appt.caseNumber)}` : ""}`
+    : `/appointments/${id}`;
+  const backLabel = actingBranch ? "Back to Existing Appointments" : "Back to appointment";
 
   return (
     <SmartShell>
       <div className="max-w-4xl mx-auto px-6 py-8">
         <Link
-          href={`/appointments/${id}`}
+          href={backHref}
           className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 mb-3"
         >
           <ArrowLeft className="size-4" />
-          Back to appointment
+          {backLabel}
         </Link>
         <PageHeader title="Edit Appointment" />
 

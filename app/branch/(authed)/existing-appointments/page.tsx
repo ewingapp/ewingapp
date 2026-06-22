@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Search } from "lucide-react";
 
 import { BranchPageHeader } from "@/components/branch-shell";
@@ -62,8 +63,21 @@ function doctorDisplay(d: { firstName: string; lastName: string }): string {
 }
 
 export default function ExistingAppointmentsPage() {
-  const [caseNumber, setCaseNumber] = useState("");
-  const [submitted, setSubmitted] = useState<string | null>(null);
+  return (
+    <Suspense fallback={null}>
+      <Inner />
+    </Suspense>
+  );
+}
+
+function Inner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // Seed the search from ?case= so a Back link from View/Edit/Move lands
+  // back on the populated results instead of a blank search.
+  const urlCase = searchParams.get("case") ?? "";
+  const [caseNumber, setCaseNumber] = useState(urlCase);
+  const [submitted, setSubmitted] = useState<string | null>(urlCase || null);
   const [results, setResults] = useState<Appt[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,6 +118,8 @@ export default function ExistingAppointmentsPage() {
     }
     setError(null);
     setSubmitted(trimmed);
+    // Reflect the search in the URL so a Back link can restore these results.
+    router.replace(`/branch/existing-appointments?case=${encodeURIComponent(trimmed)}`);
   }
 
   return (
