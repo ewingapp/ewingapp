@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { CalendarCheck2, Plus, ChevronDown, User } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+import { CalendarCheck2, Plus, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type NavItem = { href: string; label: string };
@@ -68,6 +68,17 @@ function TodayCounter() {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [loggingOut, startLogout] = useTransition();
+
+  async function logout() {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // Cookie clear + redirect are best-effort; fall through regardless.
+    }
+    startLogout(() => router.push("/login"));
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -87,17 +98,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Plus className="size-4" />
               New Appointment
             </Link>
-            <button
-              type="button"
-              className="flex items-center gap-2 text-sm text-slate-700 hover:text-slate-900"
-            >
+            <div className="flex items-center gap-2 text-sm text-slate-700">
               <span>
                 Welcome, <span className="font-medium">User</span>
               </span>
               <span className="grid place-items-center size-7 rounded-full bg-slate-100 ring-1 ring-slate-200">
                 <User className="size-4 text-slate-600" />
               </span>
-              <ChevronDown className="size-4 text-slate-400" />
+            </div>
+            <button
+              type="button"
+              onClick={logout}
+              disabled={loggingOut}
+              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ border: "1.5px solid #CBD5E1" }}
+            >
+              <LogOut className="size-4" />
+              Logout
             </button>
           </div>
         </div>
