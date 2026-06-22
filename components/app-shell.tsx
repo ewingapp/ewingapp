@@ -123,8 +123,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <nav
           style={{
             background: "#F8FAFC",
-            borderTop: "2px solid #D1D5DB",
-            borderBottom: "2px solid #D1D5DB",
+            borderTop: "2px solid #06B6D4",
+            borderBottom: "2px solid #06B6D4",
           }}
         >
           <div className="max-w-7xl mx-auto px-6 flex items-center gap-2 sm:gap-4 overflow-x-auto">
