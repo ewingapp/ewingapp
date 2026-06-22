@@ -8,6 +8,7 @@ import { addWeeks, startOfDay } from "date-fns";
 import { ArrowLeft, Loader2, Printer } from "lucide-react";
 
 import { SmartShell } from "@/components/smart-shell";
+import { useActingBranch } from "@/lib/use-acting-branch";
 import { PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -101,6 +102,9 @@ export default function ReschedulePage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const actingBranch = useActingBranch();
+  // Branch sessions go back to their own New Appointment screen; vendors to /schedule.
+  const newApptHref = actingBranch ? "/branch/new-appointment" : "/schedule";
 
   const [appt, setAppt] = useState<Appt | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -230,7 +234,7 @@ export default function ReschedulePage({
       window.sessionStorage.setItem(CLAIMANT_STORAGE_KEY, JSON.stringify(carry));
     }
     setConfirmation(null);
-    router.push("/schedule");
+    router.push(newApptHref);
   }
 
   function handleSaveAnalystInfo() {
@@ -251,13 +255,13 @@ export default function ReschedulePage({
       );
     }
     setConfirmation(null);
-    router.push("/schedule");
+    router.push(newApptHref);
   }
 
   function handleScheduleNewAppointment() {
     window.sessionStorage.removeItem(CLAIMANT_STORAGE_KEY);
     setConfirmation(null);
-    router.push("/schedule");
+    router.push(newApptHref);
   }
 
   return (

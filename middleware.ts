@@ -25,6 +25,16 @@ function isPublic(path: string): boolean {
   return false;
 }
 
+// Shared appointment pages that live outside /branch but are SmartShell-based
+// and scope themselves to the acting branch — so a branch session may use them
+// (View / Edit / Move launched from the branch portal). The vendor-only list
+// at exactly "/appointments" is intentionally excluded.
+function isBranchSharedPage(path: string): boolean {
+  if (path.startsWith("/reschedule/")) return true;
+  if (/^\/appointments\/[^/]+/.test(path)) return true; // /appointments/<id>[/edit]
+  return false;
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (isPublic(pathname)) return NextResponse.next();
@@ -50,6 +60,12 @@ export async function middleware(req: NextRequest) {
   if (isApiPath) {
     if (session) return NextResponse.next();
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Branch sessions may also reach the shared, branch-scoped appointment
+  // pages (View / Edit / Move) even though they live outside /branch.
+  if (session?.kind === "branch" && isBranchSharedPage(pathname)) {
+    return NextResponse.next();
   }
 
   // Vendor pages
